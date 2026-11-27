@@ -309,7 +309,10 @@ enum DemoSeed {
             ],
         ]
 
-        return (bots, ["voyages": voyagesVersions, "cobot": [bots[0].published!], "coach": [bots[2].published!], "home": [homeBot.published!]], conversations, messages)
+        func published(_ id: String) -> [BotVersion] {
+            bots.first { $0.id == id }?.published.map { [$0] } ?? []
+        }
+        return (bots, ["voyages": voyagesVersions, "cobot": published("cobot"), "coach": published("coach"), "home": published("home")], conversations, messages)
     }
 }
 
