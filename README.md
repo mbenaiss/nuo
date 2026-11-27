@@ -7,9 +7,9 @@ you own, with native iPhone, Mac and Apple Watch apps to talk to them. Each agen
 and tools; around them, Nuo keeps your calendar, reminders, documents and data in one place that your bots can read
 and update.
 
-[![Nuo demo: chat with a bot on iPhone, then the Mac app](docs/media/nuo-demo.gif)](docs/media/nuo-demo.mp4)
+[![Nuo demo: chat with a bot on iPhone, then the Mac app](docs/media/nuo-demo.gif)](https://mbenaiss.github.io/nuo/media/nuo-demo.mp4)
 
-Watch the [full demo (56 s)](docs/media/nuo-demo.mp4).
+Watch the [full demo (56 s)](https://mbenaiss.github.io/nuo/media/nuo-demo.mp4).
 
 <p>
   <img src="docs/media/iphone-chat.png" alt="A bot answering with a flight card on iPhone" width="220">
