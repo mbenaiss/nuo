@@ -7,6 +7,16 @@ Three levels, each one building on the previous:
    talk to your own agents. 15 minutes.
 3. [Install it on a server](install.md): a gateway that runs all the time, reachable from anywhere.
 
+The quickest way to levels 2 and 3 is the one-line installer: run on the machine that will host the gateway
+(Debian, Ubuntu or a Mac), it installs the gateway as a service, enrols 2FA and prints a pairing code
+([install.md](install.md#one-line-install)):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/mbenaiss/nuo/main/install.sh | bash
+```
+
+A coding agent can also run it for you: [install-with-an-agent.md](install-with-an-agent.md).
+
 You need a Mac for the apps.
 
 ## Requirements
@@ -49,7 +59,8 @@ xcrun simctl launch booted com.example.nuo -demo   # or your NUO_BUNDLE_ID
 ## 2. Run the gateway on your computer
 
 The gateway runs on macOS or Linux without systemd. Everything it writes stays in `.nuo-local/` at the root of the
-repository (ignored by git).
+repository (ignored by git). This is the setup for trying Nuo or working on its code; to keep a gateway running on
+your Mac as a service, use the [one-line installer](install.md#one-line-install) instead (data in `~/nuo`).
 
 ```sh
 make local-setup    # bun install, then 2FA enrolment: scan the QR code with an authenticator app, keep the recovery codes
@@ -93,8 +104,8 @@ Every other setting is listed in [`deploy/nuo.env.example`](../deploy/nuo.env.ex
 
 ## 3. Install it on a server
 
-See [install.md](install.md): `scripts/install.sh` sets up a Debian or Ubuntu host over ssh, and
-`scripts/deploy-gateway.sh` deploys later changes.
+See [install.md](install.md): the one-line installer runs on the host itself, `scripts/install.sh` sets up a
+Debian or Ubuntu host over ssh from your checkout, and `scripts/deploy-gateway.sh` deploys later changes.
 
 ## Building with your own Apple account
 

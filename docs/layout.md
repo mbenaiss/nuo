@@ -9,7 +9,7 @@ Everything the gateway keeps on its host lives in one folder, `NUO_HOME` (defaul
   os/                     profile-os-setup.sh, profile-os-remove.sh, nuo-agent, nuo-firewall (run with sudo by the user)
   config/                 chmod 700, gateway-wide (and the owner's tools)
     env                   chmod 600: NUO_LOCAL_TOKEN, APNS_*, NUO_PUBLIC_URL, NUO_CF_ACCESS_CLIENT_ID/SECRET,
-                          NUO_TUNNEL_SOURCES, NUO_PROXY_SOURCES, … (systemd EnvironmentFile)
+                          NUO_TUNNEL_SOURCES, NUO_PROXY_SOURCES, … (systemd EnvironmentFile, bun --env-file on macOS)
     apns.p8               chmod 600: APNs key (APNS_KEY_PATH)
     tools.json            live copies, edited here; copied from app/config only when missing,
     machine-tools.json    so a deploy never overwrites them (app/config stays the repo default)

@@ -1,34 +1,111 @@
 # Installing the gateway on a server
 
-This is level 3 of [getting started](getting-started.md): a gateway that runs all the time on a Linux machine you
-control (a home server, a mini PC, a VPS), as a systemd **user** service, for one Linux user, with everything under
-`~/nuo` ([layout.md](layout.md)) and its secrets in `~/.secrets/nuo.env`.
+This is level 3 of [getting started](getting-started.md): a gateway that runs all the time on a machine you control
+(a home server, a mini PC, a VPS, a Mac that stays on), as a service of one user: a systemd **user** service on
+Debian or Ubuntu, a launchd agent on macOS. Everything lives under `~/nuo` ([layout.md](layout.md)) and its secrets
+in `~/.secrets/nuo.env`.
 
 | Script | Does |
 |---|---|
-| `scripts/install.sh` | installs or upgrades: packages, Bun, code, folders, secrets file, systemd unit, then starts the gateway |
+| `install.sh` (repository root) | the [one-line install](#one-line-install): clones or updates the repository, then runs `scripts/install.sh` from it with 2FA enrolment and a pairing code |
+| `scripts/install.sh` | installs, upgrades or removes: packages, Bun, code, folders, secrets file, service, then starts the gateway |
 | `scripts/deploy-gateway.sh` | day-to-day deploy from your checkout: rsync, `bun install`, restart (`NUO_DEPLOY_HOST=user@host`) |
 | `scripts/backup.sh` | one archive with, for every profile, the databases (`sqlite3 .backup`), files, media, docs repo, bots, instructions, memory, dashboards; the profile registry and the live config |
 | `scripts/restore.sh` | checks an archive, stops the gateway, swaps the data in (the old copy is kept), starts it again |
 | `scripts/profile-os-setup.sh` | run with sudo, once per profile other than the owner's: its Linux user, sudoers rule, network rules ([profiles.md](profiles.md)) |
 
-`install.sh`, `backup.sh` and `restore.sh` run on the gateway host, or from your computer with `--host user@host`
-(over ssh).
+`scripts/install.sh`, `backup.sh` and `restore.sh` run on the gateway host, or from your computer with
+`--host user@host` (over ssh).
+
+## One-line install
+
+On the machine that will run the gateway, as the user that will own it (not root):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/mbenaiss/nuo/main/install.sh | bash
+```
+
+It asks a few questions, each with a default (Enter keeps it): the folder of the source checkout, the port, whether
+the local network or only this machine reaches the gateway, service or not, 2FA now or later. It prints its plan and
+waits for a yes, and shows every `sudo` command before asking to run it. Then it:
+
+1. installs `git` with apt when it is missing (macOS: the Xcode Command Line Tools must be there,
+   `xcode-select --install`);
+2. clones the repository into `~/.local/share/nuo`, or updates that checkout (it stops when the checkout has local
+   changes);
+3. runs `scripts/install.sh --from-local` from the checkout: everything listed under [Install](#install), with the
+   service of the platform;
+4. enrols the 2FA second factor when it is not set up yet: a QR code for your authenticator app and ten recovery
+   codes, printed once;
+5. checks `GET /api/health`, lists the agents the gateway found and how to install or log in to the missing ones;
+6. prints a pairing code and the gateway URL to type in the app.
+
+Running it again updates the checkout and the gateway, keeps `~/.secrets/nuo.env` and the data, and skips the 2FA
+enrolment. It opens no port and changes no firewall rule ([Network](#network)).
+
+Options go after `bash -s --`, for example `curl -fsSL <url> | bash -s -- --yes --port 8791`. Each one also has an
+environment variable, for scripts:
+
+| Option | Variable | Default | |
+|---|---|---|---|
+| `--yes` | `NUO_INSTALL_YES=1` | asks | accept the defaults and every confirmation, `sudo` included; needed without a terminal |
+| `--dir <path>` | `NUO_INSTALL_DIR` | `~/.local/share/nuo` | folder of the source checkout |
+| `--repo <url>` | `NUO_INSTALL_REPO` | `https://github.com/mbenaiss/nuo.git` | repository to clone, for a fork |
+| `--ref <ref>` | `NUO_INSTALL_REF` | `main` | branch, tag or commit |
+| `--port <n>` | `NUO_INSTALL_PORT` | `8790` | `NUO_PORT` of a new env file |
+| `--listen all\|local` | `NUO_INSTALL_LISTEN` | `all` | `local` writes `NUO_HOST=127.0.0.1` into a new env file: only this machine (a reverse proxy or tunnel on it) reaches the gateway |
+| `--no-service` | `NUO_INSTALL_SERVICE=0` | service | no systemd unit or launchd agent: you start the gateway yourself (the installer prints the command) |
+| `--no-2fa` | `NUO_INSTALL_2FA=0` | enrol | skip the 2FA enrolment and the pairing code |
+| `--account <label>` | `NUO_INSTALL_ACCOUNT` | user name | label of the 2FA entry in the authenticator app |
+| `--dry-run` | | | print the plan and change nothing (the code it would run is fetched into a temporary folder, removed at the end) |
+| `--uninstall` | | | see [Uninstall](#uninstall) |
+
+A fork installs from its own repository:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/<you>/nuo/main/install.sh | NUO_INSTALL_REPO=https://github.com/<you>/nuo.git bash
+```
+
+A pipe from the network can be cut halfway: the whole script is one function called on its last line, so a
+truncated download defines nothing that runs. Read it before running it if you prefer:
+`curl -fsSL <url> -o install.sh`, then `bash install.sh`.
+
+To let a coding agent do all this for you, see [install-with-an-agent.md](install-with-an-agent.md).
+
+### On macOS
+
+The gateway runs as the launchd agent `local.nuo.gateway` (`~/Library/LaunchAgents/local.nuo.gateway.plist`), with
+Bun reading `~/nuo/config/env` (`bun --env-file`) and its output in `~/Library/Logs/nuo-gateway.log`. A launchd agent
+runs while you are logged in to the Mac. Restart it with `launchctl kickstart -k gui/$(id -u)/local.nuo.gateway`.
+Bun reads the env file a little differently from systemd: it expands `$NAME` and ends an unquoted value at `#`, so
+write a value holding either in double quotes, with `\$` for a literal `$`.
+When the gateway listens on all interfaces and the macOS firewall is on, macOS asks once whether `bun` may accept
+incoming connections: allow it for your iPhone to reach it. The shared browser (`nuo-browser.service`) and the
+profile helpers are Linux only.
+
+The installer does not build the apps. The Mac app needs a signing team: its entitlements include push
+notifications, WeatherKit and a keychain group, which a build signed without a team cannot carry, so it is built in
+Xcode with your account ([getting-started.md](getting-started.md#building-with-your-own-apple-account)).
 
 ## Requirements
 
-- A Debian or Ubuntu host (the script refuses anything else), a user account with sudo for the first install.
-- From your computer: ssh access to that user, and `rsync`.
+- A Debian or Ubuntu host, or a Mac (the script refuses anything else), a user account with sudo for the first
+  install on Linux.
+- From your computer, for `--host`: ssh access to that user, and `rsync`.
 
-Installed by `install.sh` when missing:
+Installed by `scripts/install.sh` when missing, each `sudo` command shown and confirmed first (`--yes` confirms
+them all):
 
-- `git`, `sqlite3`, `rsync`, `curl`, `unzip`, `zstd`, `openssl`, `xvfb`, `xauth` and Chromium (apt, through `sudo`);
-- Bun **1.4.2** in `~/.bun`; a different Bun already installed is left alone, with a warning;
+- `git`, `sqlite3`, `rsync`, `curl`, `unzip`, `zstd`, `openssl`, `xvfb`, `xauth` and Chromium (apt, through `sudo`).
+  On Ubuntu, whose Chromium is a snap, the shared browser stays off until you install Google Chrome. On macOS the
+  script only checks that the tools it needs are there (they come with the Xcode Command Line Tools);
+- Bun **1.4.2** in `~/.bun`, with Bun's own installer; a newer Bun already installed is used as is, an older one
+  stops the script (`bun upgrade`);
 - `loginctl enable-linger <user>` so the user unit runs without a login session.
 
 Installed and logged in by hand, as the gateway user (the script lists which ones it finds). The gateway looks for
-them in `~/.local/bin`, `~/.bun/bin`, `~/.npm-global/bin`, `/home/linuxbrew/.linuxbrew/bin`, `/usr/local/bin`. You
-need at least one agent:
+them in `~/.local/bin`, `~/.bun/bin`, `~/.npm-global/bin`, `/home/linuxbrew/.linuxbrew/bin`, `/opt/homebrew/bin`,
+`/usr/local/bin`. You need at least one agent:
 
 | Agent | Binaries the gateway runs | Install | Login |
 |---|---|---|---|
@@ -53,21 +130,29 @@ scripts/install.sh --host alex@192.0.2.10 --from-local
 `--from-local` sends the gateway from your checkout (with your [private overlay](private-overlay.md) laid over it).
 Without it, the host clones `https://github.com/mbenaiss/nuo.git` (`--repo <url>` or `NUO_REPO_URL` for a fork,
 `--ref <branch>` for another branch). On the host itself: `bash scripts/install.sh`. `--no-service` skips the
-systemd unit (containers, or to start the gateway by hand with `bun run src/index.ts` in `~/nuo/app`).
+service (containers, or to start the gateway by hand with
+`bun --env-file=../config/env run src/index.ts` in `~/nuo/app`).
+
+Other options: `--yes` (confirm every `sudo` command, needed without a terminal), `--port <n>` and
+`--listen all|local` (applied to a new env file only), `--setup-2fa [--account <label>]` (enrol 2FA when it is not
+set up yet), `--pair` (print a pairing code at the end), `--uninstall [--purge]`. `scripts/install.sh --help` lists
+them.
 
 The script:
 
-1. refuses anything but Linux Debian/Ubuntu, and root;
-2. installs the missing packages and Bun;
+1. refuses anything but Debian/Ubuntu and macOS, and root;
+2. installs the missing packages and Bun (Linux), or checks that they are there (macOS);
 3. copies the repository's `gateway/` to `~/nuo/app` and runs `bun install --production`;
 4. initialises `~/nuo/docs` as a git repository and copies the starter dashboards (first run only);
 5. creates the `~/nuo` folders and `~/.secrets` with mode 700;
 6. creates `~/.secrets/nuo.env` (600) from [`deploy/nuo.env.example`](../deploy/nuo.env.example) with a
    random `NUO_LOCAL_TOKEN`, **only when the file does not exist**, and links `~/nuo/config/env` to it;
-7. installs `~/.local/bin/nuo-notify` and the profile helpers in `~/nuo/os`;
-8. installs `nuo-gateway.service` and `nuo-browser.service`, enables linger, restarts the gateway (database
-   migrations run at start) and waits for `GET /api/health`;
-9. prints the next steps.
+7. installs `~/.local/bin/nuo-notify`, and on Linux the profile helpers in `~/nuo/os`;
+8. with `--setup-2fa`, enrols 2FA when it is not set up yet;
+9. on Linux, installs `nuo-gateway.service` and `nuo-browser.service`, enables linger and restarts the gateway; on
+   macOS, installs and loads the launchd agent `local.nuo.gateway`. Database migrations run at start; the script
+   waits for `GET /api/health`;
+10. lists the agents the gateway found, prints a pairing code with `--pair`, then the next steps.
 
 Running it again is safe: it only changes what differs, and restarts the gateway.
 
@@ -226,13 +311,15 @@ messages stay in Nuo.
 
 ```sh
 scripts/backup.sh --host alex@192.0.2.10 --out ~/nuo-backups --with-secrets   # keep a copy first
-ssh alex@192.0.2.10 'systemctl --user disable --now nuo-gateway
-  rm ~/.config/systemd/user/nuo-gateway.service ~/.config/systemd/user/nuo-browser.service ~/.local/bin/nuo-notify
-  systemctl --user daemon-reload'
+curl -fsSL https://raw.githubusercontent.com/mbenaiss/nuo/main/install.sh | bash -s -- --uninstall   # on the host
+scripts/install.sh --host alex@192.0.2.10 --uninstall                           # or from your checkout
 ```
 
-Then remove `~/nuo` and `~/.secrets/nuo.env` (and `~/.secrets/apns.p8`) by hand once the backup is checked,
-and `sudo loginctl disable-linger <user>` if nothing else needs it. Bun, the packages and the agent CLIs stay.
+`--uninstall` stops and removes the service (the systemd units, or the launchd agent and its log), `~/nuo/app`,
+`~/nuo/os` and `~/.local/bin/nuo-notify`; the one-line installer also removes its checkout when it has no local
+changes. Your data in `~/nuo` and `~/.secrets/nuo.env` stay. Add `--purge` to delete them too, for good, once the
+backup is checked (`~/.secrets/apns.p8`, if you made one, stays: remove it by hand). Bun, the packages and the agent
+CLIs stay; on Linux, `sudo loginctl disable-linger <user>` if nothing else needs linger.
 
 ## Profiles
 

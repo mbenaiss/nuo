@@ -55,12 +55,33 @@ The gateway is the only thing the apps talk to. It runs the agents through the
 [Agent Client Protocol](https://agentclientprotocol.com), stores everything on your machine, and sends push
 notifications through APNs. Reach it on your local network, through a VPN, or through a tunnel.
 
-## Quick start
+## Install
+
+On a Debian or Ubuntu machine, or a Mac, as the user that will own the gateway:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/mbenaiss/nuo/main/install.sh | bash
+```
+
+It asks a few questions (each with a default), shows every `sudo` command before running it, then installs Bun and
+the missing packages, clones the repository, runs the gateway as a service (systemd user service on Linux, launchd
+agent on macOS), enrols the 2FA second factor and prints a pairing code. Run it again to update. `bash -s -- --yes`
+accepts every default, `--dry-run` shows the plan without changing anything, `--uninstall` removes it. Options,
+forks and what it changes: [docs/install.md](docs/install.md#one-line-install).
+
+Then install and log in to at least one agent CLI (the installer lists the missing ones and how to install them),
+and build the app in Xcode to pair it ([getting-started.md](docs/getting-started.md#building-with-your-own-apple-account)).
+
+**With a coding agent.** [docs/install-with-an-agent.md](docs/install-with-an-agent.md) holds a prompt to paste into
+Claude Code, Codex, Gemini CLI or another coding agent, which then installs Nuo for you on this machine or on a
+server over ssh, and reports what it did.
+
+**By hand.**
 
 1. **Try the apps without a server**: build the iOS or Mac app in Xcode with the `-demo` launch argument.
-2. **Run the gateway on your computer**: `make local-setup`, `make local-run`, `make local-pair`, then pair the
+2. **Run the gateway from a checkout**: `make local-setup`, `make local-run`, `make local-pair`, then pair the
    app.
-3. **Install it on a server**: `scripts/install.sh --host you@your-server --from-local`.
+3. **Install it on a server from your checkout**: `scripts/install.sh --host you@your-server --from-local`.
 
 Step by step: [docs/getting-started.md](docs/getting-started.md).
 
@@ -69,7 +90,8 @@ Step by step: [docs/getting-started.md](docs/getting-started.md).
 | Topic | |
 |---|---|
 | [Getting started](docs/getting-started.md) | demo mode, local gateway, building with your Apple account |
-| [Server install](docs/install.md) | install, network, upgrade, backup, move, uninstall |
+| [Server install](docs/install.md) | one-line install, network, upgrade, backup, move, uninstall |
+| [Install with an agent](docs/install-with-an-agent.md) | a prompt for a coding agent that installs Nuo for you |
 | [Private overlay](docs/private-overlay.md) | keep your own bots, tools and collections out of the repository |
 | [Security model](docs/security.md) | threat model and the layers that answer it |
 | [Profiles](docs/profiles.md) | sharing a gateway with friends |
