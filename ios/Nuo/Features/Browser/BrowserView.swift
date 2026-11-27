@@ -339,6 +339,8 @@ private struct BrowserCanvas: View {
     @State private var lastDrag: CGSize = .zero
     @State private var lastTap: (time: Date, point: CGPoint)?
     @State private var coasting: Task<Void, Never>?
+    @State private var touch = BrowserTouch()
+    @State private var hold: Task<Void, Never>?
 
     var body: some View {
         GeometryReader { proxy in
@@ -381,23 +383,64 @@ private struct BrowserCanvas: View {
             .contentShape(Rectangle())
             .gesture(SpatialTapGesture().onEnded { value in
                 coasting?.cancel()
+                // A finger that took hold of the page has already said what it meant; clicking on top would undo it.
+                guard !touch.grabbed else { return }
                 onPageTap()
                 model.send(.click(x: value.location.x / size.width, y: value.location.y / size.height, clickCount: tapCount(at: value.location)))
             })
             .simultaneousGesture(
-                DragGesture(minimumDistance: 6)
-                    .onChanged { value in
-                        coasting?.cancel()
-                        let step = CGSize(width: value.translation.width - lastDrag.width, height: value.translation.height - lastDrag.height)
-                        lastDrag = value.translation
-                        model.send(.wheel(x: value.startLocation.x / size.width, y: value.startLocation.y / size.height, dx: -step.width / size.width, dy: -step.height / size.height))
-                    }
-                    .onEnded { value in
-                        lastDrag = .zero
-                        coast(from: value, in: size)
-                    })
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in moved(value, in: size) }
+                    .onEnded { value in ended(value, in: size) })
         #endif
     }
+
+    #if os(iOS)
+    private func moved(_ value: DragGesture.Value, in size: CGSize) {
+        coasting?.cancel()
+        if hold == nil {
+            touch.began()
+            hold = Task { @MainActor in
+                try? await Task.sleep(for: BrowserTouch.hold)
+                guard !Task.isCancelled else { return }
+                touch.held()
+                // Without this the page looks the same whether the finger is about to scroll it or drag something on it.
+                if touch.mode == .armed { Haptics.send() }
+            }
+        }
+        let at = CGPoint(x: value.location.x / size.width, y: value.location.y / size.height)
+        switch touch.moved(translation: value.translation) {
+        case .nothing:
+            break
+        case .scroll:
+            hold?.cancel()
+            let step = CGSize(width: value.translation.width - lastDrag.width, height: value.translation.height - lastDrag.height)
+            lastDrag = value.translation
+            model.send(.wheel(x: value.startLocation.x / size.width, y: value.startLocation.y / size.height, dx: -step.width / size.width, dy: -step.height / size.height))
+        case .press:
+            model.send(.mouse(action: "down", x: value.startLocation.x / size.width, y: value.startLocation.y / size.height))
+            model.send(.mouse(action: "move", x: at.x, y: at.y))
+        case .drag:
+            model.send(.mouse(action: "move", x: at.x, y: at.y))
+        case .release, .coast:
+            break
+        }
+    }
+
+    private func ended(_ value: DragGesture.Value, in size: CGSize) {
+        hold?.cancel()
+        hold = nil
+        lastDrag = .zero
+        switch touch.ended() {
+        case .release:
+            model.send(.mouse(action: "up", x: value.location.x / size.width, y: value.location.y / size.height))
+        case .coast:
+            coast(from: value, in: size)
+        case .nothing, .scroll, .press, .drag:
+            break
+        }
+    }
+    #endif
 
     /// A second tap in the same spot is a double click, as the browser itself would report it: select a word, open an item.
     private func tapCount(at point: CGPoint) -> Int {

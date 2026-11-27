@@ -343,6 +343,7 @@ targets:
       - path: Nuo/Network/ProtocolCoding.swift
       - path: Nuo/Network/WakeProtocol.swift
       - path: Nuo/Features/Browser/BrowserFrame.swift
+      - path: Nuo/Features/Browser/BrowserTouch.swift
       - path: Nuo/Stores/NotificationDestination.swift
       - path: Nuo/Stores/AlertList.swift
       - path: Nuo/Features/Chat/TurnLabels.swift

@@ -572,6 +572,11 @@ Client → server (coordinates and wheel deltas are fractions 0…1 of the frame
 {"type": "ping"}
 ```
 
+The Mac sends `down`, `move` and `up` straight from the mouse. The iPhone has one finger for two jobs, so a finger
+that moves away scrolls, and a finger held still for a moment first (450 ms, confirmed by a haptic tick) takes hold of
+what is under it and sends the same three: without that, a slider, a map or a drag and drop cannot be worked from the
+phone at all. The press is only sent once the finger travels, so a long press that never moves stays a plain click.
+
 Agents raise a login request with the local token (`bun run src/cli.ts browser-login-needed --site … --url …`):
 `POST /api/browser/login-requests {site, url?, botId?}` → `201 LoginRequest` `{id, site, url?, botId?, createdAt,
 status: "pending" | "done", doneAt?}`, then poll `GET /api/browser/login-requests/:id`. The request pushes « Connexion
