@@ -1,0 +1,165 @@
+{
+ "slug": "allocation-bourse",
+ "name": "Allocation Bourse",
+ "icon": "💶",
+ "notion_id": "db-allocation-bourse",
+ "properties": [
+  {
+   "name": "ETF",
+   "type": "title",
+   "config": {
+    "notion_type": "title"
+   }
+  },
+  {
+   "name": "Capital €",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "euro",
+    "notion_format": "euro"
+   }
+  },
+  {
+   "name": "EUR/USD",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "plain",
+    "notion_format": "number"
+   }
+  },
+  {
+   "name": "Paramètres",
+   "type": "relation",
+   "config": {
+    "notion_type": "relation",
+    "database_slug": "allocation-bourse",
+    "relation_type": "single_property"
+   }
+  },
+  {
+   "name": "Pourcentage",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "percent",
+    "notion_format": "percent"
+   }
+  },
+  {
+   "name": "Solde $",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "prop(\"Pourcentage\") * prop(\"Total €\") * prop(\"Taux\")"
+   }
+  },
+  {
+   "name": "Solde € 1",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "prop(\"Pourcentage\") * prop(\"Total €\")"
+   }
+  },
+  {
+   "name": "Taux",
+   "type": "number",
+   "config": {
+    "notion_type": "rollup",
+    "rollup": {
+     "relation": "Paramètres",
+     "property": "EUR/USD",
+     "function": "sum"
+    }
+   }
+  },
+  {
+   "name": "Total €",
+   "type": "number",
+   "config": {
+    "notion_type": "rollup",
+    "rollup": {
+     "relation": "Paramètres",
+     "property": "Capital €",
+     "function": "sum"
+    }
+   }
+  },
+  {
+   "name": "Type",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Paramètres",
+      "color": "gray"
+     },
+     {
+      "name": "ETF",
+      "color": "blue"
+     }
+    ]
+   }
+  }
+ ],
+ "rows": [
+  {
+   "notion_id": "p0000001",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "ETF": "Paramètres",
+    "Capital €": 250,
+    "EUR/USD": 1.17,
+    "Paramètres": [],
+    "Pourcentage": null,
+    "Solde $": null,
+    "Solde € 1": null,
+    "Taux": 0,
+    "Total €": 0,
+    "Type": "Paramètres"
+   }
+  },
+  {
+   "notion_id": "e0000001",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "ETF": "ETF Monde",
+    "Capital €": null,
+    "EUR/USD": null,
+    "Paramètres": [
+     "p0000001"
+    ],
+    "Pourcentage": 0.2,
+    "Solde $": 58.5,
+    "Solde € 1": 50,
+    "Taux": 1.17,
+    "Total €": 250,
+    "Type": "ETF"
+   }
+  },
+  {
+   "notion_id": "e0000002",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "ETF": "ETF US",
+    "Capital €": null,
+    "EUR/USD": null,
+    "Paramètres": [
+     "p0000001"
+    ],
+    "Pourcentage": 0.35,
+    "Solde $": 102.375,
+    "Solde € 1": 87.5,
+    "Taux": 1.17,
+    "Total €": 250,
+    "Type": "ETF"
+   }
+  }
+ ]
+}

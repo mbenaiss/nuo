@@ -1,0 +1,24 @@
+[
+  {
+    "id": "recipes",
+    "name": "Recettes",
+    "description": "Exemple de serveur MCP local : carnet de recettes, menu de la semaine et liste de courses.",
+    "tools": [
+      "search_recipes",
+      "get_recipe",
+      "save_recipe",
+      "week_menu",
+      "shopping_list"
+    ],
+    "command": "/home/alex/.bun/bin/bun",
+    "args": [
+      "run",
+      "/home/alex/mcp/recipes/src/server.ts"
+    ],
+    "cwd": "/home/alex/mcp/recipes",
+    "env": {
+      "DB_PATH": "/home/alex/mcp/recipes/data/recipes.db",
+      "PATH": "/home/alex/.bun/bin:/usr/local/bin:/usr/bin:/bin"
+    }
+  }
+]

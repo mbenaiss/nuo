@@ -1,0 +1,21 @@
+[Unit]
+Description=Nuo Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/nuo/app
+EnvironmentFile=%h/nuo/config/env
+Environment=NUO_HOME=%h/nuo
+Environment=PATH=%h/.local/bin:%h/.bun/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env bun run src/index.ts
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGTERM
+# Only the gateway gets SIGTERM: it notes the turns it cuts, then stops its agents itself.
+KillMode=mixed
+TimeoutStopSec=20
+
+[Install]
+WantedBy=default.target

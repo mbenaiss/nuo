@@ -1,0 +1,40 @@
+name: Doc editor
+
+# The iOS and Mac apps are built and tested on Xcode Cloud (workflows "PR Build" and "Main").
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/DocEditor/**"
+      - "ios/Nuo/Resources/DocEditor/**"
+      - "ios/Nuo/Resources/Pele/**"
+      - ".github/workflows/doc-editor.yml"
+  pull_request:
+    paths:
+      - "ios/DocEditor/**"
+      - "ios/Nuo/Resources/DocEditor/**"
+      - "ios/Nuo/Resources/Pele/**"
+      - ".github/workflows/doc-editor.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  editor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ios/DocEditor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run build
+      # The app ships the built bundle: it must match the sources.
+      - run: git diff --exit-code -- ../Nuo/Resources/DocEditor ../Nuo/Resources/Pele

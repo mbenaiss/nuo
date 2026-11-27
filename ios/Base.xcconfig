@@ -1,0 +1,9 @@
+// Signing identity and defaults shared by every target. Neutral values: a fresh clone builds for the
+// simulator as is. Override them in Local.xcconfig (ignored by git, see Local.xcconfig.example).
+
+DEVELOPMENT_TEAM =
+NUO_BUNDLE_ID = com.example.nuo
+NUO_APP_GROUP = group.com.example.nuo
+NUO_DEFAULT_GATEWAY =
+
+#include? "Local.xcconfig"

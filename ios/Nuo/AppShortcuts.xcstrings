@@ -1,0 +1,76 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "${applicationName} voice mode": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode vocal ${applicationName}"
+          }
+        }
+      }
+    },
+    "Ask ${bot} a question with ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pose une question à ${bot} avec ${applicationName}"
+          }
+        }
+      }
+    },
+    "Ask ${bot} in ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande à ${bot} dans ${applicationName}"
+          }
+        }
+      }
+    },
+    "Ask a bot in ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander à un bot ${applicationName}"
+          }
+        }
+      }
+    },
+    "New conversation with ${bot} in ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle conversation avec ${bot} dans ${applicationName}"
+          }
+        }
+      }
+    },
+    "Open ${bot} in ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre ${bot} dans ${applicationName}"
+          }
+        }
+      }
+    },
+    "Talk to ${bot} with ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parle à ${bot} avec ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

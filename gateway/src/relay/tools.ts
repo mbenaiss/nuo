@@ -1,0 +1,136 @@
+import { existsSync } from "node:fs";
+import { FINANCE_COLLECTIONS } from "../auth/policy";
+import { HttpError } from "../bots/service";
+import type { DataServices } from "../data/service";
+import { REMINDER_TZ } from "../data/reminders";
+import { zonedToUtc } from "../scheduler/cron";
+import { relayRefusalText } from "./whitelist";
+
+/**
+ * The tools a relay session gets besides the calendars and `bot_ask`: each adds one thing and reads only what adding
+ * it needs (a reminder's title to tick it, a collection's columns to fill it), never the rest of the data.
+ */
+export const RELAY_ADD_TOOLS = [
+  {
+    name: "reminder_add",
+    description: "Ajoute un rappel à l'utilisateur (app Nuo). `at` : date et heure locales de Paris, format AAAA-MM-JJTHH:MM ; sans `at`, un rappel sans échéance.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Le rappel, court (ex. « Acheter du pain »)." },
+        at: { type: "string", description: "Échéance, heure de Paris : AAAA-MM-JJTHH:MM." },
+        notes: { type: "string", description: "Détails facultatifs." },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "reminder_done",
+    description: "Coche le rappel ouvert dont le titre contient `title` (3 caractères au moins). Si plusieurs correspondent, seul leur nombre est renvoyé : demande un titre plus précis.",
+    inputSchema: { type: "object", properties: { title: { type: "string", description: "Le titre du rappel, ou une partie assez précise (3 caractères au moins)." } }, required: ["title"] },
+  },
+  {
+    name: "note_add",
+    description: "Ajoute une nouvelle note dans les documents de l'utilisateur (dossier notes/). Ne modifie jamais une note existante.",
+    inputSchema: {
+      type: "object",
+      properties: { title: { type: "string" }, content: { type: "string", description: "Le texte de la note, en Markdown." } },
+      required: ["title", "content"],
+    },
+  },
+  {
+    name: "collection_add",
+    description: "Ajoute un élément à une collection de l'utilisateur (ex. Colis). `values` : colonne → valeur. Une erreur donne les colonnes à remplir. Les collections financières ne sont pas accessibles ainsi.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        collection: { type: "string", description: "Nom ou id de la collection." },
+        values: { type: "object", description: "Valeurs de l'élément, par nom de colonne." },
+      },
+      required: ["collection", "values"],
+    },
+  },
+] as const;
+
+export const RELAY_ADD_TOOL_NAMES: ReadonlySet<string> = new Set(RELAY_ADD_TOOLS.map((t) => t.name));
+
+/** The fewest characters of a title `reminder_done` takes. */
+export const REMINDER_DONE_MIN = 3;
+
+type Args = Record<string, unknown>;
+
+const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+
+function fold(s: string): string {
+  return s.normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase().trim();
+}
+
+function parisInstant(at: string): string {
+  const m = at.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})$/);
+  if (m) return new Date(zonedToUtc(+m[1]!, +m[2]!, +m[3]!, +m[4]!, +m[5]!, REMINDER_TZ)).toISOString();
+  const t = Date.parse(at);
+  if (!Number.isFinite(t)) throw new HttpError(400, `date invalide « ${at} » : utilise le format 2026-11-15T08:00`);
+  return new Date(t).toISOString();
+}
+
+function slug(title: string): string {
+  return fold(title).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "note";
+}
+
+/** Runs one add tool for a relay session; the answer is the bot's tool result. */
+export async function runRelayTool(d: DataServices, name: string, a: Args, now = Date.now()): Promise<string> {
+  switch (name) {
+    case "reminder_add": {
+      const title = text(a.title);
+      if (!title) throw new HttpError(400, "title requis");
+      const at = text(a.at);
+      const r = d.reminders.create({ title, ...(text(a.notes) ? { notes: text(a.notes) } : {}), ...(at ? { dueAt: parisInstant(at) } : {}) });
+      const when = r.dueAt ? `, ${new Intl.DateTimeFormat("fr-FR", { timeZone: REMINDER_TZ, dateStyle: "full", timeStyle: "short" }).format(new Date(r.dueAt))}` : "";
+      return `Rappel ajouté : « ${r.title} »${when}.`;
+    }
+    case "reminder_done": {
+      const want = fold(text(a.title));
+      // A letter or two would match most reminders: probing them one by one would read their titles.
+      if (want.length < REMINDER_DONE_MIN) throw new HttpError(400, `title : au moins ${REMINDER_DONE_MIN} caractères du titre du rappel`);
+      const open = d.reminders.list("all").filter((r) => !r.doneAt && fold(r.title).includes(want));
+      if (!open.length) return `Aucun rappel ouvert ne correspond à « ${text(a.title)} ».`;
+      if (open.length > 1) return `${open.length} rappels ouverts correspondent à « ${text(a.title)} » : demande à l'utilisateur un titre plus précis.`;
+      d.reminders.done(open[0]!.id);
+      return `Rappel coché : « ${open[0]!.title} ».`;
+    }
+    case "note_add": {
+      const title = text(a.title);
+      if (!title || typeof a.content !== "string") throw new HttpError(400, "title et content requis");
+      const day = new Date(now).toISOString().slice(0, 10);
+      const base = `notes/${day}-${slug(title)}`;
+      let path = `${base}.md`;
+      for (let n = 2; existsSync(d.docs.resolve(path).abs); n++) path = `${base}-${n}.md`;
+      const created = await d.docs.create(path, `# ${title}\n\n${a.content.trim()}\n`);
+      return `Note ajoutée : ${created.path}.`;
+    }
+    case "collection_add": {
+      const ref = text(a.collection);
+      if (!ref) throw new HttpError(400, "collection requise");
+      const all = d.store.collections();
+      const c = all.find((x) => x.id === ref) ?? all.find((x) => fold(x.label) === fold(ref));
+      const finance = (id: string) => FINANCE_COLLECTIONS.has(id) || d.store.collection(id).columns.some((col) => col.type === "money");
+      if (!c) {
+        const names = all.filter((x) => !finance(x.id)).map((x) => x.label);
+        throw new HttpError(404, `aucune collection « ${ref} ». Collections : ${names.join(", ") || "aucune"}.`);
+      }
+      if (finance(c.id)) throw new HttpError(403, relayRefusalText("collection_add"));
+      const values = a.values && typeof a.values === "object" && !Array.isArray(a.values) ? (a.values as Args) : undefined;
+      const columns = () => c.columns.map((col) => `${col.name} (${col.type})`).join(", ");
+      if (!values || !Object.keys(values).length) throw new HttpError(400, `values requis. Colonnes de ${c.label} : ${columns()}.`);
+      try {
+        const row = d.store.insert(c.id, values);
+        return `Ajouté à ${c.label} : « ${row.title || Object.values(values)[0]} ».`;
+      } catch (e) {
+        if (e instanceof HttpError) throw new HttpError(400, `${e.message}. Colonnes de ${c.label} : ${columns()}.`);
+        throw e;
+      }
+    }
+    default:
+      throw new HttpError(404, `outil inconnu ${name}`);
+  }
+}

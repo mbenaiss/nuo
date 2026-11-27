@@ -1,0 +1,109 @@
+#!/bin/bash
+# Installed as /usr/local/lib/nuo/nuo-agent (root:root 0755) by scripts/profile-os-setup.sh. The gateway user may
+# run it, and only it, as each profile's Linux user `nuo-<slug>` through sudo (docs/profiles.md):
+#
+#   nuo-agent --check                          checks the isolation this user relies on, prints "ok"
+#   nuo-agent [KEY=VALUE ...] -- cmd [args]    runs cmd as this user (agents, logins); KEY in a short allow-list
+#   nuo-agent --env-stdin -- cmd [args]        same, variables read from stdin first (command tasks: they may hold
+#                                              secrets, which must never be on a command line), stdin then closed
+#
+# The environment is rebuilt from scratch: HOME, PATH, the allowed variables, then ~/.config/nuo/agents.env (the
+# profile's own API keys). cmd runs in its own session; SIGTERM/SIGINT/SIGHUP are passed to its whole process
+# group, and a watchdog kills that group when sudo (the gateway's child) disappears without a signal.
+set -uo pipefail
+
+me="$(id -un)"
+case "$me" in
+  nuo-*) ;;
+  *) echo "nuo-agent: must run as a nuo-* user, not $me" >&2; exit 126 ;;
+esac
+home="$(getent passwd "$me" | cut -d: -f6)"
+[[ -n "$home" && -d "$home" ]] || { echo "nuo-agent: home of $me is missing" >&2; exit 126; }
+umask 007
+cd "$home" 2>/dev/null || true
+
+if [[ "${1-}" == --check ]]; then
+  fail() { echo "$1"; exit 1; }
+  [[ -O "$home" ]] || fail "home $home is not owned by $me"
+  perms="$(stat -c %a "$home")"
+  [[ "${perms: -1}" == 0 ]] || fail "home $home is readable by others ($perms)"
+  if [[ -n "${SUDO_USER-}" ]]; then
+    owner_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+    if [[ -n "$owner_home" ]] && ls "$owner_home" >/dev/null 2>&1; then fail "$owner_home is readable by $me"; fi
+  fi
+  grep -qx "$me" /run/nuo/firewall 2>/dev/null || fail "the network rules for $me are not loaded (nuo-firewall.service)"
+  echo ok
+  exit 0
+fi
+
+path="$home/.local/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin:/srv/nuo/runtime/bin"
+# The CLIs are shared, root-owned installs: a profile user cannot update them, the owner does.
+vars=("HOME=$home" "USER=$me" "LOGNAME=$me" "SHELL=/bin/bash" "PATH=$path" "TMPDIR=$home/.tmp" "XDG_CONFIG_HOME=$home/.config" "XDG_CACHE_HOME=$home/.cache" "DISABLE_AUTOUPDATER=1")
+mkdir -p "$home/.tmp"
+
+identity() { [[ "$1" =~ ^(HOME|USER|LOGNAME|SHELL|SUDO_.*|LD_.*)$ ]]; }
+add_line() {
+  local line="$1" k v
+  [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]] || return 0
+  k="${BASH_REMATCH[2]}"
+  v="${BASH_REMATCH[3]}"
+  identity "$k" && return 0
+  if [[ ${#v} -ge 2 && ( ( "${v:0:1}" == '"' && "${v: -1}" == '"' ) || ( "${v:0:1}" == "'" && "${v: -1}" == "'" ) ) ]]; then v="${v:1:${#v}-2}"; fi
+  vars+=("$k=$v")
+}
+
+if [[ -r "$home/.config/nuo/agents.env" ]]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+    add_line "$line"
+  done <"$home/.config/nuo/agents.env"
+fi
+
+stdin_env=0
+while (($#)) && [[ "$1" != -- ]]; do
+  case "$1" in
+    --env-stdin) stdin_env=1 ;;
+    LANG=* | LC_ALL=* | TZ=* | TERM=* | NO_BROWSER=* | CODEX_PATH=*) vars+=("$1") ;;
+    *) echo "nuo-agent: refused argument ${1%%=*}" >&2; exit 2 ;;
+  esac
+  shift
+done
+[[ "${1-}" == -- ]] && shift
+(($#)) || { echo "nuo-agent: no command" >&2; exit 2; }
+
+if ((stdin_env)); then
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && break
+    add_line "$line"
+  done
+  exec </dev/null
+fi
+
+parent=$PPID
+setsid env -i "${vars[@]}" "$@" <&0 &
+child=$!
+relay() { kill "-$1" -- "-$child" 2>/dev/null; }
+trap 'relay TERM' TERM
+trap 'relay INT' INT
+trap 'relay HUP' HUP
+(
+  nap=""
+  trap 'kill $nap 2>/dev/null; exit 0' TERM
+  while kill -0 "$child" 2>/dev/null; do
+    if [[ ! -d "/proc/$parent" ]]; then
+      kill -TERM -- "-$child" 2>/dev/null
+      sleep 3
+      kill -KILL -- "-$child" 2>/dev/null
+      exit 0
+    fi
+    sleep 2 &
+    nap=$!
+    wait "$nap"
+  done
+) </dev/null >/dev/null 2>&1 &
+watchdog=$!
+code=0
+wait "$child" || code=$?
+while kill -0 "$child" 2>/dev/null; do wait "$child" || code=$?; done
+kill "$watchdog" 2>/dev/null
+exit "$code"

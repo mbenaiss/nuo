@@ -1,0 +1,9 @@
+**Orb** — Un galet crème presque abstrait, deux traits espresso et une lueur orange intérieure : la piste la plus discrète, proche d’un objet. Au repos, le regard est horizontal ; en réflexion, il s’oriente vers le haut et le cœur lumineux se concentre. La lumière pourrait rythmer le travail et la parole, puis s’atténuer au sommeil ; le contour reste simple en monochrome.
+
+**Nu-fox** — Une tête de renard orange et crème, construite en grandes formes géométriques, qui évoque la vivacité et la précision. La réflexion se traduit par une légère inclinaison et une asymétrie du regard, sans accessoire. Les oreilles et le museau donnent une silhouette identifiable ; les yeux pourraient porter les transitions entre écoute, action et repos.
+
+**Owl** — Une chouette espresso aux disques oculaires crème et au bec orange, calme et attentive. La pose de réflexion déplace les pupilles vers le haut et abaisse légèrement une paupière. Les grands aplats privilégient la lecture en petit format ; le regard et les paupières permettraient de décliner les autres états, tandis que les aigrettes identifient la silhouette monochrome.
+
+**Wisp** — Un ruban de vapeur orangé forme un seul volume fluide, chaleureux et expressif. Au repos, la pointe s’élève ; en réflexion, elle se recourbe davantage et les yeux deviennent obliques. L’étirement, l’ondulation et le repli de cette forme pourraient accompagner travail, parole, réussite et sommeil ; son contour porte l’identité même sans couleur.
+
+**Bot** — Un appareil compagnon crème, avec écran espresso, deux points lumineux et un trait neutre, suggère un outil fiable et tangible. En réflexion, le regard se décale et le trait devient une barre orange segmentée de progression. L’affichage et le bandeau lumineux pourraient distinguer les autres états ; la silhouette seule reste volontairement sobre et plus générique que celles des animaux.

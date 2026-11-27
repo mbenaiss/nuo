@@ -1,0 +1,47 @@
+#!/bin/bash
+# Installed as /usr/local/lib/nuo/nuo-firewall and run by nuo-firewall.service (scripts/profile-os-setup.sh).
+# For every user listed in /etc/nuo/profiles: loopback only to the gateway port and to its own browser's DevTools
+# port, DNS anywhere, no private or link-local network (the home network, Tailscale's 100.64/10), everything else
+# (the internet) allowed. The DevTools port is 29000 + uid (gateway/src/browser/profile.ts): the user's agents may
+# connect to it, and its Chrome may answer there, only on connections it did not open (the gateway's live view).
+# Rebuilt from scratch at each run; /run/nuo/firewall lists the users covered, which the launcher checks.
+set -euo pipefail
+
+GATEWAY_PORT=8790
+CDP_PORT_BASE=29000
+if [[ -r /etc/nuo/firewall.conf ]]; then
+  port="$(sed -n 's/^GATEWAY_PORT=\([0-9][0-9]*\)$/\1/p' /etc/nuo/firewall.conf | tail -1)"
+  [[ -n "$port" ]] && GATEWAY_PORT="$port"
+fi
+mapfile -t users < <(grep -E '^nuo-[a-z][a-z0-9-]{1,23}$' /etc/nuo/profiles 2>/dev/null || true)
+
+rules() {
+  local ipt="$1"
+  shift
+  $ipt -w -N NUO_OUT 2>/dev/null || $ipt -w -F NUO_OUT
+  $ipt -w -N NUO_PROFILE 2>/dev/null || $ipt -w -F NUO_PROFILE
+  $ipt -w -C OUTPUT -j NUO_OUT 2>/dev/null || $ipt -w -I OUTPUT 1 -j NUO_OUT
+  $ipt -w -A NUO_PROFILE -o lo -p tcp --dport "$GATEWAY_PORT" -j RETURN
+  $ipt -w -A NUO_PROFILE -p udp --dport 53 -j RETURN
+  $ipt -w -A NUO_PROFILE -p tcp --dport 53 -j RETURN
+  $ipt -w -A NUO_PROFILE -o lo -j REJECT
+  for net in "$@"; do $ipt -w -A NUO_PROFILE -d "$net" -j REJECT; done
+  local u uid port
+  for u in "${users[@]}"; do
+    uid="$(id -u "$u" 2>/dev/null)" || continue
+    port=$((CDP_PORT_BASE + uid))
+    if ((port <= 65535)); then
+      $ipt -w -A NUO_OUT -m owner --uid-owner "$u" -o lo -p tcp --dport "$port" -j RETURN
+      $ipt -w -A NUO_OUT -m owner --uid-owner "$u" -o lo -p tcp --sport "$port" -m conntrack --ctstate ESTABLISHED -j RETURN
+    fi
+    $ipt -w -A NUO_OUT -m owner --uid-owner "$u" -j NUO_PROFILE
+  done
+}
+
+rules iptables 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16 100.64.0.0/10
+v6=1
+command -v ip6tables >/dev/null && rules ip6tables ::1/128 fc00::/7 fe80::/10 || v6=0
+
+install -d -m 0755 /run/nuo
+if ((v6)); then printf '%s\n' "${users[@]}" >/run/nuo/firewall; else : >/run/nuo/firewall; echo "nuo-firewall: ip6tables failed" >&2; exit 1; fi
+chmod 0644 /run/nuo/firewall

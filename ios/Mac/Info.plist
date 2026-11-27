@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Nuo</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>nuo</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>To transcribe your meetings, Nuo records the other participants' audio to a temporary file on this Mac. It's transcribed at the end of the meeting, by your gateway or on the Mac, then deleted, at the latest at the next meeting.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Nuo shows your calendars, works out when you're free and lets your bots read, create and edit your events, iCloud included, when you ask them. You choose what they can do in Settings › Bot Access.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Nuo connects to your gateway on the local network.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo only reads your location when a request comes in.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo only reads your location when a request comes in.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Nuo listens to your voice so you can talk with your bots and, during a meeting you transcribe, records it to a temporary file on this Mac, deleted once transcribed, at the latest at the next meeting.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Your voice is transcribed on the Mac.</string>
+	<key>NuoAppGroup</key>
+	<string>$(NUO_APP_GROUP)</string>
+	<key>NuoAppIdentifier</key>
+	<string>$(NUO_BUNDLE_ID)</string>
+	<key>NuoDefaultGateway</key>
+	<string>$(NUO_DEFAULT_GATEWAY)</string>
+</dict>
+</plist>

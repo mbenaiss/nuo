@@ -1,0 +1,125 @@
+{
+ "slug": "carnet-route",
+ "name": "Carnet de route",
+ "icon": "✈️",
+ "notion_id": "db-voyage",
+ "properties": [
+  {
+   "name": "Dépense",
+   "type": "title",
+   "config": {
+    "notion_type": "title"
+   }
+  },
+  {
+   "name": "Montant €",
+   "type": "number",
+   "config": {
+    "format": "euro",
+    "notion_type": "number"
+   }
+  },
+  {
+   "name": "Catégorie",
+   "type": "select",
+   "config": {
+    "options": [
+     {
+      "name": "Transport",
+      "color": "blue"
+     },
+     {
+      "name": "Repas",
+      "color": "green"
+     }
+    ],
+    "notion_type": "select"
+   }
+  },
+  {
+   "name": "Jour",
+   "type": "date",
+   "config": {
+    "notion_type": "date"
+   }
+  },
+  {
+   "name": "Remboursé",
+   "type": "checkbox",
+   "config": {
+    "notion_type": "checkbox"
+   }
+  },
+  {
+   "name": "Taux TVA",
+   "type": "number",
+   "config": {
+    "format": "percent",
+    "notion_type": "number"
+   }
+  },
+  {
+   "name": "Avec TVA",
+   "type": "formula",
+   "config": {
+    "expression": "prop(\"Montant €\") * 1.2",
+    "notion_type": "formula"
+   }
+  },
+  {
+   "name": "Parent",
+   "type": "relation",
+   "config": {
+    "database_slug": "carnet-route",
+    "notion_type": "relation"
+   }
+  },
+  {
+   "name": "Créé",
+   "type": "created_time",
+   "config": {
+    "notion_type": "created_time"
+   }
+  }
+ ],
+ "rows": [
+  {
+   "notion_id": "v0000001",
+   "created_at": "2026-07-18T08:00:00.000Z",
+   "updated_at": "2026-07-18T08:00:00.000Z",
+   "properties": {
+    "Dépense": "Vol aller",
+    "Montant €": 250.5,
+    "Catégorie": "Transport",
+    "Jour": {
+     "start": "2026-07-18",
+     "end": null
+    },
+    "Remboursé": false,
+    "Avec TVA": 300.6,
+    "Parent": [],
+    "Taux TVA": 0.2
+   }
+  },
+  {
+   "notion_id": "v0000002",
+   "created_at": "2026-07-19T08:00:00.000Z",
+   "updated_at": "2026-07-19T08:00:00.000Z",
+   "properties": {
+    "Dépense": "Taxi aéroport",
+    "Montant €": 30,
+    "Catégorie": "Taxi",
+    "Jour": {
+     "start": "2026-07-18",
+     "end": null
+    },
+    "Remboursé": true,
+    "Avec TVA": 36,
+    "Parent": [
+     "v0000001"
+    ],
+    "Taux TVA": 0.1
+   }
+  }
+ ]
+}

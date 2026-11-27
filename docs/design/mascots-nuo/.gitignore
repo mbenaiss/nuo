@@ -1,0 +1,6 @@
+# Unchosen concepts and the Codex log stay local; Orb is the mascot.
+codex.log
+concepts/nufox_*
+concepts/owl_*
+concepts/wisp_*
+concepts/bot_*

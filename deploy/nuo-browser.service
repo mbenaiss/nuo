@@ -1,0 +1,18 @@
+[Unit]
+Description=Nuo shared browser (Chrome in Xvfb, DevTools on 127.0.0.1)
+# Started on demand by the gateway (and `bun run src/cli.ts browser-start`), stopped when idle: never enabled.
+
+[Service]
+Type=simple
+Environment=NUO_HOME=%h/nuo
+# NUO_BROWSER_* only: the gateway env file holds secrets Chrome must not inherit.
+EnvironmentFile=-%h/nuo/config/browser.env
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env bash %h/nuo/app/scripts/nuo-chrome.sh
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=15
+MemoryHigh=1536M
+MemoryMax=2G
+Nice=5

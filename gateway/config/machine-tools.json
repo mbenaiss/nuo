@@ -1,0 +1,169 @@
+[
+  {
+    "id": "gog",
+    "name": "Google Agenda/Gmail/Drive",
+    "kind": "cli",
+    "description": "Google Workspace en ligne de commande : agenda, Gmail, Drive, Tasks et Contacts.",
+    "usage": "Compte : alex@example.com ; toujours passer --account. Si GOG_KEYRING_PASSWORD manque, le charger depuis ~/.env sans l'afficher.\n`gog calendar events --account alex@example.com --all --from today --days 2 --plain` · `gog gmail search 'is:unread newer_than:2d' --account alex@example.com --max 10 --plain`\n`gog drive search '<texte>' --account alex@example.com --plain` · `gog tasks lists list --account alex@example.com` ; créer un événement : `gog calendar create primary --help`.",
+    "binary": "gog",
+    "needsShell": true
+  },
+  {
+    "id": "ntn",
+    "name": "Notion",
+    "kind": "cli",
+    "description": "CLI Notion : lire, créer et modifier des pages, interroger les bases de données.",
+    "usage": "`ntn pages get <page-id>` (Markdown) · `ntn pages create --parent page:<id> --content '# Titre\\n\\nTexte'` · `ntn pages edit <page-id> --content '…'`\n`ntn datasources query <url-ou-id> --limit 20 --json` · recherche par titre : `ntn api /v1/search -d '{\"query\":\"…\"}'`. Nécessite NOTION_KEYRING=0 (déjà dans ~/.zshrc).",
+    "binary": "ntn",
+    "needsShell": true
+  },
+  {
+    "id": "gh",
+    "name": "GitHub",
+    "kind": "cli",
+    "description": "CLI GitHub : dépôts, pull requests, issues et CI.",
+    "usage": "`gh pr list -R <owner>/<repo>` · `gh pr view <n> -R <owner>/<repo> --comments` · `gh run list -R <owner>/<repo> --limit 5`\n`gh issue create -R <owner>/<repo> --title '…' --body '…'` · `gh api <endpoint>` pour le reste.",
+    "binary": "gh",
+    "needsShell": true
+  },
+  {
+    "id": "docker",
+    "name": "Docker (dev)",
+    "kind": "cli",
+    "description": "Conteneurs Docker de la machine dev.",
+    "usage": "`docker ps --format '{{.Names}}\\t{{.Status}}'` · `docker logs --tail 100 <conteneur>` · `docker compose -f <fichier> up -d`.\nPour les conteneurs des autres machines, voir #homelab.",
+    "binary": "docker",
+    "needsShell": true
+  },
+  {
+    "id": "homelab",
+    "name": "Homelab (SSH)",
+    "kind": "cli",
+    "description": "Accès SSH aux machines du réseau local : serveur Docker et nœud Proxmox.",
+    "usage": "`ssh root@192.0.2.27 docker ps` (serveur Docker) · `ssh root@192.0.2.20 'pct exec 102 -- docker ps'` (conteneur 102 du nœud Proxmox)\nNœuds Proxmox : voir #proxmox. Demander confirmation avant tout arrêt, suppression ou redémarrage.",
+    "binary": "ssh",
+    "versionArgs": [
+      "-V"
+    ],
+    "needsShell": true
+  },
+  {
+    "id": "proxmox",
+    "name": "Proxmox",
+    "kind": "cli",
+    "description": "Proxmox VE (pve 192.0.2.20) : conteneurs, VM, ressources et sauvegardes.",
+    "usage": "`ssh root@192.0.2.20 'pvesh get /cluster/resources --type vm --output-format json'` · `ssh root@192.0.2.20 'pct list; qm list'`\n`ssh root@192.0.2.20 'pct exec <ctid> -- <commande>'`. Jamais d'arrêt ni de suppression sans confirmation.",
+    "binary": "ssh",
+    "versionArgs": [],
+    "needsShell": true
+  },
+  {
+    "id": "homeassistant",
+    "name": "Home Assistant",
+    "kind": "cli",
+    "description": "Home Assistant (HAOS sur 192.0.2.25) : état, apps, mises à jour, redémarrages et logs.",
+    "usage": "`ssh root@192.0.2.25 'ha core info'` · `ssh root@192.0.2.25 'ha apps list'` · `ssh root@192.0.2.25 'ha core logs | tail -50'`\nTout injoignable : `ha core restart`, après confirmation.",
+    "binary": "ssh",
+    "versionArgs": [],
+    "needsShell": true
+  },
+  {
+    "id": "playwright",
+    "name": "Chrome (playwright-cli)",
+    "kind": "cli",
+    "description": "Pilote un vrai navigateur Chrome : pages dynamiques, connexions, formulaires et captures d'écran.",
+    "usage": "`playwright-cli open <url>` puis `playwright-cli snapshot` (refs des éléments) · `playwright-cli click <ref>` · `playwright-cli fill <ref> '<texte>'`\n`playwright-cli screenshot` · `playwright-cli close` à la fin. Pour une simple lecture de page, préférer #lightpanda.",
+    "binary": "playwright-cli",
+    "needsShell": true
+  },
+  {
+    "id": "lightpanda",
+    "name": "Lightpanda",
+    "kind": "cli",
+    "description": "Navigateur headless léger pour lire une page web en Markdown.",
+    "usage": "`lightpanda fetch <url> --dump markdown` (rapide, JavaScript partiel).\nSites protégés par un WAF, connexion ou interactions : #playwright.",
+    "binary": "lightpanda",
+    "versionArgs": [
+      "version"
+    ],
+    "needsShell": true
+  },
+  {
+    "id": "ytdlp",
+    "name": "yt-dlp",
+    "kind": "cli",
+    "description": "Téléchargement de vidéos et d'audio (YouTube, X, etc.).",
+    "usage": "`yt-dlp -o '/tmp/%(id)s.%(ext)s' <url>` · audio seul : `yt-dlp -x --audio-format mp3 <url>` · métadonnées : `yt-dlp -j <url>`.",
+    "binary": "yt-dlp",
+    "needsShell": true
+  },
+  {
+    "id": "whisper",
+    "name": "Transcription (Whisper)",
+    "kind": "cli",
+    "description": "Transcription locale d'un fichier audio ou vidéo avec faster-whisper.",
+    "usage": "`whisper-ctranslate2 <fichier> --language fr --model small --compute_type int8 --output_dir /tmp/transcription --output_format txt`\nCPU uniquement : compter environ la durée du média ; extraire l'audio avec #ffmpeg si besoin.",
+    "binary": "whisper-ctranslate2",
+    "needsShell": true
+  },
+  {
+    "id": "ffmpeg",
+    "name": "FFmpeg",
+    "kind": "cli",
+    "description": "Conversion, découpe et analyse de fichiers audio et vidéo.",
+    "usage": "`ffmpeg -i in.mp4 -vn -ac 1 -ar 16000 out.wav` (audio pour transcription) · `ffmpeg -ss 00:01:00 -i in.mp4 -frames:v 1 image.jpg`\n`ffprobe -hide_banner <fichier>` pour la durée et les flux.",
+    "binary": "ffmpeg",
+    "versionArgs": [
+      "-version"
+    ],
+    "needsShell": true
+  },
+  {
+    "id": "rclone",
+    "name": "NAS (rclone)",
+    "kind": "cli",
+    "description": "Fichiers du NAS via rclone (remote nas).",
+    "usage": "`rclone lsd nas:` · `rclone ls nas:<dossier> --max-depth 1` · `rclone copy <source> nas:<dossier>`.\nJamais de `rclone sync` ni de suppression sans confirmation.",
+    "binary": "rclone",
+    "versionArgs": [
+      "version"
+    ],
+    "needsShell": true
+  },
+  {
+    "id": "claude",
+    "name": "Claude Code",
+    "kind": "cli",
+    "description": "Agent Claude Code en mode non interactif, pour déléguer une tâche ou avoir un second avis.",
+    "usage": "`claude -p '<consigne>'` (ajouter `--model <modèle>` au besoin), lancé dans le répertoire concerné ; la réponse arrive sur stdout.",
+    "binary": "claude",
+    "needsShell": true
+  },
+  {
+    "id": "codex",
+    "name": "Codex",
+    "kind": "cli",
+    "description": "Agent Codex (OpenAI) en mode non interactif.",
+    "usage": "`codex exec '<consigne>'` dans le répertoire concerné · `codex review` pour relire les changements en cours d'un dépôt.",
+    "binary": "codex",
+    "needsShell": true
+  },
+  {
+    "id": "gemini",
+    "name": "Gemini CLI",
+    "kind": "cli",
+    "description": "Agent Gemini (Google) en mode non interactif, utile pour les longs contextes.",
+    "usage": "`gemini -p '<consigne>'` (ajouter `-m <modèle>` au besoin) ; le texte passé sur stdin est ajouté à la consigne.",
+    "binary": "gemini",
+    "needsShell": true
+  },
+  {
+    "id": "grok",
+    "name": "Grok CLI",
+    "kind": "cli",
+    "description": "Agent Grok (xAI) en mode non interactif.",
+    "usage": "`grok -p '<consigne>'` : réponse unique sur stdout.",
+    "binary": "grok",
+    "needsShell": true
+  }
+]

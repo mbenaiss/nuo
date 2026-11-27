@@ -1,0 +1,410 @@
+name: Nuo
+options:
+  deploymentTarget:
+    iOS: "26.0"
+    watchOS: "26.0"
+    macOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+# Signing identity: Base.xcconfig, overridden by the untracked Local.xcconfig (see Local.xcconfig.example).
+configFiles:
+  Debug: Base.xcconfig
+  Release: Base.xcconfig
+settings:
+  base:
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    # English keys in code, French in Localization/Localizable.xcstrings (scripts/strings.py).
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+packages:
+  argmax-oss-swift:
+    url: https://github.com/argmaxinc/argmax-oss-swift
+    exactVersion: 1.1.1
+targets:
+  Nuo:
+    type: application
+    platform: iOS
+    scheme: {}
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: Nuo
+      - path: Shared
+    dependencies:
+      - target: NuoWidgets
+      - target: NuoWatch
+      - target: NuoShare
+      - package: argmax-oss-swift
+        product: WhisperKit
+    info:
+      path: Nuo/Info.plist
+      properties:
+        CFBundleDisplayName: Nuo
+        NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
+        NuoAppGroup: "$(NUO_APP_GROUP)"
+        NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        CFBundleName: Nuo
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        NSMicrophoneUsageDescription: "Nuo listens to your voice so you can talk with your bots."
+        NSSpeechRecognitionUsageDescription: "Your voice is transcribed on the iPhone."
+        NSCameraUsageDescription: "To send a photo to a bot."
+        NSPhotoLibraryUsageDescription: "To send a photo to a bot."
+        NSLocalNetworkUsageDescription: "Nuo connects to your gateway on the local network."
+        NSFaceIDUsageDescription: "Face ID unlocks Nuo and confirms sensitive actions (devices, finances, commands)."
+        NSLocationWhenInUseUsageDescription: "For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo doesn't track your location: it only reads it when a request comes in."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "With “Always”, your bots get your location even when Nuo is closed, for example for directions or the weather here. Nuo only reads it when a request comes in, never continuously."
+        NSCalendarsFullAccessUsageDescription: "Nuo shows your calendars, works out when you're free and lets your bots read, create and edit your events, iCloud included, when you ask them. You choose what they can do in Settings › Bot Access."
+        NSHealthShareUsageDescription: "To answer your bots when you ask them about your fitness: activity, cardio, sleep, workouts and weight. Nuo reads Health only when a request comes in, keeps nothing and sends nothing to the gateway beyond the answer. You choose the data shared, and you turn off access in Settings › Bot Access."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UIBackgroundModes: [remote-notification, audio, fetch]
+        BGTaskSchedulerPermittedIdentifiers: ["$(NUO_BUNDLE_ID).calendar-sync"]
+        NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [nuo]
+    entitlements:
+      path: Nuo/Nuo.entitlements
+      properties:
+        aps-environment: development
+        com.apple.developer.weatherkit: true
+        com.apple.developer.healthkit: true
+        com.apple.security.application-groups: ["$(NUO_APP_GROUP)"]
+        keychain-access-groups: ["$(AppIdentifierPrefix)$(NUO_BUNDLE_ID).shared"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID)"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      configs:
+        Release:
+          # Dictation benchmark samples (DEBUG `-dictationBenchmark` only).
+          EXCLUDED_SOURCE_FILE_NAMES: "dictation-bench-*"
+
+  # Widgets, lock screen widgets and the Live Activity / Dynamic Island of a running bot.
+  NuoWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: Widgets
+      - path: Shared
+      - path: Nuo/Network/Protocol.swift
+      - path: Nuo/Design/Mascot
+    info:
+      path: Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Nuo
+        NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
+        NuoAppGroup: "$(NUO_APP_GROUP)"
+        NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Widgets/NuoWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: ["$(NUO_APP_GROUP)"]
+        keychain-access-groups: ["$(AppIdentifierPrefix)$(NUO_BUNDLE_ID).shared"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID).widgets"
+
+  NuoWatch:
+    type: application
+    platform: watchOS
+    scheme: {}
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: Watch
+        excludes: ["Complications/Info.plist", "**/*.entitlements"]
+      - path: Shared
+      - path: Nuo/Network/Protocol.swift
+      - path: Nuo/Design/Mascot
+      - path: Nuo/Features/Dictation/AudioEncoder.swift
+      - path: Nuo/Features/Notes/NoteTemplates.swift
+      - path: Nuo/Cards/ResponseBlockParser.swift
+      - path: Nuo/Cards/CardPayloads.swift
+      - path: Nuo/Cards/WeatherSymbols.swift
+    dependencies:
+      - target: NuoWatchWidgets
+    entitlements:
+      path: Watch/NuoWatch.entitlements
+      properties:
+        com.apple.security.application-groups: ["$(NUO_APP_GROUP)"]
+        keychain-access-groups: ["$(AppIdentifierPrefix)$(NUO_BUNDLE_ID).watch"]
+    info:
+      path: Watch/Info.plist
+      properties:
+        CFBundleDisplayName: Nuo
+        NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
+        NuoAppGroup: "$(NUO_APP_GROUP)"
+        NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        CFBundleName: Nuo
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: "$(NUO_BUNDLE_ID)"
+        AppIdentifierPrefix: $(AppIdentifierPrefix)
+        NSMicrophoneUsageDescription: "Nuo listens to your voice so you can talk with your bots, and records your meetings when you ask it to. The audio goes to your iPhone, then your gateway, to be transcribed, and it's deleted from the Apple Watch as soon as it arrives."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        # Recording goes on with the screen off and the wrist down once started in front (WatchKit, "Enabling Background Sessions").
+        UIBackgroundModes: [audio]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID).watchkitapp"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  # Watch complications (WidgetKit on watchOS).
+  NuoWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: Watch/Complications
+      - path: Nuo/Network/Protocol.swift
+      - path: Watch/Stores/WatchKeychain.swift
+      - path: Shared/WidgetGateway.swift
+      - path: Shared/AppIdentity.swift
+      - path: Shared/WidgetCredentials.swift
+      - path: Shared/WidgetAgenda.swift
+      - path: Shared/WidgetReminders.swift
+      - path: Shared/WidgetReminderText.swift
+      - path: Shared/WidgetLoaders.swift
+    info:
+      path: Watch/Complications/Info.plist
+      properties:
+        CFBundleDisplayName: Nuo
+        NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
+        NuoAppGroup: "$(NUO_APP_GROUP)"
+        NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        AppIdentifierPrefix: $(AppIdentifierPrefix)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Watch/Complications/NuoWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: ["$(NUO_APP_GROUP)"]
+        keychain-access-groups: ["$(AppIdentifierPrefix)$(NUO_BUNDLE_ID).watch"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID).watchkitapp.widgets"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) NUO_WATCH_WIDGETS"
+
+  # Share sheet: send photos, links, text and any file to a bot from other apps.
+  NuoShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: Share
+      - path: Nuo/Network/Protocol.swift
+      - path: Shared/AppIdentity.swift
+      - path: Shared/WidgetCredentials.swift
+    info:
+      path: Share/Info.plist
+      properties:
+        CFBundleDisplayName: Nuo
+        NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
+        NuoAppGroup: "$(NUO_APP_GROUP)"
+        NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsWebPageWithMaxCount: 1
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+              NSExtensionActivationSupportsMovieWithMaxCount: 5
+              NSExtensionActivationSupportsFileWithMaxCount: 10
+              NSExtensionActivationSupportsAttachmentsWithMaxCount: 10
+    entitlements:
+      path: Share/NuoShare.entitlements
+      properties:
+        com.apple.security.application-groups: ["$(NUO_APP_GROUP)"]
+        keychain-access-groups: ["$(AppIdentifierPrefix)$(NUO_BUNDLE_ID).shared"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID).share"
+
+  # Native Mac app. Same bundle id as the iPhone app: one App Store record (universal purchase) and the gateway's
+  # single APNs topic reaches both. Shares Nuo/ except the iOS app shell; the Mac UI lives in Mac/.
+  NuoMac:
+    type: application
+    platform: macOS
+    scheme: {}
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: Mac
+        excludes: ["Info.plist", "*.entitlements"]
+      - path: Nuo
+        excludes:
+          - "App/**"
+          - "Info.plist"
+          # The iPhone's permission texts; the Mac has its own in Mac/InfoPlist.xcstrings.
+          - "InfoPlist.xcstrings"
+          - "*.entitlements"
+          - "Assets.xcassets"
+          - "Features/Voice/**"
+          - "Features/Home/**"
+          - "Features/Settings/**"
+          - "Features/Chat/ChatView.swift"
+          - "Features/Chat/Composer.swift"
+          - "Features/Chat/ComposerTextView.swift"
+          - "Features/Chat/CommandSheets.swift"
+          - "Features/Recordings/**"
+      - path: Shared/AppIdentity.swift
+      - path: Shared/WidgetCredentials.swift
+      - path: Shared/WidgetGateway.swift
+      - path: Shared/ISO8601Wire.swift
+      - path: Shared/WidgetSnapshot.swift
+      - path: Shared/WidgetAgenda.swift
+      - path: Shared/WidgetReminders.swift
+      - path: Shared/WidgetReminderText.swift
+      - path: Shared/WidgetLoaders.swift
+      - path: Shared/VoiceRecording.swift
+    dependencies:
+      - package: argmax-oss-swift
+        product: WhisperKit
+    info:
+      path: Mac/Info.plist
+      properties:
+        CFBundleDisplayName: Nuo
+        NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
+        NuoAppGroup: "$(NUO_APP_GROUP)"
+        NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        LSApplicationCategoryType: public.app-category.productivity
+        NSMicrophoneUsageDescription: "Nuo listens to your voice so you can talk with your bots and, during a meeting you transcribe, records it to a temporary file on this Mac, deleted once transcribed, at the latest at the next meeting."
+        NSSpeechRecognitionUsageDescription: "Your voice is transcribed on the Mac."
+        NSAudioCaptureUsageDescription: "To transcribe your meetings, Nuo records the other participants' audio to a temporary file on this Mac. It's transcribed at the end of the meeting, by your gateway or on the Mac, then deleted, at the latest at the next meeting."
+        NSLocalNetworkUsageDescription: "Nuo connects to your gateway on the local network."
+        NSLocationUsageDescription: "For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo only reads your location when a request comes in."
+        NSLocationWhenInUseUsageDescription: "For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo only reads your location when a request comes in."
+        NSCalendarsFullAccessUsageDescription: "Nuo shows your calendars, works out when you're free and lets your bots read, create and edit your events, iCloud included, when you ask them. You choose what they can do in Settings › Bot Access."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [nuo]
+    entitlements:
+      path: Mac/NuoMac.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.device.audio-input: true
+        com.apple.security.files.user-selected.read-write: true
+        com.apple.security.files.bookmarks.app-scope: true
+        com.apple.security.personal-information.location: true
+        com.apple.security.personal-information.calendars: true
+        com.apple.developer.aps-environment: development
+        com.apple.developer.weatherkit: true
+        keychain-access-groups: ["$(AppIdentifierPrefix)$(NUO_BUNDLE_ID).shared"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID)"
+        PRODUCT_NAME: Nuo
+        PRODUCT_MODULE_NAME: NuoMac
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+      configs:
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: "dictation-bench-*"
+
+  # Unit tests of the Mac app's self-contained logic, compiled on their own: no host app to launch.
+  NuoMacTests:
+    type: bundle.unit-test
+    platform: macOS
+    scheme:
+      testTargets: [NuoMacTests]
+    sources:
+      - path: Localization/Localizable.xcstrings
+      - path: MacTests
+      - path: Mac/App/MacLinkOverride.swift
+      - path: Mac/App/QuitPrompt.swift
+      - path: Nuo/Features/DeviceTools/DeviceToolArgs.swift
+      - path: Nuo/Features/DeviceTools/HealthReport.swift
+      - path: Nuo/Features/DeviceTools/WorkoutPlanDraft.swift
+      - path: Mac/Folders/LocalFolderTools.swift
+      - path: Nuo/Cards/Scan/IngredientsReader.swift
+      - path: Nuo/Network/Protocol.swift
+      - path: Nuo/Network/ProtocolCoding.swift
+      - path: Nuo/Features/Browser/BrowserFrame.swift
+      - path: Nuo/Stores/NotificationDestination.swift
+      - path: Nuo/Stores/AlertList.swift
+      - path: Nuo/Features/Chat/TurnLabels.swift
+      - path: Nuo/Features/Chat/StopGuard.swift
+      - path: Nuo/Features/Chat/TranscriptEdge.swift
+      - path: Nuo/Features/Chat/TranscriptRows.swift
+      - path: Nuo/Cards/TableColumns.swift
+      - path: Mac/Views/Bots/TranscriptEndMark.swift
+      - path: Nuo/Stores/TranscriptMerge.swift
+      - path: Nuo/Features/Files/DocFileKind.swift
+      - path: Nuo/Features/Files/DocLink.swift
+      - path: Nuo/Features/Files/DocShare.swift
+      - path: Nuo/Features/Search/ConversationSearchText.swift
+      - path: Nuo/Stores/BotPins.swift
+      - path: Nuo/Stores/UserNamePreference.swift
+      - path: Shared/ISO8601Wire.swift
+      - path: Mac/Meetings/MeetingSpeech.swift
+      - path: Mac/Meetings/MeetingTranscript.swift
+      - path: Mac/Meetings/MeetingEngine.swift
+      - path: Mac/Meetings/MeetingRecovery.swift
+      - path: Mac/Meetings/MeetingNote.swift
+      - path: Nuo/Features/Notes/NoteTemplates.swift
+      - path: Nuo/Features/Notes/RecordingNote.swift
+      - path: Nuo/Features/Notes/PhoneRecording.swift
+      - path: Nuo/Features/Recordings/RecordingAudio.swift
+      - path: Nuo/Features/Recordings/RelayPlan.swift
+      - path: Shared/VoiceRecording.swift
+      - path: Shared/WatchAsk.swift
+      - path: Watch/Ask/AskReply.swift
+      - path: Watch/Ask/PhoneTurnFeed.swift
+      - path: Watch/Network/TurnUpdate.swift
+      - path: Watch/Recorder/CaptureRule.swift
+      # Watch screens rendered to PNG by WatchCaptureTests.
+      - path: Watch/Views/QuickScreens.swift
+      - path: Watch/Views/WatchTheme.swift
+      - path: Watch/Views/CardRow.swift
+      - path: Watch/Views/MessageViews.swift
+      - path: Watch/Views/BotRows.swift
+      - path: Watch/Content/MessageContent.swift
+      - path: Watch/Content/WatchTable.swift
+      - path: Watch/Content/IngredientRisk.swift
+      - path: Nuo/Features/Dictation/CompiledModelCache.swift
+      - path: Nuo/Features/Dictation/WhisperUsage.swift
+      - path: Nuo/Features/Voice/Audio/RecognizerFailure.swift
+      - path: Nuo/Features/Dictation/CloudAudio.swift
+      - path: Nuo/Features/Dictation/Disfluency.swift
+      - path: Nuo/Features/Dictation/DictationLedger.swift
+      - path: Nuo/Features/Dictation/DictationController.swift
+      - path: Nuo/Features/Dictation/AudioEncoder.swift
+      - path: Nuo/Cards/MermaidRenderer.swift
+      - path: Nuo/Cards/ResponseBlockParser.swift
+      - path: Nuo/Cards/TextExcerpt.swift
+      - path: Nuo/Cards/CardPayloads.swift
+      - path: Nuo/Cards/ArtifactSave.swift
+      - path: Nuo/Cards/WeatherSymbols.swift
+      - path: Nuo/Cards/QuestionReply.swift
+      - path: Nuo/Network/SecretsProtocol.swift
+      - path: Nuo/Features/Files/DocMerge.swift
+      - path: Nuo/Features/Calendar/WallClock.swift
+      - path: Nuo/Features/Reminders/RepeatText.swift
+      - path: Nuo/Features/Schedules/ScheduleRule.swift
+      - path: Shared/WidgetReminders.swift
+      - path: Nuo/Features/Memory/MemoryDocument.swift
+      - path: Nuo/Features/Metrics/LatencyFormat.swift
+      - path: Mac/Views/Bots/ComposerRules.swift
+      - path: Nuo/Features/Tools/ToolTag.swift
+      - path: Nuo/Auth/PairingRestore.swift
+      - path: Shared/AppIdentity.swift
+      - path: Nuo/Resources/Pele/pele.js
+        buildPhase: resources
+      # Xcode Cloud runs the tests on a machine without the repository: fixtures ship in the bundle.
+      - path: Nuo/Features/Dictation/Benchmark/dictation-bench-60s.wav
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(NUO_BUNDLE_ID).mactests"
+        GENERATE_INFOPLIST_FILE: YES

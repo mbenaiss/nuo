@@ -1,0 +1,130 @@
+{
+ "slug": "assets",
+ "name": "Assets",
+ "icon": "📊",
+ "notion_id": "db-assets",
+ "properties": [
+  {
+   "name": "Instrument",
+   "type": "title",
+   "config": {
+    "notion_type": "title"
+   }
+  },
+  {
+   "name": "Devise",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "USD",
+      "color": "green"
+     },
+     {
+      "name": "EUR",
+      "color": "blue"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Nom",
+   "type": "text",
+   "config": {
+    "notion_type": "rich_text"
+   }
+  },
+  {
+   "name": "Position",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "plain",
+    "notion_format": "number"
+   }
+  },
+  {
+   "name": "Prix",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "plain",
+    "notion_format": "number_with_commas"
+   }
+  },
+  {
+   "name": "Prix en €",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "if(prop(\"Devise\") == \"USD\", round(prop(\"Prix\") * 0.86, 2), prop(\"Prix\"))"
+   }
+  },
+  {
+   "name": "Total",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "round(prop(\"Prix en €\") * prop(\"Position\"), 2)"
+   }
+  },
+  {
+   "name": "Type",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Bourse",
+      "color": "blue"
+     },
+     {
+      "name": "Crypto",
+      "color": "orange"
+     },
+     {
+      "name": "Métaux",
+      "color": "yellow"
+     },
+     {
+      "name": "PER",
+      "color": "purple"
+     }
+    ]
+   }
+  }
+ ],
+ "rows": [
+  {
+   "notion_id": "a0000001",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Instrument": "ETH",
+    "Devise": "USD",
+    "Nom": "Ether",
+    "Position": 2,
+    "Prix": 2000,
+    "Prix en €": 1720,
+    "Total": 3440,
+    "Type": "Crypto"
+   }
+  },
+  {
+   "notion_id": "a0000002",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Instrument": "Amundi World",
+    "Devise": "EUR",
+    "Nom": "ETF Monde",
+    "Position": 10,
+    "Prix": 100.5,
+    "Prix en €": 100.5,
+    "Total": 1005,
+    "Type": "PER"
+   }
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy - NSMicrophoneUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Nuo listens to your voice so you can talk with your bots, and records your meetings when you ask it to. The audio goes to your iPhone, then your gateway, to be transcribed, and it's deleted from the Apple Watch as soon as it arrives."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuo écoute ta voix pour parler avec tes bots et enregistre tes réunions quand tu le lui demandes. L'audio part vers ton iPhone puis ta passerelle pour être transcrit, et il est supprimé de la montre dès qu'il est arrivé."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

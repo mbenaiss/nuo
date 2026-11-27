@@ -1,0 +1,132 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSAudioCaptureUsageDescription": {
+      "comment": "Privacy - NSAudioCaptureUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "To transcribe your meetings, Nuo records the other participants' audio to a temporary file on this Mac. It's transcribed at the end of the meeting, by your gateway or on the Mac, then deleted, at the latest at the next meeting."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour transcrire tes réunions, Nuo enregistre le son des autres participants dans un fichier temporaire sur ce Mac. Il est transcrit à la fin de la réunion, par ta passerelle ou sur le Mac, puis supprimé, au plus tard à la réunion suivante."
+          }
+        }
+      }
+    },
+    "NSCalendarsFullAccessUsageDescription": {
+      "comment": "Privacy - NSCalendarsFullAccessUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Nuo shows your calendars, works out when you're free and lets your bots read, create and edit your events, iCloud included, when you ask them. You choose what they can do in Settings › Bot Access."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuo affiche tes calendriers, calcule tes disponibilités et laisse tes bots lire, créer et modifier tes évènements, iCloud compris, quand tu le leur demandes. Tu choisis ce qu'ils peuvent faire dans Réglages › Accès des bots."
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription": {
+      "comment": "Privacy - NSLocalNetworkUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Nuo connects to your gateway on the local network."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuo se connecte à ta passerelle sur le réseau local."
+          }
+        }
+      }
+    },
+    "NSLocationUsageDescription": {
+      "comment": "Privacy - NSLocationUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo only reads your location when a request comes in."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour les rappels de lieu, et pour répondre à tes bots quand tu leur demandes où tu es, la météo ou un trajet depuis ici. Nuo lit ta position seulement au moment d'une demande."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy - NSLocationWhenInUseUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "For location reminders, and to answer your bots when you ask them where you are, the weather or directions from here. Nuo only reads your location when a request comes in."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour les rappels de lieu, et pour répondre à tes bots quand tu leur demandes où tu es, la météo ou un trajet depuis ici. Nuo lit ta position seulement au moment d'une demande."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy - NSMicrophoneUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Nuo listens to your voice so you can talk with your bots and, during a meeting you transcribe, records it to a temporary file on this Mac, deleted once transcribed, at the latest at the next meeting."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuo écoute ta voix pour parler avec tes bots et, pendant une réunion que tu transcris, l'enregistre dans un fichier temporaire sur ce Mac, supprimé une fois transcrit, au plus tard à la réunion suivante."
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription": {
+      "comment": "Privacy - NSSpeechRecognitionUsageDescription",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your voice is transcribed on the Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La transcription de ta voix se fait sur le Mac."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

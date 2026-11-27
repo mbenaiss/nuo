@@ -1,0 +1,20 @@
+node_modules/
+.DS_Store
+xcuserdata/
+DerivedData/
+build/
+.env
+.env.*
+!.env.example
+CLAUDE.md
+.claude/
+docs/design/polish/
+
+# Private overlay: files that mirror the repository tree and are copied over it at deploy (docs/private-overlay.md).
+private/
+
+# Signing settings of your own Apple account (ios/Local.xcconfig.example).
+ios/Local.xcconfig
+
+# Data of a gateway started with `make local-run`.
+.nuo-local/

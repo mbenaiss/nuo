@@ -1,0 +1,16 @@
+// Copy to Local.xcconfig (ignored by git) and fill in your own values.
+// Changing NUO_BUNDLE_ID or NUO_APP_GROUP on a device where Nuo is installed creates a different app:
+// pairing, keys and widgets of the old one are not carried over.
+
+// Apple Developer Team ID, ten characters such as A1B2C3D4E5 (developer.apple.com > Account > Membership).
+DEVELOPMENT_TEAM =
+
+// Bundle identifier of the iPhone and Mac apps. The widgets, share extension and Watch app derive theirs from it
+// (.widgets, .share, .watchkitapp, .watchkitapp.widgets). The gateway's APNS_TOPIC must be this value.
+NUO_BUNDLE_ID = com.lumenstudio.nuo
+
+// App group shared by the app, widgets, share extension and Watch app. Register it in your developer account.
+NUO_APP_GROUP = group.com.lumenstudio.nuo
+
+// Optional: gateway prefilled on the pairing screen. `//` starts a comment in xcconfig files, hence `/$()/`.
+NUO_DEFAULT_GATEWAY = https:/$()/nuo.example.com

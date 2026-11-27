@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Usage: nuo-notify "title" "body" [botId]
+# Pushes a notification to the Nuo app through the local gateway.
+set -euo pipefail
+
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+  echo "usage: nuo-notify \"title\" \"body\" [botId]" >&2
+  exit 2
+fi
+
+ENV_FILE="${NUO_ENV_FILE:-$HOME/nuo/config/env}"
+[[ -n "${NUO_ENV_FILE:-}" || -r "$ENV_FILE" ]] || ENV_FILE="$HOME/.config/nuo/env"
+URL="${NUO_URL:-http://127.0.0.1:8790}"
+
+# Parsed rather than sourced so the file cannot run code or leak other variables.
+token=""
+if [[ -r "$ENV_FILE" ]]; then
+  token="$(sed -n 's/^[[:space:]]*\(export[[:space:]]\+\)\{0,1\}NUO_LOCAL_TOKEN=//p' "$ENV_FILE" | tail -n 1)"
+  token="${token%\"}"; token="${token#\"}"; token="${token%\'}"; token="${token#\'}"
+fi
+if [[ -z "$token" ]]; then
+  echo "nuo-notify: NUO_LOCAL_TOKEN missing in $ENV_FILE" >&2
+  exit 1
+fi
+
+body="$(TITLE="$1" BODY="$2" BOT_ID="${3:-}" python3 -c '
+import json, os
+d = {"title": os.environ["TITLE"], "body": os.environ["BODY"]}
+if os.environ["BOT_ID"]:
+    d["botId"] = os.environ["BOT_ID"]
+print(json.dumps(d, ensure_ascii=False))
+')"
+
+# printf is a builtin: the token never appears in any process argv.
+printf '%s' "$body" | curl -sS -f -m 15 -X POST "$URL/api/notify" \
+  -H 'Content-Type: application/json' \
+  -H @<(printf 'Authorization: Bearer %s\n' "$token") \
+  --data-binary @- >/dev/null

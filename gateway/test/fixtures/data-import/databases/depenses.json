@@ -1,0 +1,317 @@
+{
+ "slug": "depenses",
+ "name": "Dépenses",
+ "icon": "💸",
+ "notion_id": "db-depenses",
+ "properties": [
+  {
+   "name": "Charges",
+   "type": "title",
+   "config": {
+    "notion_type": "title"
+   }
+  },
+  {
+   "name": "Budget",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "50% Besoins",
+      "color": "blue"
+     },
+     {
+      "name": "30% Envies",
+      "color": "pink"
+     },
+     {
+      "name": "20% Épargne / Invest.",
+      "color": "green"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Budget mensuel",
+   "type": "relation",
+   "config": {
+    "notion_type": "relation",
+    "database_slug": "budget-mensuel",
+    "relation_type": "dual_property"
+   }
+  },
+  {
+   "name": "Catégorie",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Aide",
+      "color": "pink"
+     },
+     {
+      "name": "Investissement",
+      "color": "purple"
+     },
+     {
+      "name": "Maison",
+      "color": "orange"
+     },
+     {
+      "name": "Professionel",
+      "color": "blue"
+     },
+     {
+      "name": "App",
+      "color": "gray"
+     },
+     {
+      "name": "Divertissement",
+      "color": "red"
+     },
+     {
+      "name": "Telecom",
+      "color": "yellow"
+     },
+     {
+      "name": "Service",
+      "color": "brown"
+     },
+     {
+      "name": "Banque",
+      "color": "green"
+     },
+     {
+      "name": "Loisir",
+      "color": "default"
+     },
+     {
+      "name": "Voiture",
+      "color": "gray"
+     },
+     {
+      "name": "Sport",
+      "color": "green"
+     },
+     {
+      "name": "Epargne",
+      "color": "red"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Compte",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Courant",
+      "color": "green"
+     },
+     {
+      "name": "Trésorerie",
+      "color": "yellow"
+     },
+     {
+      "name": "Investissement",
+      "color": "purple"
+     },
+     {
+      "name": "Impôts",
+      "color": "red"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Compte (banque)",
+   "type": "relation",
+   "config": {
+    "notion_type": "relation",
+    "database_slug": "banques",
+    "relation_type": "dual_property"
+   }
+  },
+  {
+   "name": "Montant",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "euro",
+    "notion_format": "euro"
+   }
+  },
+  {
+   "name": "Montant / mois",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "if(empty(prop(\"Périodicité\")), prop(\"Montant\"), if(prop(\"Périodicité\") == \"An\", prop(\"Montant\") / 12, prop(\"Montant\")))"
+   }
+  },
+  {
+   "name": "Montant frais fixes / mois",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "if(prop(\"Catégorie\") == \"Investissement\" or prop(\"Catégorie\") == \"Epargne\", 0, prop(\"Montant / mois\"))"
+   }
+  },
+  {
+   "name": "Moyen de paiement",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Prelevement",
+      "color": "gray"
+     },
+     {
+      "name": "Bourso",
+      "color": "pink"
+     },
+     {
+      "name": "Revolut",
+      "color": "blue"
+     },
+     {
+      "name": "Free",
+      "color": "red"
+     },
+     {
+      "name": "Virement",
+      "color": "green"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Prochaine échéance",
+   "type": "date",
+   "config": {
+    "notion_type": "date"
+   }
+  },
+  {
+   "name": "Périodicité",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Mois",
+      "color": "blue"
+     },
+     {
+      "name": "An",
+      "color": "purple"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Type",
+   "type": "select",
+   "config": {
+    "notion_type": "select",
+    "options": [
+     {
+      "name": "Ponctuelle",
+      "color": "gray"
+     },
+     {
+      "name": "Récurrente",
+      "color": "blue"
+     }
+    ]
+   }
+  }
+ ],
+ "rows": [
+  {
+   "notion_id": "d0000001",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Charges": "Loyer",
+    "Budget": "50% Besoins",
+    "Budget mensuel": [
+     "m0000001",
+     "m0000002"
+    ],
+    "Catégorie": "Maison",
+    "Compte": "Courant",
+    "Compte (banque)": [
+     "b0000001"
+    ],
+    "Montant": 1000,
+    "Montant / mois": 1000,
+    "Montant frais fixes / mois": 1000,
+    "Moyen de paiement": "Prelevement",
+    "Prochaine échéance": {
+     "start": "2026-11-05",
+     "end": null
+    },
+    "Périodicité": "Mois",
+    "Type": "Récurrente"
+   }
+  },
+  {
+   "notion_id": "d0000002",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Charges": "Assurance",
+    "Budget": "50% Besoins",
+    "Budget mensuel": [
+     "m0000001",
+     "m0000002"
+    ],
+    "Catégorie": "Service",
+    "Compte": "Courant",
+    "Compte (banque)": [
+     "b0000001"
+    ],
+    "Montant": 99,
+    "Montant / mois": 8.25,
+    "Montant frais fixes / mois": 8.25,
+    "Moyen de paiement": "Prelevement",
+    "Prochaine échéance": {
+     "start": "2027-01-10",
+     "end": null
+    },
+    "Périodicité": "An",
+    "Type": "Récurrente"
+   }
+  },
+  {
+   "notion_id": "d0000003",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Charges": "Plan épargne",
+    "Budget": "20% Épargne / Invest.",
+    "Budget mensuel": [
+     "m0000001"
+    ],
+    "Catégorie": "Investissement",
+    "Compte": "Investissement",
+    "Compte (banque)": [
+     "b0000002"
+    ],
+    "Montant": 200,
+    "Montant / mois": 200,
+    "Montant frais fixes / mois": 0,
+    "Moyen de paiement": "Virement",
+    "Prochaine échéance": null,
+    "Périodicité": "Mois",
+    "Type": "Récurrente"
+   }
+  }
+ ]
+}

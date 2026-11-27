@@ -1,0 +1,27 @@
+name: Gateway
+
+on:
+  push:
+    branches: [main]
+    paths: ["gateway/**", ".github/workflows/gateway.yml"]
+  pull_request:
+    paths: ["gateway/**", ".github/workflows/gateway.yml"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun test

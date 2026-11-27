@@ -1,0 +1,56 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Ask ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande à ${applicationName}"
+          }
+        }
+      }
+    },
+    "Record the meeting with ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistre la réunion avec ${applicationName}"
+          }
+        }
+      }
+    },
+    "Record with ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistre avec ${applicationName}"
+          }
+        }
+      }
+    },
+    "Talk to ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parle à ${applicationName}"
+          }
+        }
+      }
+    },
+    "Tell ${applicationName}": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dis à ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

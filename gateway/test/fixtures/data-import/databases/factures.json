@@ -1,0 +1,34 @@
+{
+  "slug": "factures", "name": "Factures", "icon": null, "notion_id": "db-factures",
+  "properties": [
+    {"name": "Date", "type": "title", "config": {}},
+    {"name": "Facture", "type": "number", "config": {"format": "plain"}},
+    {"name": "Jrs", "type": "number", "config": {"format": "plain"}},
+    {"name": "Société", "type": "multi_select", "config": {"options": [{"name": "alpha", "color": "pink"}, {"name": "beta", "color": "yellow"}]}},
+    {"name": "Client", "type": "relation", "config": {"database_slug": "clients"}},
+    {"name": "CA_HT", "type": "formula", "config": {"expression": "prop(\"Jrs\") * prop(\"Client\").at(0).prop(\"TJM\")"}},
+    {"name": "TVA", "type": "formula", "config": {"expression": "prop(\"CA_HT\") * 20 / 100"}},
+    {"name": "TTC", "type": "formula", "config": {"expression": "prop(\"CA_HT\") + prop(\"TVA\")"}},
+    {"name": "Facturé", "type": "date", "config": {}},
+    {"name": "Encaissé", "type": "date", "config": {}},
+    {"name": "Payé", "type": "checkbox", "config": {}},
+    {"name": "TVA Payé", "type": "checkbox", "config": {}},
+    {"name": "Année", "type": "formula", "config": {"expression": "if(empty(prop(\"Date\")), \"\", prop(\"Date\").split(\" \").last())"}},
+    {"name": "Mois", "type": "formula", "config": {"expression": "if(empty(prop(\"Facturé\")), 0, month(prop(\"Facturé\")))"}},
+    {"name": "PDF", "type": "files", "config": {}},
+    {"name": "Texte", "type": "formula", "config": {"expression": "\"Bonjour\""}}
+  ],
+  "rows": [
+    {"notion_id": "f0000001", "created_at": "2026-08-01T10:00:00.000Z", "updated_at": "2026-08-02T10:00:00.000Z",
+     "properties": {"Date": "Juillet 2026", "Facture": 1, "Jrs": 18, "Société": ["alpha"], "Client": ["c0000001"], "CA_HT": 9000, "TVA": 1800, "TTC": 10800,
+       "Facturé": {"start": "2026-07-31", "end": null}, "Encaissé": {"start": "2026-08-20", "end": null}, "Payé": true, "TVA Payé": false, "Année": "2026", "Mois": 7, "PDF": []}},
+    {"notion_id": "f0000002", "created_at": "2026-09-01T10:00:00.000Z", "updated_at": "2026-09-01T10:00:00.000Z",
+     "properties": {"Date": "Août 2026", "Facture": 2, "Jrs": 10, "Société": ["alpha", "gamma"], "Client": ["c0000001"], "CA_HT": 5000, "TVA": 1000, "TTC": 6000,
+       "Facturé": {"start": "2026-08-31", "end": null}, "Encaissé": null, "Payé": false, "TVA Payé": false, "Année": "2026", "Mois": 8,
+       "PDF": [{"name": "Facture_0002.pdf", "url": "https://files.example.com/expired/Facture_0002.pdf", "path": null}]}},
+    {"notion_id": "f0000003", "created_at": "2025-12-01T10:00:00.000Z", "updated_at": "2025-12-01T10:00:00.000Z",
+     "properties": {"Date": "Novembre 2025", "Facture": 3, "Jrs": 20, "Société": ["beta"], "Client": ["c0000002"], "CA_HT": 12000, "TVA": 2400, "TTC": 14400,
+       "Facturé": {"start": "2025-11-28", "end": null}, "Encaissé": {"start": "2025-12-15", "end": null}, "Payé": true, "TVA Payé": true, "Année": "2025", "Mois": 11,
+       "PDF": [{"name": "Facture_0003.pdf", "url": "https://files.example.com/expired/Facture_0003.pdf", "path": "files/factures/f0000003/Facture_0003.pdf"}]}}
+  ]
+}

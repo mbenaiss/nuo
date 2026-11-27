@@ -1,0 +1,214 @@
+{
+ "slug": "budget-mensuel",
+ "name": "Budget mensuel",
+ "icon": "📅",
+ "notion_id": "db-budget-mensuel",
+ "properties": [
+  {
+   "name": "Mois",
+   "type": "title",
+   "config": {
+    "notion_type": "title"
+   }
+  },
+  {
+   "name": "% Impôts",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "plain",
+    "notion_format": "number"
+   }
+  },
+  {
+   "name": "Brut reçu",
+   "type": "number",
+   "config": {
+    "notion_type": "rollup",
+    "rollup": {
+     "relation": "Virements",
+     "property": "Montant",
+     "function": "sum"
+    }
+   }
+  },
+  {
+   "name": "Disponible à investir",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "round(prop(\"Net disponible\") - prop(\"Total frais fixes\") - if(empty(prop(\"Frais variable\")), 0, prop(\"Frais variable\")) - if(empty(prop(\"Épargne\")), 0, prop(\"Épargne\")), 2)"
+   }
+  },
+  {
+   "name": "Frais fixes",
+   "type": "relation",
+   "config": {
+    "notion_type": "relation",
+    "database_slug": "depenses",
+    "relation_type": "dual_property"
+   }
+  },
+  {
+   "name": "Frais variable",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "euro",
+    "notion_format": "euro"
+   }
+  },
+  {
+   "name": "IBKR min",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "euro",
+    "notion_format": "euro"
+   }
+  },
+  {
+   "name": "Impôts",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "round(prop(\"Brut reçu\") * if(empty(prop(\"% Impôts\")), 17.8, prop(\"% Impôts\")) / 100, 2)"
+   }
+  },
+  {
+   "name": "Invest IBKR",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "round(max(0, prop(\"Disponible à investir\") - if(empty(prop(\"PER (fixe)\")), 200, prop(\"PER (fixe)\"))), 2)"
+   }
+  },
+  {
+   "name": "Net disponible",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "round(prop(\"Brut reçu\") - prop(\"Impôts\"), 2)"
+   }
+  },
+  {
+   "name": "PER (fixe)",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "euro",
+    "notion_format": "euro"
+   }
+  },
+  {
+   "name": "Période",
+   "type": "date",
+   "config": {
+    "notion_type": "date"
+   }
+  },
+  {
+   "name": "Total frais fixes",
+   "type": "number",
+   "config": {
+    "notion_type": "rollup",
+    "rollup": {
+     "relation": "Frais fixes",
+     "property": "Montant frais fixes / mois",
+     "function": "sum"
+    }
+   }
+  },
+  {
+   "name": "Total investi",
+   "type": "formula",
+   "config": {
+    "notion_type": "formula",
+    "expression": "round(max(0, prop(\"Disponible à investir\")), 2)"
+   }
+  },
+  {
+   "name": "Virements",
+   "type": "relation",
+   "config": {
+    "notion_type": "relation",
+    "database_slug": "virements",
+    "relation_type": "single_property"
+   }
+  },
+  {
+   "name": "Épargne",
+   "type": "number",
+   "config": {
+    "notion_type": "number",
+    "format": "euro",
+    "notion_format": "euro"
+   }
+  }
+ ],
+ "rows": [
+  {
+   "notion_id": "m0000001",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Mois": "Août 2026",
+    "% Impôts": null,
+    "Brut reçu": 6000,
+    "Disponible à investir": 3123.75,
+    "Frais fixes": [
+     "d0000001",
+     "d0000002",
+     "d0000003"
+    ],
+    "Frais variable": 500,
+    "IBKR min": 100,
+    "Impôts": 1068,
+    "Invest IBKR": 2923.75,
+    "Net disponible": 4932,
+    "PER (fixe)": null,
+    "Période": {
+     "start": "2026-08-01",
+     "end": null
+    },
+    "Total frais fixes": 1008.25,
+    "Total investi": 3123.75,
+    "Virements": [
+     "v0000001"
+    ],
+    "Épargne": 300
+   }
+  },
+  {
+   "notion_id": "m0000002",
+   "created_at": "2026-09-01T10:00:00.000Z",
+   "updated_at": "2026-09-01T10:00:00.000Z",
+   "properties": {
+    "Mois": "Septembre 2026",
+    "% Impôts": 20,
+    "Brut reçu": 8000,
+    "Disponible à investir": 5391.75,
+    "Frais fixes": [
+     "d0000001",
+     "d0000002"
+    ],
+    "Frais variable": null,
+    "IBKR min": null,
+    "Impôts": 1600,
+    "Invest IBKR": 5091.75,
+    "Net disponible": 6400,
+    "PER (fixe)": 300,
+    "Période": {
+     "start": "2026-09-01",
+     "end": null
+    },
+    "Total frais fixes": 1008.25,
+    "Total investi": 5391.75,
+    "Virements": [
+     "v0000002"
+    ],
+    "Épargne": null
+   }
+  }
+ ]
+}
