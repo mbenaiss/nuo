@@ -1,13 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { Layout } from "../paths";
-import type { Bot, BotConfig, BotMemory, PermissionPolicy } from "../protocol";
+import type { Bot, BotConfig, BotMemory, PermissionPolicy, ToolRule } from "../protocol";
 import type { AgentDirectory } from "../runner/runtimes";
 import type { Store } from "../store/store";
 import type { ToolCatalog } from "./catalog";
 import { validateCommands } from "./commands";
 import { prepareWorkspace, type BrowserAccess, type Workspace } from "./instructions";
 import { MemoryStore } from "./memory";
+import { isToolRuleKey, TOOL_RULES_MAX, toolRuleError, validateToolRules } from "./tool-rules";
 
 export class HttpError extends Error {
   constructor(
@@ -154,6 +155,7 @@ export class BotService {
     const language = typeof c.language === "string" ? c.language.trim() : "";
     if (c.language !== undefined && (typeof c.language !== "string" || language.length > 40)) errors.push("language must be a language name of at most 40 characters");
     const commands = validateCommands(c.commands, tools, this.catalog, errors);
+    const toolRules = validateToolRules(c.toolRules, errors);
     if (c.noTools === true) {
       if (tools.length) errors.push("a bot without tools cannot have toolServers");
       if (c.overview) errors.push("a bot without tools cannot see every bot (overview)");
@@ -180,6 +182,7 @@ export class BotService {
       ...(c.overview ? { overview: true } : {}),
       ...(c.noTools ? { noTools: true } : {}),
       ...(language ? { language } : {}),
+      ...(toolRules ? { toolRules } : {}),
     };
   }
 
@@ -210,10 +213,13 @@ export class BotService {
     return this.get(this.store.createBot(draft, trimmed));
   }
 
-  /** An app that does not know `noTools` sends a draft without it: only `setNoTools` changes it. */
+  /**
+   * An app that does not know `noTools` sends a draft without it: only `setNoTools` changes it. Tool rules too: an
+   * editor opened before a rule was added or removed must not undo it.
+   */
   saveDraft(id: string, config: unknown): Bot {
     const bot = this.get(id);
-    const kept = config && typeof config === "object" ? { ...config, noTools: hasNoTools(bot) } : config;
+    const kept = config && typeof config === "object" ? { ...config, noTools: hasNoTools(bot), toolRules: currentToolRules(bot) } : config;
     this.store.setDraft(id, this.validate(kept));
     return this.get(id);
   }
@@ -260,12 +266,41 @@ export class BotService {
     return this.get(id);
   }
 
+  toolRules(id: string): { toolRules: Record<string, ToolRule> } {
+    return { toolRules: currentToolRules(this.get(id)) ?? {} };
+  }
+
+  /** Keeps (or, with no rule, forgets) what the user decided for a tool; like the permissions, in place on both configs. */
+  setToolRule(id: string, key: string, rule: ToolRule | undefined): Bot {
+    const bot = this.get(id);
+    const error = rule === undefined ? (isToolRuleKey(key) ? undefined : `invalid tool rule key "${key.slice(0, 80)}"`) : toolRuleError(key, rule);
+    if (error) throw new HttpError(400, error);
+    const apply = (config: BotConfig): BotConfig | undefined => {
+      if (config.toolRules?.[key] === rule) return undefined;
+      const { toolRules: rules, ...rest } = config;
+      const next = { ...rules };
+      if (rule) next[key] = rule;
+      else delete next[key];
+      if (Object.keys(next).length > TOOL_RULES_MAX) throw new HttpError(400, `toolRules holds at most ${TOOL_RULES_MAX} tools`);
+      return Object.keys(next).length ? { ...rest, toolRules: next } : rest;
+    };
+    const published = bot.published ? apply(bot.published.config) : undefined;
+    const draft = bot.draft ? apply(bot.draft) : undefined;
+    if (published) {
+      this.store.publish(id, published, `Règle d'outil : ${key} ${rule === "allow" ? "toujours autorisé" : rule === "block" ? "bloqué" : "retirée"}`, false);
+      this.onPublished?.(id);
+    }
+    if (draft) this.store.setDraft(id, draft);
+    return this.get(id);
+  }
+
   rollback(id: string, version: unknown): Bot {
     const bot = this.get(id);
     const v = typeof version === "number" ? this.store.version(id, version) : undefined;
     if (!v) throw new HttpError(404, `version ${version} not found`);
-    const { noTools: _old, ...config } = v.config;
-    this.store.publish(id, { ...config, ...(hasNoTools(bot) ? { noTools: true } : {}) }, `Rollback to v${v.version}`, false);
+    const { noTools: _old, toolRules: _oldRules, ...config } = v.config;
+    const toolRules = currentToolRules(bot);
+    this.store.publish(id, { ...config, ...(hasNoTools(bot) ? { noTools: true } : {}), ...(toolRules ? { toolRules } : {}) }, `Rollback to v${v.version}`, false);
     this.onPublished?.(id);
     return this.get(id);
   }
@@ -301,4 +336,8 @@ export class BotService {
 /** The bot as it runs now, or as its draft says when it was never published. */
 function hasNoTools(bot: Bot): boolean {
   return !!(bot.published?.config ?? bot.draft)?.noTools;
+}
+
+function currentToolRules(bot: Bot): Record<string, ToolRule> | undefined {
+  return (bot.published?.config ?? bot.draft)?.toolRules;
 }

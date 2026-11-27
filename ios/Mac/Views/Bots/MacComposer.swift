@@ -12,6 +12,9 @@ struct MacComposer: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             DictationNoticeLabel(key: dictationKey)
+            if store.goalMode {
+                GoalNotice()
+            }
             if !store.queued.isEmpty {
                 QueuedPromptsView(store: store)
             }
@@ -33,11 +36,24 @@ struct MacComposer: View {
                     .help("Attach an image or a file")
 
                     FolderMenu(store: store)
+
+                    Button { store.goalMode.toggle() } label: {
+                        Image(systemName: "scope").font(.body.weight(.semibold))
+                            .foregroundStyle(store.goalMode ? Color.onInk : Color.primary)
+                            .frame(width: 28, height: 28)
+                            .background(store.goalMode ? Color.inkFill : Color.clear, in: Circle())
+                    }
+                    .buttonStyle(.borderless)
+                    .help(store.goalMode ? String(localized: "Goal on: each message is seen through to the end, until you turn it off") : String(localized: "Goal: the bot sees it through without asking at each step"))
+                    .accessibilityLabel("Goal")
+                    .accessibilityValue(store.goalMode ? String(localized: "Enabled") : String(localized: "Disabled"))
                 }
 
                 ComposerTextView(
                     text: TextAccess($store.draft), history: ObjectIdentifier(store),
-                    placeholder: store.commands.isEmpty
+                    placeholder: store.goalMode
+                        ? String(localized: "Goal: the expected result")
+                        : store.commands.isEmpty
                         ? String(localized: "Message \(store.config?.name ?? String(localized: "your bot")) or #tool")
                         : String(localized: "Message, /command or #tool"),
                     isFocused: focused, onKey: key, onPaste: pasteAttachments)
@@ -79,6 +95,7 @@ struct MacComposer: View {
         .shadow(color: .black.opacity(0.06), radius: 12, y: 4)
         .animation(.snappy(duration: 0.2), value: store.attachments)
         .animation(.snappy(duration: 0.2), value: store.queued)
+        .animation(.snappy(duration: 0.2), value: store.goalMode)
         .animation(.snappy(duration: 0.2), value: dictating)
         .onChange(of: focused.wrappedValue, initial: true) { _, isFocused in
             if isFocused { DictationController.shared.prewarm() }

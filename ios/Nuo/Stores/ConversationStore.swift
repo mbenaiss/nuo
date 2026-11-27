@@ -89,6 +89,14 @@ struct PermissionPrompt: Identifiable, Equatable {
     let id: String
     let title: String
     let options: [PermissionOption]
+    var offer: ToolRuleOffer?
+
+    var shownOptions: [PermissionOption] { offer?.cardOptions(options) ?? options }
+
+    /// The option sent with a rule to remember, when the card offers that rule.
+    func option(for rule: ToolRule) -> PermissionOption? {
+        offer?.rules.contains(rule) == true ? rule.answer(in: options) : nil
+    }
 }
 
 /// The user message just submitted, until its turn ends: « Envoi… » then « Envoyé ».
@@ -126,6 +134,9 @@ final class ConversationStore {
     var attachments: [PendingAttachment] = []
     /// The Mac folder the bot works in (composer's folder menu), sent with every prompt.
     var folder: PromptFolder?
+    /// The composer's Goal toggle: each message is a goal the bot carries out without asking at each step. It stays
+    /// on until the user turns it off, so a follow-up (an answer to the bot, a correction) keeps the same footing.
+    var goalMode = false
     /// Messages typed while the bot answers, sent one by one as each turn ends.
     private(set) var queued: [QueuedPrompt] = []
     private(set) var selectedAgent: AgentID?
@@ -139,7 +150,7 @@ final class ConversationStore {
     @ObservationIgnored private var pendingText: [String: String] = [:]
     @ObservationIgnored private var pendingThoughts: [String: String] = [:]
     @ObservationIgnored private var flushTask: Task<Void, Never>?
-    @ObservationIgnored private var lastPrompt: (text: String, attachments: [Attachment])?
+    @ObservationIgnored private var lastPrompt: (text: String, attachments: [Attachment], goal: Bool)?
     /// Live message rebuilt from a snapshot rather than from every event: refetched once it ends.
     @ObservationIgnored private var adoptedMessageId: String?
     /// When the running prompt left, until its turn ends: a turn whose start never came is detected from it.
@@ -524,7 +535,7 @@ final class ConversationStore {
             messages.append(message)
         }
         if let permission = turn.permission {
-            pendingPermission = PermissionPrompt(id: permission.requestId, title: permission.title, options: permission.options)
+            pendingPermission = PermissionPrompt(id: permission.requestId, title: permission.title, options: permission.options, offer: permission.offer)
         } else {
             pendingPermission = nil
         }
@@ -603,12 +614,13 @@ final class ConversationStore {
         }
         draft = ""
         attachments = []
+        let goal = goalMode
         if isRunning {
             Haptics.selection()
-            queued.append(QueuedPrompt(text: text, attachments: outgoing))
+            queued.append(QueuedPrompt(text: text, attachments: outgoing, goal: goal))
             return
         }
-        submit(text: text, attachments: outgoing)
+        submit(text: text, attachments: outgoing, goal: goal)
     }
 
     /// Subagents of this conversation, latest turn first.
@@ -622,7 +634,7 @@ final class ConversationStore {
         guard let index = queued.firstIndex(where: { $0.id == id }) else { return }
         let prompt = queued.remove(at: index)
         guard isRunning, let conversationId = conversation?.id else {
-            submit(text: prompt.text, attachments: prompt.attachments)
+            submit(text: prompt.text, attachments: prompt.attachments, goal: prompt.goal)
             return
         }
         Haptics.send()
@@ -678,7 +690,7 @@ final class ConversationStore {
                 return
             }
             let next = self.queued.removeFirst()
-            self.submit(text: next.text, attachments: next.attachments)
+            self.submit(text: next.text, attachments: next.attachments, goal: next.goal)
         }
     }
 
@@ -693,7 +705,7 @@ final class ConversationStore {
         if let last = messages.last, last.role == .assistant, last.stopReason == .error {
             messages.removeLast()
         }
-        dispatch(text: lastPrompt.text, attachments: lastPrompt.attachments)
+        dispatch(text: lastPrompt.text, attachments: lastPrompt.attachments, goal: lastPrompt.goal)
     }
 
     /// The Stop button: a tap in the first seconds of a turn is taken for a slip on Send (StopGuard).
@@ -723,16 +735,36 @@ final class ConversationStore {
         }
     }
 
-    func answerPermission(_ option: PermissionOption) {
+    func answerPermission(_ option: PermissionOption, rule: ToolRule? = nil) {
         guard let prompt = pendingPermission else { return }
         pendingPermission = nil
         Haptics.tap()
         Task {
             do {
-                try await session.transport.send(.permission(requestId: prompt.id, optionId: option.id))
+                try await session.transport.send(.permission(requestId: prompt.id, optionId: option.id, rule: rule))
             } catch {
                 if isRunning, pendingPermission == nil { pendingPermission = prompt }
                 show(String(localized: "Reply not sent: \(error.localizedDescription)"))
+                return
+            }
+            // The gateway keeps the rule on the bot: read it back so the settings list it.
+            if rule != nil, let updated = try? await session.api.bot(id: bot.id) {
+                bot = updated
+                bots.upsert(updated)
+            }
+        }
+    }
+
+    var toolRules: [(key: String, rule: ToolRule)] { bot.toolRuleList }
+
+    func removeToolRule(_ key: String) {
+        Task {
+            do {
+                let updated = try await session.api.removeToolRule(botId: bot.id, key: key)
+                bot = updated
+                bots.upsert(updated)
+            } catch {
+                show(String(localized: "Rule not removed: \(error.localizedDescription)"))
             }
         }
     }
@@ -761,7 +793,7 @@ final class ConversationStore {
         return created.id
     }
 
-    private func submit(text: String, attachments: [Attachment]) {
+    private func submit(text: String, attachments: [Attachment], goal: Bool = false) {
         Haptics.send()
         dismissError()
         let local = Message(
@@ -769,11 +801,11 @@ final class ConversationStore {
             attachments: attachments.isEmpty ? nil : attachments, createdAt: Date())
         messages.append(local)
         outgoing = OutgoingPrompt(messageId: local.id)
-        lastPrompt = (text, attachments)
-        dispatch(text: text, attachments: attachments)
+        lastPrompt = (text, attachments, goal)
+        dispatch(text: text, attachments: attachments, goal: goal)
     }
 
-    private func dispatch(text: String, attachments: [Attachment]) {
+    private func dispatch(text: String, attachments: [Attachment], goal: Bool = false) {
         isRunning = true
         turnStartedAt = Date()
         liveMessageId = nil
@@ -790,7 +822,7 @@ final class ConversationStore {
                 if !compacting { LiveActivityCenter.shared.begin(bot: bot, conversationId: id) }
                 try await session.transport.send(.prompt(
                     conversationId: id, text: text, attachments: attachments,
-                    agent: selectedAgent, model: selectedModel, effort: selectedEffort, voice: false, folder: folder))
+                    agent: selectedAgent, model: selectedModel, effort: selectedEffort, voice: false, folder: folder, goal: goal))
                 // Stopped while the bytes were already on their way: the turn will show up and can be stopped then.
                 guard !Task.isCancelled else { return }
                 sendTask = nil
@@ -820,6 +852,8 @@ final class ConversationStore {
         switch event {
         case .turnsSnapshot:
             break
+        case let .messageUser(_, message):
+            if !messages.contains(where: { $0.id == message.id }) { messages.append(message) }
         case let .turnPhase(_, messageId, phase):
             if messageId == liveMessageId, phase != .waitingPermission { pendingPermission = nil }
         case let .messageStart(_, messageId, at, _, _):
@@ -891,9 +925,9 @@ final class ConversationStore {
                 if errorMessage == nil || !canRetry { show(String(localized: "The answer was interrupted."), retryable: true) }
                 Haptics.error()
             }
-        case let .permissionRequest(_, requestId, title, options):
+        case let .permissionRequest(_, requestId, title, options, offer):
             Haptics.tap()
-            pendingPermission = PermissionPrompt(id: requestId, title: title, options: options)
+            pendingPermission = PermissionPrompt(id: requestId, title: title, options: options, offer: offer)
         case let .error(_, message):
             fail(message)
         case let .context(_, context):

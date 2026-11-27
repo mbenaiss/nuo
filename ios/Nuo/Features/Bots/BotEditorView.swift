@@ -50,7 +50,9 @@ private struct BotEditorForm: View {
                     CommandsSection(store: store, onEdit: { editingCommand = $0 }, onReorder: { path.append(.commands) })
                         .id("commands")
                     permissions
+                    toolRulesSection
                     initiative
+                    BotWakeSection(botId: store.bot.id)
                     advanced
                     versionsSection
                     if store.hasDraft && store.publishedVersion != nil {
@@ -272,6 +274,33 @@ private struct BotEditorForm: View {
                 Text(policyHint).font(.caption).foregroundStyle(Color.text2)
             }
             .padding(16)
+        }
+    }
+
+    private var toolRulesSection: some View {
+        EditorSection(title: "Tool rules") {
+            let rules = store.toolRules
+            if rules.isEmpty {
+                Text("No rules. On a permission request, “Always for this tool” or “Block this tool” adds one here.")
+                    .font(.caption).foregroundStyle(Color.text2).padding(16)
+            }
+            ForEach(Array(rules.enumerated()), id: \.element.key) { index, item in
+                if index > 0 { Divider().overlay(Color.line) }
+                HStack(spacing: 12) {
+                    Image(systemName: item.rule == .allow ? "checkmark.circle.fill" : "nosign")
+                        .foregroundStyle(item.rule == .allow ? Color.accent : Color.bad)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(ToolRuleLabel.name(item.key)).font(.body).foregroundStyle(Color.ink)
+                        Text(ToolRuleLabel.state(item.rule)).font(.caption).foregroundStyle(Color.text2)
+                    }
+                    Spacer()
+                    Button("Remove") { Task { await store.removeToolRule(item.key) } }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.bad)
+                        .accessibilityLabel("Remove the rule for \(ToolRuleLabel.name(item.key))")
+                }
+                .padding(.horizontal, 16).padding(.vertical, 10)
+            }
         }
     }
 

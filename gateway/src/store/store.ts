@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { uniqueSlug } from "./slug";
 import type { PushDestination } from "../push/apns";
-import type { Alert, Attachment, Bot, BotConfig, BotVersion, ContextUsage, Conversation, ConversationSearchHit, Message, MessageTask, ScheduledTask, SubagentInfo, TaskAction, TaskRun, TaskSchedule, ToolStep } from "../protocol";
+import type { Alert, Attachment, Bot, BotConfig, BotVersion, ContextUsage, Conversation, ConversationSearchHit, Message, MessageTask, MessageWake, ScheduledTask, SubagentInfo, TaskAction, TaskRun, TaskSchedule, ToolStep } from "../protocol";
 
 export const now = () => new Date().toISOString();
 export const newId = () => crypto.randomUUID();
@@ -402,8 +402,8 @@ export class Store {
   addMessage(m: Message) {
     this.db
       .query(
-        `INSERT INTO messages (id, conversation_id, role, text, thoughts, attachments, steps, subagents, duration_ms, stop_reason, agent, model, task, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO messages (id, conversation_id, role, text, thoughts, attachments, steps, subagents, duration_ms, stop_reason, agent, model, task, wake, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         m.id,
@@ -419,6 +419,7 @@ export class Store {
         m.agent ?? null,
         m.model ?? null,
         m.task ? JSON.stringify(m.task) : null,
+        m.wake ? JSON.stringify(m.wake) : null,
         m.createdAt,
       );
     this.db.query("UPDATE conversations SET updated_at = ? WHERE id = ?").run(now(), m.conversationId);
@@ -448,6 +449,7 @@ export class Store {
       agent: opt(r.agent),
       model: opt(r.model),
       task: parse<MessageTask>(r.task),
+      wake: parse<MessageWake>(r.wake),
       createdAt: r.created_at,
     }));
   }

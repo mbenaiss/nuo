@@ -637,6 +637,16 @@ enum ResponseBlockParser {
             guard let id = f.string("id", "conversationId") else { return nil }
             return .conversation(ConversationLinkPayload(id: id, botId: f.string("botId", "bot"), title: f.string("title")))
 
+        case "email", "email_draft":
+            guard let draftId = f.string("draftId", "draft_id") else { return nil }
+            func recipients(_ key: String) -> [String] {
+                if let text = json[key] as? String { return EmailDraftPayload.addresses(text) }
+                return f.strings(key).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            }
+            return .email(EmailDraftPayload(
+                account: f.string("account", "from") ?? "", draftId: draftId, to: recipients("to"), cc: recipients("cc"),
+                bcc: recipients("bcc"), subject: f.string("subject") ?? "", body: (json["body"] as? String) ?? ""))
+
         case "notice":
             return .notice(NoticePayload(
                 kind: f.string("kind") ?? "info", text: f.string("text") ?? "",

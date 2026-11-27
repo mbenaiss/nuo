@@ -294,6 +294,8 @@ export async function startTestApp(
     cfAccess?: AppOptions["cfAccess"];
     scan?: AppOptions["scan"];
     transcription?: AppOptions["transcription"];
+    muscu?: AppOptions["muscu"];
+    wake?: AppOptions["wake"];
     /** Runs before the app starts, on the empty NUO_HOME (old layouts, registry rows). */
     prepare?: (home: string) => void;
     /** Agents besides the default fake Claude (`runtime`). */
@@ -345,6 +347,8 @@ export async function startTestApp(
     secrets: opts.secrets,
     scan: opts.scan,
     transcription: opts.transcription,
+    muscu: opts.muscu,
+    wake: opts.wake,
   });
   const base = `http://127.0.0.1:${app.server.port}`;
   const api = async (method: string, path: string, body?: unknown, token?: string) => {

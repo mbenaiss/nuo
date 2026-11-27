@@ -47,7 +47,7 @@ final class DemoTransport: LiveTransport {
     func send(_ event: ClientEvent) async throws {
         guard backend != nil else { throw NuoError.offline }
         switch event {
-        case let .prompt(conversationId, text, attachments, _, _, _, voice, _, _):
+        case let .prompt(conversationId, text, attachments, _, _, _, voice, _, _, _):
             cancelled.remove(conversationId)
             Task { await run(conversationId: conversationId, text: text, attachments: attachments, voice: voice) }
         case let .cancel(conversationId):
@@ -62,7 +62,7 @@ final class DemoTransport: LiveTransport {
             }
         case .turnsSync:
             publishSnapshot()
-        case let .permission(requestId, optionId):
+        case let .permission(requestId, optionId, _):
             permissionWaiters.removeValue(forKey: requestId)?.resume(returning: optionId)
         case .ping:
             eventBus.yield(.pong)
@@ -283,7 +283,7 @@ final class DemoTransport: LiveTransport {
             ]
             let answer = await withCheckedContinuation { continuation in
                 permissionWaiters[requestId] = continuation
-                emit(.permissionRequest(conversationId: conversationId, requestId: requestId, title: question, options: options))
+                emit(.permissionRequest(conversationId: conversationId, requestId: requestId, title: question, options: options, offer: ToolRuleOffer(tool: "Bash", rules: [.allow, .block])))
             }
             emit(.turnPhase(conversationId: conversationId, messageId: messageId, phase: .thinking))
             if answer.hasPrefix("reject") {

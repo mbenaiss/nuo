@@ -32,7 +32,8 @@ recovery codes, pairing codes and tokens are only stored as SHA-256 hashes; the 
 
 Internet hardening in the gateway: per-route body limits, `Content-Length` required, no CORS, security headers,
 generic auth errors, `405` shown as `404`, minimal `/api/health`. There is deliberately no request-volume rate
-limiting: only failed pairing attempts are counted and locked out.
+limiting on the app's hostnames: only failed pairing attempts are counted and locked out. The hooks host has its own
+limits (below).
 
 ## Public booking host
 
@@ -44,6 +45,46 @@ hostnames never serve them. They expose free slots only (no titles, calendars or
 Turnstile token and a honeypot on every write, take strict JSON bodies of at most 16 KB, and send a strict CSP
 (no inline script/style, scripts and frames only from self and `challenges.cloudflare.com`). The manage link token
 (32 random bytes) is stored hashed. No request-volume rate limiting there either, by choice.
+
+## Hooks host and bot mail
+
+The hooks host (`NUO_HOOKS_HOSTS`, `hooks.example.com`) is the second unauthenticated internet surface, outside
+Cloudflare Access (an Access application covers one hostname; none covers this one). Like the booking host it is routed
+by the `Host` header before the auth gate (and before the Google OAuth callback), and serves two routes only:
+`POST /hooks/<token>` and `POST /mail`; everything else is `404`, and the app's hostnames never serve them ([protocol.md](protocol.md#wake-ups-from-outside--réveils-)).
+
+- **Secrets.** A webhook token is 32 random bytes, stored as a SHA-256 hash and shown once to the app; revoking it
+  is immediate. `POST /mail` needs `NUO_MAIL_SECRET` as a bearer token, compared in constant time; the same value
+  is a Worker secret, never in `wrangler.toml` or the repository. Without it the route does not exist.
+- **Limits.** Bodies of 64 KB (webhooks) and 512 KB (mail), read as a capped stream. Per hour, in separate budgets
+  so a stranger never blocks the owner: 30 turns per hook and 300 for all webhooks; 30 per bot for the owner's verified
+  mail; 5 per sender and bot, 20 per bot and 60 in all for unverified mail, which all goes to one « E-mails non
+  vérifiés » conversation per bot. 30 refused calls from one IP lock that IP out of the host. Counters live in memory.
+- **Untrusted turns.** A webhook body and any mail that is not the owner's verified own run with `untrusted: true`:
+  never a goal, no `@` file mention, no Claude Code command, the content wrapped between markers the bot is told to
+  read as data, with the sender's own markers defused. The bot's policy still applies: an `ask` bot asks the user
+  before each sensitive action, and these turns cannot answer for him.
+- **Trust rule for mail.** Trusted (a goal turn) only when the From address is one of the owner's
+  (`NUO_OWNER_EMAILS`, or a Google account connected to the profile), **and** Cloudflare's own
+  `Authentication-Results` (authserv-id `mx.cloudflare.net`, the one stamped right under Email Routing's own `Received` line and closed by its `X-CF-*` headers, parsed per
+  RFC 8601) shows DMARC pass for the From domain or an aligned DKIM or SPF pass, **and** the bot's address is in To or
+  Cc, **and** the Date is under 2 days old. The From header alone never counts; a verdict header written by the sender,
+  unbalanced syntax or a repeated SPF or DMARC result count as unverified, and a quoted string is read whole, so an
+  envelope sender cannot smuggle `;dmarc=pass` through one (Cloudflare itself quotes `smtp.remote-ip`). The To/Cc and Date checks stop a genuine signed mail of the owner from being resent to the
+  bot later. In a trusted mail, only the owner's own words are the request: quoted and forwarded parts (and a reply's
+  subject) are wrapped as external data. Verified and unverified mails live in separate conversations, so unverified
+  text never enters a goal turn's context. A goal turn still confirms mails, invitations and deletions on the iPhone.
+- **Exposed bots.** A bot with full access (`auto`) or with `overview`, in its published config or its draft, cannot
+  get a webhook, and only the owner's verified mail wakes it; an existing hook stops working (`403`) as soon as the
+  config its conversation runs on (the draft for a draft conversation) or the published one gains that access.
+- **Audit.** Hook creation, revocation, every call and every mail are auth events (`hook_create`, `hook_revoke`,
+  `hook_call`, `mail_wake`) with the IP and the sender.
+- **Known limits.** Anyone holding a webhook URL can start turns up to the limits: treat it like a password and revoke
+  it from the app if it leaks. Webhook signatures (GitHub, Linear) are not checked; the token in the URL is the
+  credential. Rate limits reset when the gateway restarts. Mail trust rests on Cloudflare's verdict and on the
+  Worker passing only the header inside the block Email Routing stamps under its own `Received` line; an account compromise at the owner's mail provider makes its
+  mail trusted. Telling the owner's words from a quote relies on the usual markers: a quote pasted without them reads
+  as the owner's own words, and an HTML-only mail loses its `<blockquote>` structure in the Worker's text conversion.
 
 ## Shared browser
 
@@ -69,6 +110,39 @@ outbound action (bot instructions). Protections:
 - Known limits: any process of the gateway user can drive the browser through `127.0.0.1:9222` (the owner's agents do,
   by design); while the user watches from an iPhone, the viewed page is laid out at the phone's width for agents too.
   Sites may detect automation (CDP) and lock the account; their terms may forbid it (LinkedIn does).
+
+## Goal mode
+
+A prompt sent with `goal: true` from the paired app (never an extension, the watch or the relay) runs without
+confirmations: for that turn only, the gateway answers the agent's permission requests with « allow once ». The bot's
+policy still bounds it: a `readonly` bot stays read-only (its refusals never reach the user), and a goal on an `ask`
+bot gives that one turn the reach of `auto` without a Face ID step-up, because the user asked for it in the unlocked
+app. The composer keeps « Objectif » on until the user turns it off, so each message sent meanwhile is its own goal
+turn; the gateway never carries a goal over to a prompt that does not ask for it. What acts on other people or loses data is held where it runs, whatever the agent and its own mode (Grok's
+`yoloMode` included): the `nuo` server's calls to `gmail_send`, `calendar_create` with guests, `calendar_delete`,
+`apple_event_delete`, `apple_calendar_delete` and `workout_cancel` wait on `/api/google/tools/*` and
+`/api/device/tools/*` for a confirmation that names the recipients, the subject or the event (`src/runner/goal.ts`).
+Known limit: an `auto` bot can reach Gmail or a calendar by other means (the `gog` CLI on the host) that this check
+does not see; its instructions still ask it to use the Nuo tools.
+
+## Tool rules
+
+From a permission card the user can keep, for one bot, « Toujours pour cet outil » (`allow`) or « Bloquer cet outil »
+(`block`), and remove either from the bot's settings (`BotConfig.toolRules`, docs/protocol.md « Tool rules »).
+
+- A rule is per tool, not per call: allowing `Bash` lets that bot run any command without a card from then on, so the
+  card names the tool before the user keeps it. No Face ID step-up: it widens less than `auto`, which needs one.
+- `block` is checked before the policy and the goal mode: it refuses even on an `auto` bot or in a goal turn.
+- `allow` only spares the card under `ask`: it never widens a `readonly` bot, and the session decides again at each
+  call, so a removed rule applies at once.
+- Sending, inviting and deleting through Nuo's own tools stay confirmed: the gateway never offers nor stores an
+  `allow` for them, and ignores one for a `calendar_create` with attendees.
+- A call the agent does not name (a tool from an agent other than Claude whose title is not `mcp__server__name`) is
+  never decided by a rule; it gets the card as before.
+- The relay ignores the rules: its sessions keep the whitelist and their « once » confirmations, and a rule cannot be
+  set from a relay session or from any token but the paired app's.
+- Known limit: rules are enforced where the agent asks the gateway. An agent that runs a tool without asking (Codex
+  or Grok in `auto`) is not stopped by a `block`.
 
 ## What an attacker needs
 

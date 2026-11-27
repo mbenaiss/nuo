@@ -83,7 +83,16 @@ export interface BotConfig {
   noTools?: boolean;
   /** The language the bot writes everything in, as a person would name it ("English"); French when absent. */
   language?: string;
+  /**
+   * What the user decided for good about a tool, from a permission card or the bot's settings, keyed by
+   * `server/name` for an MCP tool (`nuo/gmail_search`) or the bare name of a built-in one (`Bash`). Changed in
+   * place (`DELETE /api/bots/:id/tool-rules/:key`, the `rule` of a permission answer), never by a saved draft.
+   */
+  toolRules?: Record<string, ToolRule>;
 }
+
+/** `allow`: no card for that tool while the bot asks (`ask`); `block`: refused whatever the policy. */
+export type ToolRule = "allow" | "block";
 
 export interface BotVersion {
   version: number;
@@ -235,7 +244,16 @@ export interface TurnSnapshot {
   thoughts?: string;
   steps: ToolStep[];
   subagents?: SubagentInfo[];
-  permission?: { requestId: string; title: string; options: PermissionOption[] };
+  permission?: PermissionRequest;
+}
+
+/** A permission card. `tool` and `rules`: the card's rule key and the rules it may remember for it, when it can. */
+export interface PermissionRequest {
+  requestId: string;
+  title: string;
+  options: PermissionOption[];
+  tool?: string;
+  rules?: ToolRule[];
 }
 
 export interface ToolStep {
@@ -294,6 +312,8 @@ export interface Message {
   model?: string;
   /** User messages a scheduled task sent: the apps show a marker with its title instead of the prompt. */
   task?: MessageTask;
+  /** User messages a webhook or a mail wrote: the apps show this card instead of the prompt written for the agent. */
+  wake?: MessageWake;
   createdAt: string;
 }
 
@@ -332,6 +352,14 @@ export interface MessageTask {
   title: string;
 }
 
+/**
+ * What woke the bot, as the apps show it: clipped copies of what came in, never the prompt itself. `verified`: the
+ * owner's own mail, checked by the gateway.
+ */
+export type MessageWake =
+  | { kind: "mail"; from: string; fromName?: string; to: string; subject: string; text: string; verified: boolean; attachments?: string[] }
+  | { kind: "hook"; name: string; event?: string; contentType?: string; body: string };
+
 export type ClientEvent =
   /**
    * `steer`: « Envoyer maintenant » while a turn runs. Claude and Codex take the message into the running turn; the
@@ -346,12 +374,15 @@ export type ClientEvent =
       model?: string;
       effort?: string;
       voice?: boolean;
+      /** « Objectif »: the bot works without asking at each step; what it sends, invites or deletes is confirmed. */
+      goal?: boolean;
       steer?: boolean;
       /** The folder of the user's Mac this conversation works in, reached through the `mac_*` device tools. */
       folder?: PromptFolder;
     }
   | { type: "cancel"; conversationId: string }
-  | { type: "permission"; requestId: string; optionId: string }
+  /** `rule`: also remembered for the card's tool (one the card offered); the agent is then answered once accordingly. */
+  | { type: "permission"; requestId: string; optionId: string; rule?: ToolRule }
   | { type: "turns.sync" }
   /** The app is in the foreground (or not): while one device is, the others get no push for chat replies. */
   | { type: "presence"; active: boolean }
@@ -375,6 +406,8 @@ export interface Alert {
 }
 
 export type ServerEvent =
+  /** A user message the gateway wrote itself (a webhook or a mail woke the bot), as stored. */
+  | { type: "message.user"; conversationId: string; botId: string; message: Message }
   | { type: "message.start"; conversationId: string; botId?: string; messageId: string; role: "assistant"; at: string; phase?: TurnPhase }
   | { type: "turn.phase"; conversationId: string; messageId: string; phase: TurnPhase }
   | { type: "turns.snapshot"; turns: TurnSnapshot[] }
@@ -397,7 +430,7 @@ export type ServerEvent =
       /** A scheduled task ran the turn: the gateway notifies for it (or not) itself, apps don't announce it again. */
       scheduled?: true;
     }
-  | { type: "permission.request"; conversationId: string; requestId: string; title: string; options: PermissionOption[] }
+  | ({ type: "permission.request"; conversationId: string } & PermissionRequest)
   | { type: "error"; conversationId?: string; message: string }
   | { type: "context"; conversationId: string; context: ContextUsage }
   | {

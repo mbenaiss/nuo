@@ -19,6 +19,7 @@ import { BUILTIN_TOOL_SERVER, expandTemplate, parseCommand, toolArguments } from
 import { NuoTools } from "../mcp/nuo-server";
 import { relayConfirmationTitle, relayRefusal, type RelayToolCall } from "../relay/whitelist";
 import { prepareWorkspace, relayInstructions, VOICE_PREFIX } from "../bots/instructions";
+import { GOAL_CONFIRMATION_TIMEOUT_MS, GOAL_PREFIX, goalConfirmation } from "./goal";
 import type { MachineToolSource } from "../machine/discovery";
 import { taggedTools, toolHint } from "../machine/tags";
 import type {
@@ -30,13 +31,17 @@ import type {
   ContextUsage,
   Message,
   MessageTask,
+  MessageWake,
   PermissionOption,
+  PermissionRequest,
   ServerEvent,
   SubagentInfo,
+  ToolRule,
   ToolStep,
   TurnPhase,
   TurnSnapshot,
 } from "../protocol";
+import { offeredRules, ruleFor, toolRuleKey } from "../bots/tool-rules";
 import type { LiveActivityTarget, Pusher } from "../push/apns";
 import type { MediaStore } from "../store/media";
 import { newId, now, preview, type StoredConversation, type Store } from "../store/store";
@@ -86,6 +91,8 @@ export interface PromptInput {
   model?: string;
   effort?: string;
   voice?: boolean;
+  /** « Objectif »: the bot works without asking at each step (src/runner/goal.ts). Ignored from an extension or the relay. */
+  goal?: boolean;
   /** « Envoyer maintenant »: into the running turn when the agent can take it, else after stopping that turn. */
   steer?: boolean;
   folder?: unknown;
@@ -146,6 +153,8 @@ export interface PromptOptions {
   scheduled?: boolean;
   /** The scheduled task this prompt comes from, kept on the user message so the apps show its title instead. */
   task?: MessageTask;
+  /** The webhook or mail this prompt was written from, kept on the user message so the apps show it instead. */
+  wake?: MessageWake;
   /** Sent to the agent only, without a user message in the transcript (resuming after a restart). */
   silent?: boolean;
   /**
@@ -210,7 +219,7 @@ interface TurnState {
   thoughts: string;
   steps: ToolStep[];
   subagents: SubagentInfo[];
-  permission?: { requestId: string; title: string; options: PermissionOption[] };
+  permission?: PermissionRequest;
 }
 
 interface TurnStart {
@@ -234,6 +243,8 @@ interface PendingPermission {
   relay: boolean;
   /** The tool a relay confirmation is for, as the audit log names it. */
   tool?: string;
+  /** What the card may remember for its tool, on which bot. */
+  remember?: { botId: string; key: string; rules: ToolRule[] };
   resolve: (optionId: string) => void;
 }
 
@@ -313,6 +324,8 @@ export class Runner {
   private autoCompact: boolean;
   private outcomes = new Map<string, TurnOutcome>();
   private scheduled = new Set<string>();
+  /** Conversations whose running turn is a goal turn. */
+  private goals = new Set<string>();
   private liveActivities = new Map<string, LiveActivity[]>();
   private turnStates = new Map<string, TurnState>();
   private nuo?: NuoEndpoint;
@@ -460,7 +473,19 @@ export class Runner {
     await this.applyBrainChoice(conv, input, first);
     const messageId = newId();
     if (!popts.silent) {
-      this.store.addMessage({ id: messageId, conversationId: conv.id, role: "user", text, attachments, ...(popts.task ? { task: popts.task } : {}), createdAt: now() });
+      const message: Message = {
+        id: messageId,
+        conversationId: conv.id,
+        role: "user",
+        text,
+        attachments,
+        ...(popts.task ? { task: popts.task } : {}),
+        ...(popts.wake ? { wake: popts.wake } : {}),
+        createdAt: now(),
+      };
+      this.store.addMessage(message);
+      // The app shows what it typed itself; a message nobody typed in it would only appear on the next reload.
+      if (popts.wake) this.emit({ type: "message.user", conversationId: conv.id, botId: conv.botId, message });
       if (first && text.trim() && !popts.scheduled) this.store.updateConversation(conv.id, { title: truncate(text, TITLE_MAX) });
     }
 
@@ -470,6 +495,7 @@ export class Runner {
       return { messageId, done: Promise.resolve({ text: "", stopReason: "end_turn" }) };
     }
 
+    const goal = !!input.goal && !untrusted;
     const relayEpoch = popts.relay ? this.relayEpoch(popts.relay.deviceId) : 0;
     // A new request in this conversation, through the relay or the app: the previous refusal is answered by it.
     this.relayRefused.delete(conv.id);
@@ -485,6 +511,7 @@ export class Runner {
           return;
         }
         if (popts.scheduled) this.scheduled.add(conv.id);
+        if (goal) this.goals.add(conv.id);
         if (popts.relay) {
           this.relayTurns.set(conv.id, popts.relay);
           this.relayFacts.set(conv.id, { createdEvents: new Set(), approvals: [] });
@@ -493,6 +520,7 @@ export class Runner {
           await this.turn(conv.id, text, forAgent, !!input.voice, note, popts.silent ? undefined : messageId);
         } finally {
           this.scheduled.delete(conv.id);
+          this.goals.delete(conv.id);
           this.relayTurns.delete(conv.id);
           this.relayFacts.delete(conv.id);
         }
@@ -628,13 +656,25 @@ export class Runner {
     }
   }
 
-  answerPermission(requestId: string, optionId: string): boolean {
+  /**
+   * With a `rule`, the card's tool is decided for good on its bot, and this call is answered once accordingly
+   * (`optionId` aside): the agent's own « always » would only last its session.
+   */
+  answerPermission(requestId: string, optionId: string, rule?: ToolRule): boolean {
     const p = this.permissions.get(requestId);
     if (!p) return false;
     // A relay session was offered « once » answers only: an « always » from the app would leave no yes to count.
     if (p.relay && !p.options.some((o) => o.id === optionId)) return false;
+    let chosen = optionId;
+    if (rule) {
+      if (p.relay || !p.remember?.rules.includes(rule)) return false;
+      const answer = rule === "allow" ? allowOption(p.options) : rejectOption(p.options);
+      if (!answer) return false;
+      this.bots.setToolRule(p.remember.botId, p.remember.key, rule);
+      chosen = answer;
+    }
     this.permissions.delete(requestId);
-    p.resolve(optionId);
+    p.resolve(chosen);
     this.permissionSettled(p.conversationId, requestId);
     return true;
   }
@@ -786,7 +826,7 @@ export class Runner {
         break;
       }
       case "permission.request":
-        s.permission = { requestId: e.requestId, title: e.title, options: e.options };
+        s.permission = { requestId: e.requestId, title: e.title, options: e.options, ...(e.tool ? { tool: e.tool, rules: e.rules } : {}) };
         s.phase = "waiting_permission";
         break;
       case "turn.phase":
@@ -894,7 +934,7 @@ export class Runner {
     }
     const compact = COMPACT_RE.exec(text);
     if (compact) return void (await this.compact(conv, compact[1]?.trim() ?? "", start));
-    const prefix = voice ? VOICE_PREFIX : "";
+    const prefix = (voice ? VOICE_PREFIX : "") + (this.goals.has(conversationId) ? GOAL_PREFIX : "");
     const config = this.configFor(conv);
     const parsed = parseCommand(text, config);
     const action = parsed?.command.action;
@@ -1684,7 +1724,9 @@ export class Runner {
       effort,
       mcpServers: servers.map((sp) => this.agentEnv.seal(sp)),
       permissionPolicy: relay ? "ask" : config.permissionPolicy,
-      ...(relay ? { relay: true, instructions: relayInstructions(config), onRelayRefusal: (tool: string) => this.relayRefusedTool(conv.id, tool) } : {}),
+      ...(relay
+        ? { relay: true, instructions: relayInstructions(config), onRelayRefusal: (tool: string) => this.relayRefusedTool(conv.id, tool) }
+        : { toolRule: (tool: RelayToolCall) => this.toolRule(conv.id, tool) }),
       ...(config.noTools ? { noTools: true } : {}),
       ...(config.language ? { language: config.language } : {}),
       // Conversations from before per-agent sessions only have the last agent's session.
@@ -1756,9 +1798,46 @@ export class Runner {
     }
   }
 
+  /**
+   * During a goal turn, what the user confirms before a `nuo` tool acts on other people or loses data
+   * (src/runner/goal.ts); true at once outside a goal turn or for any other call. A push reaches the user away.
+   */
+  async confirmGoalAction(conversationId: string, name: string, input: Record<string, unknown>, draft?: () => Promise<string | undefined>): Promise<boolean> {
+    if (!this.goals.has(conversationId) || this.relaySession(conversationId)) return true;
+    const title = goalConfirmation(name, input, name === "gmail_send" ? await draft?.().catch(() => undefined) : undefined);
+    if (!title) return true;
+    const options: PermissionOption[] = [
+      { id: "allow", name: "Autoriser", kind: "allow_once" },
+      { id: "reject", name: "Refuser", kind: "reject_once" },
+    ];
+    const conv = this.store.conversation(conversationId);
+    const config = conv ? this.configFor(conv) : undefined;
+    if (conv && config) this.pushIfAway(conv, config, `Confirmation demandée : ${title}`);
+    return (await this.waitForAnswer(conversationId, title, options, GOAL_CONFIRMATION_TIMEOUT_MS)) === "allow";
+  }
+
+  /**
+   * The rule the user kept for this call's tool on the conversation's bot; none in a relay session, which keeps its
+   * whitelist, nor for a tool the agent did not name.
+   */
+  private toolRule(conversationId: string, tool: RelayToolCall | undefined): ToolRule | undefined {
+    if (!tool || this.relaySession(conversationId)) return undefined;
+    const conv = this.store.conversation(conversationId);
+    return ruleFor(conv ? this.configFor(conv)?.toolRules : undefined, tool);
+  }
+
   private askPermission(conversationId: string, ask: PermissionAsk): Promise<string> {
-    const requestId = newId();
     const relay = this.relaySession(conversationId);
+    // The sessions decide by the rules before asking; checked here too for a runtime that asks without them.
+    const rule = this.toolRule(conversationId, ask.tool);
+    if (rule === "block") return Promise.resolve(rejectOption(ask.options));
+    const allowed = rule === "allow" ? allowOption(ask.options) : undefined;
+    if (allowed) return Promise.resolve(allowed);
+    if (!relay && this.goals.has(conversationId)) {
+      // What needs the user is confirmed where it runs (confirmGoalAction), whatever the agent asks here.
+      const yes = ask.options.find((o) => o.kind === "allow_once") ?? ask.options.find((o) => o.kind === "allow_always");
+      if (yes) return Promise.resolve(yes.id);
+    }
     if (relay) {
       // Off the whitelist: refused at once, nobody is asked; the request waits for the unlocked iPhone.
       if (relayRefusal(ask.tool ?? { name: "" }, this.relayTurnFacts(conversationId))) {
@@ -1771,26 +1850,47 @@ export class Runner {
     const title = tool ? relayConfirmationTitle(tool) : ask.title;
     const options = relay ? ask.options.filter((o) => o.kind === "allow_once" || o.kind === "reject_once") : ask.options;
     if (relay && relay.conversationId !== conversationId) this.pushDelegatedConfirmation(conversationId, relay, title);
+    const key = !relay && ask.tool ? toolRuleKey(ask.tool) : undefined;
+    const botId = this.store.conversation(conversationId)?.botId;
+    return this.waitForAnswer(conversationId, title, options, this.opts.permissionTimeoutMs, {
+      relay: !!relay,
+      tool: tool?.name,
+      ...(key && botId && ask.tool ? { remember: { botId, key, rules: offeredRules(ask.tool) } } : {}),
+      // The gateway lets that tool's call through once (`takeRelayApproval`).
+      onAllowOnce: tool ? () => this.relayFacts.get(conversationId)?.approvals.push(tool.name) : undefined,
+    });
+  }
+
+  /** Shows a permission card and resolves with the chosen option; a reject when nobody answers in time. */
+  private waitForAnswer(
+    conversationId: string,
+    title: string,
+    options: PermissionOption[],
+    timeoutMs: number,
+    o: { relay?: boolean; tool?: string; remember?: PendingPermission["remember"]; onAllowOnce?: () => void } = {},
+  ): Promise<string> {
+    const requestId = newId();
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         if (!this.permissions.delete(requestId)) return;
-        resolve(rejectOption(ask.options));
+        resolve(rejectOption(options));
         this.permissionSettled(conversationId, requestId);
-      }, this.opts.permissionTimeoutMs);
+      }, timeoutMs);
       this.permissions.set(requestId, {
         conversationId,
         title,
         options,
-        relay: !!relay,
-        ...(tool ? { tool: tool.name } : {}),
+        relay: !!o.relay,
+        ...(o.tool ? { tool: o.tool } : {}),
+        ...(o.remember ? { remember: o.remember } : {}),
         resolve: (id) => {
           clearTimeout(timer);
-          // The gateway lets that tool's call through once (`takeRelayApproval`).
-          if (tool && options.find((o) => o.id === id)?.kind === "allow_once") this.relayFacts.get(conversationId)?.approvals.push(tool.name);
+          if (options.find((x) => x.id === id)?.kind === "allow_once") o.onAllowOnce?.();
           resolve(id);
         },
       });
-      this.emit({ type: "permission.request", conversationId, requestId, title, options });
+      const remember = o.remember ? { tool: o.remember.key, rules: o.remember.rules } : {};
+      this.emit({ type: "permission.request", conversationId, requestId, title, options, ...remember });
     });
   }
 
@@ -1835,6 +1935,10 @@ function messagesSinceCompaction(messages: Message[]): Message[] {
 
 function rejectOption(options: PermissionOption[]): string {
   return (options.find((o) => o.kind === "reject_once") ?? options.find((o) => o.kind === "reject_always"))?.id ?? "reject";
+}
+
+function allowOption(options: PermissionOption[]): string | undefined {
+  return (options.find((o) => o.kind === "allow_once") ?? options.find((o) => o.kind === "allow_always"))?.id;
 }
 
 function truncate(text: string, max: number): string {

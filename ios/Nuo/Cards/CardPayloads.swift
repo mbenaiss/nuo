@@ -310,6 +310,37 @@ struct ConversationLinkPayload: Hashable {
     var title: String?
 }
 
+/// `::email`: a Gmail draft a bot prepared, which the user reads, edits and sends from the card. Also the body of the
+/// gateway's `GET|PUT /api/google/drafts/:id`.
+struct EmailDraftPayload: Hashable, Codable, Sendable {
+    var account: String
+    var draftId: String
+    var to: [String]
+    var cc: [String]
+    var bcc: [String]
+    var subject: String
+    var body: String
+
+    /// `"Martin, Julie" <julie.martin@lumen.example>, compta@lumen.example` → two recipients: a comma between
+    /// quotes belongs to a name.
+    static func addresses(_ text: String) -> [String] {
+        var parts: [String] = []
+        var current = ""
+        var quoted = false
+        for character in text {
+            if character == "\"" { quoted.toggle() }
+            if (character == "," || character == ";") && !quoted {
+                parts.append(current)
+                current = ""
+            } else {
+                current.append(character)
+            }
+        }
+        parts.append(current)
+        return parts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+}
+
 indirect enum ResponseBlock: Hashable {
     case heading(level: Int, text: String)
     case paragraph(String)
@@ -341,6 +372,7 @@ indirect enum ResponseBlock: Hashable {
     case notice(NoticePayload)
     case artifact(ArtifactPayload)
     case conversation(ConversationLinkPayload)
+    case email(EmailDraftPayload)
     /// Consecutive `::question` markers, asked one after the other in a single card.
     case questions([QuestionPayload])
 

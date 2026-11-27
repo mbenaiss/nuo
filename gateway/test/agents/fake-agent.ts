@@ -160,9 +160,17 @@ acp
       await send({ sessionUpdate: "tool_call_update", toolCallId: "d2", rawInput: { description: "Not started yet" } });
     } else if (cmd === "open-tool") {
       await send({ sessionUpdate: "tool_call", toolCallId: "o1", title: "Never ends", kind: "other", status: "in_progress" });
-    } else if (cmd.startsWith("perm:")) {
-      const kind = cmd.slice(5) as acp.ToolKind;
-      const toolCall = { toolCallId: "p1", title: `Do ${kind}`, kind, status: "pending" as const };
+    } else if (cmd.startsWith("perm:") || cmd.startsWith("permtool:")) {
+      // permtool:<Claude tool name> names the tool like Claude Code does (`Bash`, `mcp__nuo__gmail_search`).
+      const named = cmd.startsWith("permtool:") ? cmd.slice(9) : undefined;
+      const kind = (named ? (named.startsWith("mcp__") ? "other" : "execute") : cmd.slice(5)) as acp.ToolKind;
+      const toolCall = {
+        toolCallId: "p1",
+        title: named ?? `Do ${kind}`,
+        kind,
+        status: "pending" as const,
+        ...(named ? { _meta: { claudeCode: { toolName: named } } } : {}),
+      };
       await send({ sessionUpdate: "tool_call", ...toolCall });
       const r: acp.RequestPermissionResponse = await ctx.client.request("session/request_permission", {
         sessionId,

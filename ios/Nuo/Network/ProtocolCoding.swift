@@ -30,13 +30,13 @@ enum NuoJSON {
 
 extension ClientEvent: Encodable {
     private enum Keys: String, CodingKey {
-        case type, conversationId, text, attachments, agent, model, effort, voice, steer, folder, requestId, optionId, active
+        case type, conversationId, text, attachments, agent, model, effort, voice, steer, folder, goal, requestId, optionId, rule, active
     }
 
     func encode(to encoder: any Encoder) throws {
         var c = encoder.container(keyedBy: Keys.self)
         switch self {
-        case let .prompt(conversationId, text, attachments, agent, model, effort, voice, steer, folder):
+        case let .prompt(conversationId, text, attachments, agent, model, effort, voice, steer, folder, goal):
             try c.encode("prompt", forKey: .type)
             try c.encode(conversationId, forKey: .conversationId)
             try c.encode(text, forKey: .text)
@@ -47,13 +47,15 @@ extension ClientEvent: Encodable {
             if voice { try c.encode(true, forKey: .voice) }
             if steer { try c.encode(true, forKey: .steer) }
             try c.encodeIfPresent(folder, forKey: .folder)
+            if goal { try c.encode(true, forKey: .goal) }
         case let .cancel(conversationId):
             try c.encode("cancel", forKey: .type)
             try c.encode(conversationId, forKey: .conversationId)
-        case let .permission(requestId, optionId):
+        case let .permission(requestId, optionId, rule):
             try c.encode("permission", forKey: .type)
             try c.encode(requestId, forKey: .requestId)
             try c.encode(optionId, forKey: .optionId)
+            try c.encodeIfPresent(rule, forKey: .rule)
         case .turnsSync:
             try c.encode("turns.sync", forKey: .type)
         case let .presence(active):
@@ -69,7 +71,7 @@ extension ServerEvent: Decodable {
     private enum Keys: String, CodingKey {
         case type, conversationId, messageId, at, text, toolCallId, title, kind, detail, status, durationMs, steps
         case stopReason, requestId, options, message, body, botId, context, beforeTokens, afterTokens, phase, turns, agent, model, scheduled
-        case tool, args, subagent, alert
+        case tool, args, subagent, alert, rules
     }
 
     struct UnknownType: Error { let type: String }
@@ -80,6 +82,8 @@ extension ServerEvent: Decodable {
         func conv() throws -> String { try c.decode(String.self, forKey: .conversationId) }
         func mid() throws -> String { try c.decode(String.self, forKey: .messageId) }
         switch type {
+        case "message.user":
+            self = .messageUser(conversationId: try conv(), message: try c.decode(Message.self, forKey: .message))
         case "message.start":
             self = .messageStart(
                 conversationId: try conv(), messageId: try mid(), at: try c.decodeIfPresent(Date.self, forKey: .at) ?? Date(),
@@ -127,7 +131,10 @@ extension ServerEvent: Decodable {
                 conversationId: try conv(),
                 requestId: try c.decode(String.self, forKey: .requestId),
                 title: try c.decode(String.self, forKey: .title),
-                options: try c.decode([PermissionOption].self, forKey: .options))
+                options: try c.decode([PermissionOption].self, forKey: .options),
+                offer: ToolRuleOffer(
+                    tool: try c.decodeIfPresent(String.self, forKey: .tool),
+                    rules: (try? c.decodeIfPresent([String].self, forKey: .rules))?.compactMap(ToolRule.init(rawValue:))))
         case "error":
             self = .error(conversationId: try c.decodeIfPresent(String.self, forKey: .conversationId), message: try c.decode(String.self, forKey: .message))
         case "context":
@@ -161,9 +168,9 @@ extension ServerEvent: Decodable {
 
     var conversationId: String? {
         switch self {
-        case let .messageStart(id, _, _, _, _), let .turnPhase(id, _, _), let .messageDelta(id, _, _), let .thoughtDelta(id, _, _),
+        case let .messageUser(id, _), let .messageStart(id, _, _, _, _), let .turnPhase(id, _, _), let .messageDelta(id, _, _), let .thoughtDelta(id, _, _),
              let .toolStart(id, _, _, _, _), let .toolDetail(id, _, _, _), let .toolEnd(id, _, _, _, _), let .messageEnd(id, _, _, _, _, _, _, _), let .subagent(id, _, _),
-             let .permissionRequest(id, _, _, _), let .context(id, _), let .notice(id, _, _, _, _):
+             let .permissionRequest(id, _, _, _, _), let .context(id, _), let .notice(id, _, _, _, _):
             id
         case let .error(id, _), let .notification(_, _, _, id):
             id

@@ -28,8 +28,10 @@ import { SecretMask } from "../secrets/mask";
 import { SecretStore, type SecretsOptions } from "../secrets/store";
 import { createScanServices, type ScanOptions, type ScanServices } from "../scan/service";
 import { TrackerChain } from "../scan/tracking";
+import { Muscu, type MuscuOptions } from "../muscu/service";
 import type { ProfileTranscriptions, TranscriptionService } from "../transcription/service";
 import { LatencyRecorder } from "../metrics/latency";
+import { WakeService, type WakeConfig } from "../hooks/service";
 import { openDb } from "../store/db";
 import { MediaStore } from "../store/media";
 import { Store } from "../store/store";
@@ -67,6 +69,10 @@ export interface StackOptions {
   /** Parcel tracking keys and product bases; every profile shares the gateway's tracking keys. */
   scan?: Partial<ScanOptions>;
   transcription?: TranscriptionService;
+  /** Owner only: the fitness coach's database and chrono folder behind the Muscu screen. */
+  muscu?: MuscuOptions;
+  /** Webhook URLs, the bots' mail domain and the owner's own addresses (src/hooks/). */
+  wake?: WakeConfig;
 }
 
 const NO_MACHINE_TOOLS: MachineToolSource = { list: async () => [] };
@@ -99,7 +105,9 @@ export class ProfileStack {
   readonly device: DeviceBridge;
   readonly secrets?: SecretStore;
   readonly scan: ScanServices;
+  readonly muscu?: Muscu;
   readonly transcription?: ProfileTranscriptions;
+  readonly wake: WakeService;
   readonly localToken: string;
   readonly lookups: PolicyLookups;
   readonly host?: AgentHost;
@@ -188,6 +196,10 @@ export class ProfileStack {
         sharedElsewhere: (email) => g.sharedElsewhere?.(email, this.id) ?? false,
       });
     }
+    this.wake = new WakeService(
+      { profileId: this.id, owner: this.owner, store: this.store, runner: this.runner, pusher: this.pusher, google: this.google, audit: (type, ok, info) => this.auth.event(type, ok, info) },
+      o.wake ?? {},
+    );
     if (this.owner && o.secrets) this.secrets = new SecretStore(o.secrets);
     this.transcription = o.transcription?.at(join(layout.data, "transcriptions"));
     const photographed = (code: string) => `cosmetic.photo.${code}`;
@@ -205,6 +217,7 @@ export class ProfileStack {
         },
       },
     });
+    if (this.owner && o.muscu) this.muscu = new Muscu(o.muscu);
     this.lookups = {
       isFinanceCollection: (id) => FINANCE_COLLECTIONS.has(id) || !!this.data.db.query("SELECT 1 FROM _columns WHERE collection_id = ? AND type = 'money' LIMIT 1").get(id),
       isCommandTask: (id) => this.store.task(id)?.action.type === "command",
@@ -246,6 +259,7 @@ export class ProfileStack {
     this.device.close();
     this.hub.closeAll();
     this.scan.stop();
+    this.muscu?.close();
     this.data.stop();
     this.store.db.close();
   }

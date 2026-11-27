@@ -139,7 +139,8 @@ A setup that works well, with documentation addresses as examples (gateway `192.
   application that requires a service token, and set `NUO_PUBLIC_URL=https://nuo.example.com`,
   `NUO_TUNNEL_SOURCES=<address of the cloudflared host>` and `NUO_CF_ACCESS_CLIENT_ID/SECRET` (handed to the
   apps at pairing). The booking hostname (`NUO_BOOKING_HOSTS`, e.g. `rdv.example.com`) stays outside Access
-  ([security.md](security.md#public-booking-host)). A VPN (WireGuard, Tailscale) is the simpler alternative: the
+  ([security.md](security.md#public-booking-host)), and so does the hooks hostname (`NUO_HOOKS_HOSTS`, see
+  [deploy/mail-worker/README.md](../deploy/mail-worker/README.md)). A VPN (WireGuard, Tailscale) is the simpler alternative: the
   apps then always see the gateway as `lan`.
 
 ## Upgrade

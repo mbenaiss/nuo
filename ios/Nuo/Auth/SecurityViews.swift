@@ -258,6 +258,7 @@ private struct EventRow: View {
         case ("google_connect", true): String(localized: "Google account connected")
         case ("google_connect", false): String(localized: "Google sign-in failed")
         case ("google_disconnect", _): String(localized: "Google account disconnected")
+        case ("google_send", _): String(localized: "Email sent from a card")
         case ("google_error", _): String(localized: "Google access needs renewing")
         case ("secret_reveal", true): String(localized: "Secret shown")
         case ("secret_reveal", false): String(localized: "Secret display refused")

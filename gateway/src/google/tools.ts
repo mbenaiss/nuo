@@ -36,7 +36,7 @@ export const GOOGLE_TOOLS = [
   {
     name: "gmail_draft",
     description:
-      "Crée un brouillon Gmail (rien n'est envoyé) ; avec reply_to, une réponse dans le même fil. Montre ensuite à l'utilisateur les destinataires, l'objet et le texte exacts, et demande-lui s'il faut l'envoyer.",
+      "Crée un brouillon Gmail (rien n'est envoyé) ; avec reply_to, une réponse dans le même fil. Renvoie une carte ::email à recopier telle quelle dans ta réponse : l'utilisateur y voit destinataires, objet et texte exacts, et peut le modifier et l'envoyer lui-même.",
     inputSchema: {
       type: "object",
       properties: {

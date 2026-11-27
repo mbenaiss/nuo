@@ -47,3 +47,53 @@ extension DemoBackend: NuoGoogleAPI {
     func connectGoogle(services: [GoogleService], email: String?) async throws -> GoogleConnectStart { await DemoGoogle.shared.connect(services: services, email: email) }
     func disconnectGoogle(email: String) async throws { try await DemoGoogle.shared.disconnect(email: email) }
 }
+
+/// The Gmail drafts behind the demo's `::email` cards; sending one removes it, as Gmail does.
+actor DemoDrafts {
+    static let shared = DemoDrafts()
+
+    static let quote = EmailDraftPayload(
+        account: "alex@example.com", draftId: "r-demo-devis-cuisine",
+        to: ["Julie Martin <julie.martin@lumen.example>"], cc: ["compta@lumen.example"], bcc: [],
+        subject: String(localized: "Kitchen quote, version 2"),
+        body: String(localized: "demo.drafts.quote", defaultValue: """
+        Hi Julie,
+
+        Here is the revised quote after our talk on Tuesday: solid oak worktop, white zellige backsplash and \
+        installation included, for €4,280 including VAT.
+
+        Production can start on December 8 if you confirm by Friday.
+
+        Have a good day,
+        Alex
+        """))
+
+    private var drafts = [quote.draftId: quote]
+
+    func draft(_ id: String) async throws -> EmailDraftPayload {
+        try? await Task.sleep(for: .milliseconds(250))
+        guard let draft = drafts[id] else { throw NuoError.notFound }
+        return draft
+    }
+
+    func save(_ id: String, _ update: EmailDraftUpdate) throws -> EmailDraftPayload {
+        guard var draft = drafts[id] else { throw NuoError.notFound }
+        draft.to = update.to
+        draft.cc = update.cc
+        draft.bcc = update.bcc
+        draft.subject = update.subject
+        draft.body = update.body
+        drafts[id] = draft
+        return draft
+    }
+
+    func send(_ id: String) throws {
+        guard drafts.removeValue(forKey: id) != nil else { throw NuoError.notFound }
+    }
+}
+
+extension DemoBackend: NuoEmailDraftAPI {
+    func emailDraft(id: String, account: String?) async throws -> EmailDraftPayload { try await DemoDrafts.shared.draft(id) }
+    func saveEmailDraft(id: String, account: String?, update: EmailDraftUpdate) async throws -> EmailDraftPayload { try await DemoDrafts.shared.save(id, update) }
+    func sendEmailDraft(id: String, account: String?) async throws { try await DemoDrafts.shared.send(id) }
+}

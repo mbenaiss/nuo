@@ -46,8 +46,8 @@ struct TurnLedger {
                 turn.steps[index].durationMs = durationMs
             }
             if turn.permission == nil, !running() { turn.phase = .thinking }
-        case let .permissionRequest(_, requestId, title, options):
-            turn.permission = TurnSnapshot.Permission(requestId: requestId, title: title, options: options)
+        case let .permissionRequest(_, requestId, title, options, offer):
+            turn.permission = TurnSnapshot.Permission(requestId: requestId, title: title, options: options, tool: offer?.tool, rules: offer?.rules)
             turn.phase = .waitingPermission
         case let .turnPhase(_, messageId, phase) where messageId == turn.messageId:
             turn.phase = phase

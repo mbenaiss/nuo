@@ -102,7 +102,7 @@ struct ChatPane: View {
     private var interactive: some View {
         framed
             .sheet(item: $store.pendingPermission) { prompt in
-                MacPermissionSheet(prompt: prompt, botName: store.config?.name ?? String(localized: "The bot")) { store.answerPermission($0) }
+                MacPermissionSheet(prompt: prompt, botName: store.config?.name ?? String(localized: "The bot")) { store.answerPermission($0, rule: $1) }
             }
             .onDrop(of: [.image, .fileURL, .plainText], isTargeted: $dropTargeted) { providers in
                 attach(providers)
@@ -277,7 +277,7 @@ struct ChatPane: View {
         let compacting = store.isCompacting
         let live = store.liveMessageId
         return scroll.rows.items(for: store.messages.withoutTaskPrompts, liveMessageId: live, expanded: expansions) { message in
-            message.notice != nil || (compacting && message.id == live && message.text.isEmpty)
+            message.notice != nil || message.wake?.isShown == true || (compacting && message.id == live && message.text.isEmpty)
         }
     }
 
@@ -489,6 +489,8 @@ private struct MacTranscriptRow: View {
         case .whole:
             if let notice = message.notice {
                 NoticeChip(payload: notice).padding(.vertical, 6)
+            } else if let wake = message.wake, wake.isShown {
+                WakeCard(wake: wake)
             } else {
                 CompactingChip()
             }
@@ -549,6 +551,15 @@ struct MacModelMenu: View {
                 ForEach(PermissionPolicy.allCases, id: \.self) { Text($0.label).tag($0) }
             }
             .pickerStyle(.inline)
+            Menu("Tool Rules") {
+                let rules = store.toolRules
+                if rules.isEmpty {
+                    Text("No rules: a permission request adds one")
+                }
+                ForEach(rules, id: \.key) { item in
+                    Button("Remove “\(ToolRuleLabel.line(item.key, item.rule))”") { store.removeToolRule(item.key) }
+                }
+            }
         } label: {
             Label(store.brainLabel, systemImage: "cpu")
         }
@@ -616,7 +627,7 @@ struct MacErrorBanner: View {
 struct MacPermissionSheet: View {
     let prompt: PermissionPrompt
     let botName: String
-    let onAnswer: (PermissionOption) -> Void
+    let onAnswer: (PermissionOption, ToolRule?) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -633,25 +644,39 @@ struct MacPermissionSheet: View {
             }
             HStack {
                 ForEach(rejects) { option in
-                    Button(option.name, role: .destructive) { onAnswer(option) }
+                    Button(option.name, role: .destructive) { onAnswer(option, nil) }
                 }
                 Spacer()
                 ForEach(allows) { option in
                     if option.kind == "allow_once" {
-                        Button(option.name) { onAnswer(option) }.keyboardShortcut(.defaultAction)
+                        Button(option.name) { onAnswer(option, nil) }.keyboardShortcut(.defaultAction)
                     } else {
-                        Button(option.name) { onAnswer(option) }
+                        Button(option.name) { onAnswer(option, nil) }
                     }
                 }
             }
             .controlSize(.large)
+            if let offer = prompt.offer {
+                Divider()
+                HStack {
+                    Text("Remember for “\(ToolRuleLabel.name(offer.tool))” in \(botName)")
+                        .font(.callout).foregroundStyle(Color.text2)
+                    Spacer()
+                    if let option = prompt.option(for: .block) {
+                        Button("Block this tool", role: .destructive) { onAnswer(option, .block) }
+                    }
+                    if let option = prompt.option(for: .allow) {
+                        Button("Always for this tool") { onAnswer(option, .allow) }
+                    }
+                }
+            }
         }
         .padding(24)
         .frame(width: 520)
         .interactiveDismissDisabled()
     }
 
-    private var allows: [PermissionOption] { prompt.options.filter { !$0.kind.hasPrefix("reject") }.sorted { $0.kind < $1.kind } }
+    private var allows: [PermissionOption] { prompt.shownOptions.filter { !$0.kind.hasPrefix("reject") }.sorted { $0.kind < $1.kind } }
     private var rejects: [PermissionOption] { prompt.options.filter { $0.kind.hasPrefix("reject") } }
 }
 

@@ -35,6 +35,7 @@ struct NuoApp: App {
                 .environment(PushManager.shared)
                 .environment(\.mediaLoader, session.mediaLoader)
                 .environment(\.scanAPI, session.api as? any NuoScanAPI)
+                .environment(\.emailDraftAPI, session.api as? any NuoEmailDraftAPI)
                 .preferredColorScheme(session.appearance.colorScheme)
                 .tint(Color.accent)
                 .appLock()
@@ -232,8 +233,11 @@ struct MainView: View {
                 CalendarBridge.shared.appBecameActive()
                 DeviceToolsCenter.shared.permissionsChanged()
                 EventNotifications.scheduleRefresh()
+                MuscuStore.shared.scenePhaseChanged(active: true)
             } else if phase == .background {
                 CalendarBridge.shared.scheduleBackgroundRefresh()
+                // The rest goes on with the screen closed: its end comes as a notification.
+                MuscuStore.shared.scenePhaseChanged(active: false)
             }
         }
         .sheet(item: $router.editor) { target in
@@ -248,6 +252,9 @@ struct MainView: View {
         }
         .fullScreenCover(isPresented: $workspace.showsBrowser) {
             BrowserScreen { workspace.showsBrowser = false }
+        }
+        .fullScreenCover(isPresented: $workspace.showsMuscu) {
+            MuscuScreen { workspace.showsMuscu = false }
         }
         .fullScreenCover(item: $router.voice) { target in
             VoiceModeView(bot: target.bot, conversationId: target.conversationId, transport: session.transport) {
@@ -330,6 +337,9 @@ enum DemoDirector {
         case "chat": router.path = [.chat(ChatTarget(botId: "voyages", conversationId: "c-voyages-1"))]
         case "coach": router.path = [.chat(ChatTarget(botId: "coach", conversationId: "c-coach-1"))]
         case "cobot": router.path = [.chat(ChatTarget(botId: "cobot", conversationId: "c-cobot-1"))]
+        case "email": router.path = [.chat(ChatTarget(botId: "cobot", conversationId: "c-cobot-email"))]
+        case "wakemail": router.path = [.chat(ChatTarget(botId: "cobot", conversationId: "c-cobot-mail"))]
+        case "wakehook": router.path = [.chat(ChatTarget(botId: "cobot", conversationId: "c-cobot-hook"))]
         case "newchat": router.path = [.chat(ChatTarget(botId: "voyages"))]
         case "conversations": router.path = [.conversations(botId: "voyages")]
         case "product": router.path = [.chat(ChatTarget(botId: "coach", conversationId: "c-coach-2"))]

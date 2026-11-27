@@ -1,4 +1,5 @@
 import { dropFromEnv } from "./data/drop";
+import { muscuFromEnv } from "./muscu/service";
 import { transcriptionFromEnv } from "./transcription/service";
 import { join } from "node:path";
 import { allRuntimes, getRuntime, runtimesFor } from "./agents/registry";
@@ -19,6 +20,7 @@ import { browserOptionsFromEnv } from "./browser/manager";
 import { googleOAuthOptionsFromEnv } from "./google/oauth";
 import { secretsOptionsFromEnv } from "./secrets/store";
 import { trackerFromEnv } from "./scan/tracking";
+import { wakeOptionsFromEnv } from "./hooks/public";
 import { launcherBrowser, PROFILE_BROWSER_DIR, profileCdpPort, userUid } from "./browser/profile";
 
 const browserEnv = browserOptionsFromEnv();
@@ -74,6 +76,8 @@ const app = createApp({
   scan: { tracker: trackerFromEnv(), products: { inciApiKey: process.env.NUO_INCIAPI_KEY || undefined } },
   transcription: transcriptionFromEnv(),
   data: { drop: dropFromEnv() },
+  muscu: muscuFromEnv(),
+  wake: wakeOptionsFromEnv(),
 });
 
 if (!process.env.NUO_SHIP24_API_KEY && !process.env.NUO_SEVENTEENTRACK_API_KEY) console.warn("[scan] NUO_SHIP24_API_KEY and NUO_SEVENTEENTRACK_API_KEY not set: only La Poste parcels get an automatic status");

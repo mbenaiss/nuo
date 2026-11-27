@@ -1,4 +1,4 @@
-import type { AgentId, Attachment, ModelInfo, PermissionOption, PermissionPolicy } from "../protocol";
+import type { AgentId, Attachment, ModelInfo, PermissionOption, PermissionPolicy, ToolRule } from "../protocol";
 import type { RelayToolCall } from "../relay/whitelist";
 
 export type RunEvent =
@@ -53,6 +53,11 @@ export interface SessionOptions {
   instructions?: string;
   /** A relay session's tool the agent asked for and the whitelist refused before anyone was asked. */
   onRelayRefusal?: (tool: string) => void;
+  /**
+   * The rule the user kept for a tool (BotConfig.toolRules), read at each request so a new one applies at once:
+   * `block` refuses whatever the policy, `allow` spares the question under `ask` only. Never given to a relay session.
+   */
+  toolRule?: (tool: RelayToolCall) => ToolRule | undefined;
 }
 
 export interface McpServerSpec {

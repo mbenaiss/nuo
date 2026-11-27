@@ -160,12 +160,13 @@ enum DemoSeed {
             instructions: String(localized: "You're Cobot, Alex's assistant with full access to the dev machine. Keep it short and get things done."),
             toolServers: ["github", "web", "home"], workdir: "/home/alex", permissionPolicy: .auto, voice: nil,
             commands: cobotCommands)
-        let coach = BotConfig(
+        var coach = BotConfig(
             name: "Coach", emoji: "🏃", color: "#E3F6E8", description: String(localized: "Meals, workouts, WHOOP"), agent: .claude,
             model: "claude-opus-5-5", effort: "medium",
             instructions: String(localized: "You're Alex's sports coach. Check WHOOP before giving any advice."),
             toolServers: ["whoop", "web"], workdir: nil, permissionPolicy: .ask, voice: nil,
             commands: coachCommands)
+        coach.toolRules = ["fitness/whoop_today": .allow, "nuo/gmail_send": .block]
         let voyagesV7 = Self.voyagesV7
         var voyagesDraft = voyagesV7
         voyagesDraft.instructions = String(localized: "demo.bot.voyages.draftInstructions", defaultValue: """
@@ -211,13 +212,30 @@ enum DemoSeed {
             Conversation(id: "c-voyages-2", botId: "voyages", title: String(localized: "Things to do in Lisbon"), useDraft: false, context: ContextUsage(usedTokens: 41_000, maxTokens: 200_000, compactions: 0, updatedAt: ago(60 * 24 * 2)), createdAt: ago(60 * 24 * 2), updatedAt: ago(60 * 24 * 2)),
             Conversation(id: "c-coach-2", botId: "coach", title: String(localized: "Dark chocolate"), useDraft: false, context: ContextUsage(usedTokens: 12_400, maxTokens: 200_000, compactions: 0, updatedAt: ago(7)), createdAt: ago(8), updatedAt: ago(7)),
             Conversation(id: "c-coach-1", botId: "coach", title: String(localized: "Today's workout"), useDraft: false, context: ContextUsage(usedTokens: 138_000, maxTokens: 200_000, compactions: 0, updatedAt: ago(95)), createdAt: ago(100), updatedAt: ago(95)),
+            Conversation(id: "c-cobot-email", botId: "cobot", title: String(localized: "Julie's kitchen quote"), useDraft: false, context: ContextUsage(usedTokens: 18_200, maxTokens: 1_000_000, compactions: 0, updatedAt: ago(30)), createdAt: ago(32), updatedAt: ago(30)),
             Conversation(id: "c-cobot-1", botId: "cobot", title: String(localized: "Gateway deployment"), useDraft: false, context: ContextUsage(usedTokens: 412_000, maxTokens: 1_000_000, compactions: 2, updatedAt: ago(240)), createdAt: ago(250), updatedAt: ago(240)),
+            Conversation(id: "c-cobot-mail", botId: "cobot", title: String(localized: "Unverified emails"), useDraft: false, createdAt: ago(55), updatedAt: ago(54)),
+            Conversation(id: "c-cobot-hook", botId: "cobot", title: String(localized: "Linear webhook"), useDraft: false, createdAt: ago(75), updatedAt: ago(74)),
         ]
 
         let barcode = DemoProducts.darkChocolate
         let productCard = #"::product {"barcode":"\#(barcode)","portion_g":20}"#
 
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        let email = "::email " + (String(data: (try? encoder.encode(DemoDrafts.quote)) ?? Data(), encoding: .utf8) ?? "{}")
+
         let messages: [String: [Message]] = [
+            "c-cobot-mail": DemoWakes.mail(at: ago(55), answeredAt: ago(54)),
+            "c-cobot-hook": DemoWakes.hook(at: ago(75), answeredAt: ago(74)),
+            "c-cobot-email": [
+                Message(id: "m11", conversationId: "c-cobot-email", role: .user, text: String(localized: "Draft an email to Julie with the revised kitchen quote, and cc accounting."), createdAt: ago(32)),
+                Message(
+                    id: "m12", conversationId: "c-cobot-email", role: .assistant,
+                    text: String(localized: "The draft is ready in Gmail, nothing has been sent. Review it, edit it if needed and send it from the card.") + "\n" + email,
+                    steps: [ToolStep(toolCallId: "t8", title: "gmail_draft", kind: "other", status: .completed, durationMs: 1300)],
+                    durationMs: 9000, stopReason: .endTurn, createdAt: ago(30)),
+            ],
             "c-voyages-1": [
                 Message(id: "m1", conversationId: "c-voyages-1", role: .user, text: String(localized: "Is my Monday flight on time?"), createdAt: ago(13)),
                 Message(

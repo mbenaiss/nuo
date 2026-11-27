@@ -37,6 +37,7 @@ export type AuthEventType =
   | "totp_reset"
   | "google_connect"
   | "google_disconnect"
+  | "google_send"
   | "google_error"
   | "secret_reveal"
   | "secret_create"
@@ -50,7 +51,11 @@ export type AuthEventType =
   | "relay_conversation"
   | "relay_permission"
   | "relay_transcription"
-  | "relay_refused";
+  | "relay_refused"
+  | "hook_create"
+  | "hook_revoke"
+  | "hook_call"
+  | "mail_wake";
 
 export interface AuthDevice {
   id: string;

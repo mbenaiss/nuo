@@ -256,6 +256,7 @@ targets:
           - "Features/Chat/ComposerTextView.swift"
           - "Features/Chat/CommandSheets.swift"
           - "Features/Recordings/**"
+          - "Features/Muscu/**"
       - path: Shared/AppIdentity.swift
       - path: Shared/WidgetCredentials.swift
       - path: Shared/WidgetGateway.swift
@@ -326,10 +327,13 @@ targets:
       - path: Nuo/Features/DeviceTools/DeviceToolArgs.swift
       - path: Nuo/Features/DeviceTools/HealthReport.swift
       - path: Nuo/Features/DeviceTools/WorkoutPlanDraft.swift
+      - path: Nuo/Features/Muscu/MuscuRun.swift
+      - path: Shared/MuscuRestLink.swift
       - path: Mac/Folders/LocalFolderTools.swift
       - path: Nuo/Cards/Scan/IngredientsReader.swift
       - path: Nuo/Network/Protocol.swift
       - path: Nuo/Network/ProtocolCoding.swift
+      - path: Nuo/Network/WakeProtocol.swift
       - path: Nuo/Features/Browser/BrowserFrame.swift
       - path: Nuo/Stores/NotificationDestination.swift
       - path: Nuo/Stores/AlertList.swift
@@ -345,6 +349,7 @@ targets:
       - path: Nuo/Features/Files/DocShare.swift
       - path: Nuo/Features/Search/ConversationSearchText.swift
       - path: Nuo/Stores/BotPins.swift
+      - path: Nuo/Stores/QueuedPrompt.swift
       - path: Nuo/Stores/UserNamePreference.swift
       - path: Shared/ISO8601Wire.swift
       - path: Mac/Meetings/MeetingSpeech.swift
@@ -384,6 +389,7 @@ targets:
       - path: Nuo/Cards/ResponseBlockParser.swift
       - path: Nuo/Cards/TextExcerpt.swift
       - path: Nuo/Cards/CardPayloads.swift
+      - path: Nuo/Cards/EmailDraft.swift
       - path: Nuo/Cards/ArtifactSave.swift
       - path: Nuo/Cards/WeatherSymbols.swift
       - path: Nuo/Cards/QuestionReply.swift

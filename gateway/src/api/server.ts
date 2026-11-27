@@ -1,6 +1,7 @@
 import type { Server, ServerWebSocket } from "bun";
 import { HttpError, type BotService } from "../bots/service";
 import type { ToolCatalog } from "../bots/catalog";
+import { isToolRule } from "../bots/tool-rules";
 import type { MachineToolSource } from "../machine/discovery";
 import type { AgentId, Attachment, ClientEvent, ServerEvent } from "../protocol";
 import type { PushDestination, Pusher } from "../push/apns";
@@ -32,16 +33,21 @@ import { secretsRoutes } from "../secrets/routes";
 import type { SecretStore } from "../secrets/store";
 import { scanLocalRoutes, scanRoutes } from "../scan/routes";
 import type { ScanServices } from "../scan/service";
+import { muscuRoutes } from "../muscu/routes";
+import type { Muscu } from "../muscu/service";
 import { SECRETS_PATH } from "../auth/policy";
 import type { ProfileTranscriptions } from "../transcription/service";
 import { latencyReport } from "../metrics/latency";
 import { overviewCaller, overviewLocalRoutes, SEARCH_PATH, searchConversations } from "./overview";
 import { relayRoute } from "./relay";
 import { CALLER_HEADER } from "../mcp/overview-tools";
+import { GOAL_REFUSAL, type GoalGuard } from "../runner/goal";
 import { RELAY_ADD_TOOL_NAMES, runRelayTool } from "../relay/tools";
 import { RELAY_DROPPED_FIELDS, RELAY_REFUSAL, relayRefusal, relayRefusalText } from "../relay/whitelist";
 import { resolveBot } from "../scheduler/scheduler";
 import { isTrue } from "../transcription/service";
+import type { WakeService } from "../hooks/service";
+import { WakeSite, type WakeOptions } from "../hooks/public";
 
 export const VERSION = "0.1.0";
 
@@ -67,8 +73,12 @@ export interface ProfileDeps {
   device?: DeviceBridge;
   secrets?: SecretStore;
   scan?: ScanServices;
+  /** Owner only, when the fitness coach is installed: the Muscu screen. */
+  muscu?: Muscu;
   /** Speech to text for dictation and meetings; without it the apps transcribe on the device only. */
   transcription?: ProfileTranscriptions;
+  /** Webhooks and mail addresses of the profile's bots. */
+  wake?: WakeService;
 }
 
 export interface ServerDeps {
@@ -78,6 +88,7 @@ export interface ServerDeps {
   network?: NetworkConfig;
   cfAccess?: GateDeps["cfAccess"];
   google?: GoogleOAuth;
+  wake?: WakeOptions;
 }
 
 type Handler = (ctx: { req: Request; params: string[]; device: Device; url: URL; scope?: Scope }) => Promise<Response | unknown> | Response | unknown;
@@ -189,6 +200,10 @@ function profileApi(d: ProfileDeps) {
       if (policyOf(bot?.id) === "auto") throw new HttpError(403, "seul un bot à accès complet peut programmer ou lancer une tâche d'un bot à accès complet");
     }
   };
+  const wake = () => {
+    if (!d.wake) throw new HttpError(404, "not found");
+    return d.wake;
+  };
   const taskBot = (id: string) => d.scheduler.list().find((t) => t.id === id)?.botId;
 
   const scheduleRoutes: Route<ScheduleHandler>[] = [
@@ -285,7 +300,22 @@ function profileApi(d: ProfileDeps) {
       },
     ],
     ["PUT", /^\/api\/bots\/([^/]+)\/permissions$/, async ({ req, params }) => d.bots.setPermissions(params[0]!, (await body(req)).permissionPolicy)],
+    // The key of an MCP tool holds a slash (`nuo/gmail_search`): the rest of the path is the key.
+    ["GET", /^\/api\/bots\/([^/]+)\/tool-rules$/, ({ params }) => d.bots.toolRules(params[0]!)],
+    ["DELETE", /^\/api\/bots\/([^/]+)\/tool-rules\/(.+)$/, ({ params }) => d.bots.setToolRule(params[0]!, params[1]!, undefined)],
     ["PUT", /^\/api\/bots\/([^/]+)\/no-tools$/, async ({ req, params }) => d.bots.setNoTools(params[0]!, (await body(req)).noTools)],
+    ["GET", /^\/api\/bots\/([^/]+)\/wake$/, ({ params }) => wake().overview(params[0]!)],
+    ["POST", /^\/api\/bots\/([^/]+)\/hooks$/, async ({ req, params }) => json(wake().createHook(params[0]!, await body(req)), 201)],
+    ["PATCH", /^\/api\/bots\/([^/]+)\/hooks\/([^/]+)$/, async ({ req, params }) => wake().updateHook(params[0]!, params[1]!, await body(req))],
+    [
+      "DELETE",
+      /^\/api\/bots\/([^/]+)\/hooks\/([^/]+)$/,
+      ({ params }) => {
+        wake().revokeHook(params[0]!, params[1]!);
+        return noContent();
+      },
+    ],
+    ["PUT", /^\/api\/bots\/([^/]+)\/mail-alias$/, async ({ req, params }) => wake().setMailAlias(params[0]!, (await body(req)).alias)],
     ["GET", /^\/api\/bots\/([^/]+)\/versions$/, ({ params }) => (d.bots.get(params[0]!), d.store.versions(params[0]!))],
     ["POST", /^\/api\/bots\/([^/]+)\/rollback$/, async ({ req, params }) => d.bots.rollback(params[0]!, (await body(req)).version)],
     [
@@ -339,7 +369,7 @@ function profileApi(d: ProfileDeps) {
       async ({ req, params, scope }) => {
         const id = conversation(params[0]!).id;
         checkExtensionPrompt(scope, id);
-        const b = await body<{ text?: unknown; attachments?: unknown; agent?: unknown; model?: unknown; effort?: unknown }>(req);
+        const b = await body<{ text?: unknown; attachments?: unknown; agent?: unknown; model?: unknown; effort?: unknown; goal?: unknown }>(req);
         const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
         try {
           const { messageId } = await d.runner.prompt(
@@ -350,6 +380,7 @@ function profileApi(d: ProfileDeps) {
               agent: str(b.agent) as AgentId | undefined,
               model: str(b.model),
               effort: str(b.effort),
+              goal: b.goal === true,
             },
             { untrusted: isExtension(scope) },
           );
@@ -478,19 +509,25 @@ function profileApi(d: ProfileDeps) {
   const browserApi = d.browser ? browserRoutes(d.browser) : undefined;
   const browserLocalApi = d.browser ? browserLocalRoutes(d.browser) : undefined;
   const googleApi = d.google ? googleRoutes(d.google) : undefined;
-  const googleLocalApi = d.google ? googleLocalRoutes(d.google) : undefined;
+  /** A goal turn holds the call until the user confirms what acts on other people or loses data (src/runner/goal.ts). */
+  const goalGuard: GoalGuard = async (req, name, input, draft) => {
+    const caller = req.headers.get(CALLER_HEADER);
+    if (caller && !(await d.runner.confirmGoalAction(caller, name, input, draft))) throw new HttpError(403, GOAL_REFUSAL);
+  };
+  const googleLocalApi = d.google ? googleLocalRoutes(d.google, goalGuard) : undefined;
   const deviceApi = d.device ? deviceRoutes(d.device) : undefined;
-  const deviceLocalApi = d.device ? deviceLocalRoutes(d.device) : undefined;
+  const deviceLocalApi = d.device ? deviceLocalRoutes(d.device, goalGuard) : undefined;
   const secretsApi = d.secrets ? secretsRoutes(d.secrets, d.auth) : undefined;
   const scanApi = d.scan ? scanRoutes(d.scan) : undefined;
   const scanLocalApi = d.scan ? scanLocalRoutes(d.scan) : undefined;
+  const muscuApi = d.muscu ? muscuRoutes(d.muscu) : undefined;
   const overviewLocalApi = overviewLocalRoutes(d);
   /** Sent right after authentication: a reconnecting client rebuilds the running turns without missing a delta. */
   const sendSnapshot = (ws: ServerWebSocket<SocketData>) => {
     if (!SNAPSHOT_SCOPES.has(ws.data.scope ?? "app")) return;
     ws.send(JSON.stringify({ type: "turns.snapshot", turns: d.runner.snapshots() } satisfies ServerEvent));
   };
-  return { d, scheduleRoutes, memoryRoutes, routes, notify, dataApi, calendarApi, browserApi, browserLocalApi, googleApi, googleLocalApi, deviceApi, deviceLocalApi, secretsApi, scanApi, scanLocalApi, overviewLocalApi, sendSnapshot, checkExtensionPrompt };
+  return { d, scheduleRoutes, memoryRoutes, routes, notify, dataApi, calendarApi, browserApi, browserLocalApi, googleApi, googleLocalApi, deviceApi, deviceLocalApi, secretsApi, scanApi, scanLocalApi, muscuApi, overviewLocalApi, sendSnapshot, checkExtensionPrompt };
 }
 
 type ProfileApi = ReturnType<typeof profileApi>;
@@ -504,6 +541,7 @@ export function startServer(s: ServerDeps): Server<SocketData> {
     if (!a) apis.set(stack, (a = profileApi(stack)));
     return a;
   };
+  const wakeSite = new WakeSite(s.wake ?? {}, () => s.profiles.all());
   const gate = new Gate({ auth: s.profiles, network: s.network ?? DEFAULT_NETWORK, cfAccess: s.cfAccess });
   const BROWSER_PATH = /^\/api\/browser(\/|$)/;
   const GOOGLE_PATH = /^\/api\/google\//;
@@ -703,6 +741,7 @@ export function startServer(s: ServerDeps): Server<SocketData> {
       (a.googleApi ? await dispatch(a.googleApi, path, req.method, { req, url, device }) : undefined) ??
       (a.deviceApi ? await dispatch(a.deviceApi, path, req.method, { req, url, device }) : undefined) ??
       (a.scanApi ? await dispatch(a.scanApi, path, req.method, { req, url }) : undefined) ??
+      (a.muscuApi ? await dispatch(a.muscuApi, path, req.method, { req, url }) : undefined) ??
       fail(404, "not found");
     return { res, ...ids };
   };
@@ -726,6 +765,9 @@ export function startServer(s: ServerDeps): Server<SocketData> {
       const url = new URL(req.url);
       const path = url.pathname.replace(/\/+$/, "") || "/";
       const origin = gate.origin(server.requestIP(req)?.address, req.headers);
+      // Webhooks and the mail Worker reach the gateway here, outside Cloudflare Access: these two routes and nothing
+      // else, not even the Google callback below.
+      if (wakeSite.hosts.has(requestHost(req))) return secure(await wakeSite.handle(req, path, origin.ip), origin);
       // Google sends the user's browser here, outside Cloudflare Access and without any gateway credential.
       if (s.google && path === CALLBACK_PATH && req.method === "GET") return googleCallback(s.google, url, (id) => s.profiles.stack(id)?.google);
       // The booking hostname is a separate, unauthenticated site of the owner: it never reaches the gate or any app route.
@@ -809,9 +851,12 @@ export function startServer(s: ServerDeps): Server<SocketData> {
               return;
             case "cancel":
               return await a.d.runner.cancel(e.conversationId);
-            case "permission":
-              if (!a.d.runner.answerPermission(e.requestId, e.optionId)) send({ type: "error", message: "unknown or expired permission request" });
+            case "permission": {
+              if (e.rule !== undefined && isExtension(ws.data.scope as Scope | undefined)) return send({ type: "error", message: "tool rules are kept from the app only" });
+              if (e.rule !== undefined && !isToolRule(e.rule)) return send({ type: "error", message: "rule must be allow or block" });
+              if (!a.d.runner.answerPermission(e.requestId, e.optionId, e.rule)) send({ type: "error", message: "unknown or expired permission request, or a rule it does not offer" });
               return;
+            }
             default:
               return send({ type: "error", message: `unknown event type ${(e as { type?: string }).type}` });
           }

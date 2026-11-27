@@ -109,6 +109,11 @@ final class PhoneLink: NSObject, WCSessionDelegate, @unchecked Sendable {
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        if MuscuRestLink.decode(message) != nil {
+            nonisolated(unsafe) let payload = message
+            Task { @MainActor in WatchRest.shared.receive(payload) }
+            return
+        }
         if message[RecordingLink.kind] as? String == RecordingLink.askAck {
             // The live copy of an acknowledgement also queued by the iPhone: whichever comes first counts.
             let payload = Payload(values: message)
@@ -122,6 +127,7 @@ final class PhoneLink: NSObject, WCSessionDelegate, @unchecked Sendable {
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         nonisolated(unsafe) let info = userInfo
         Task { @MainActor in
+            if WatchRest.shared.receive(info) { return }
             RecordingUplink.shared.receive(info)
             AskCenter.shared.receive(info)
         }

@@ -161,7 +161,7 @@ final class LiveActivityCenter {
             return
         case .permissionRequest:
             turn.state.preview = String(localized: "Waiting for your approval.")
-        case .messageEnd, .notification, .pong, .context, .notice, .turnPhase, .turnsSnapshot, .deviceRequest, .subagent, .alert:
+        case .messageUser, .messageEnd, .notification, .pong, .context, .notice, .turnPhase, .turnsSnapshot, .deviceRequest, .subagent, .alert:
             return
         }
         let phaseChanged = turns[id]?.state.phase != turn.state.phase || turns[id]?.state.steps != turn.state.steps

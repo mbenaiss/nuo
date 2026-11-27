@@ -137,6 +137,8 @@ enum MessageContent {
             return [.card(.phoneOnly(kind: String(localized: "File"), symbol: artifact.symbol, title: artifact.title))]
         case let .conversation(conversation):
             return [.card(.phoneOnly(kind: String(localized: "Conversation"), symbol: "bubble.left.and.bubble.right.fill", title: conversation.title))]
+        case let .email(email):
+            return [.card(.phoneOnly(kind: String(localized: "Email draft"), symbol: "envelope.fill", title: email.subject.nilIfEmpty ?? String(localized: "(no subject)")))]
         }
     }
 

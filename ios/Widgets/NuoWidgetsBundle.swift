@@ -15,5 +15,6 @@ struct NuoWidgetsBundle: WidgetBundle {
         RemindersWidget()
         RemindersAccessoryWidget()
         NuoBotActivity()
+        MuscuSessionActivity()
     }
 }

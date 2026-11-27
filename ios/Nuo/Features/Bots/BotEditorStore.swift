@@ -103,6 +103,27 @@ final class BotEditorStore {
         config.commands = list
     }
 
+    var toolRules: [(key: String, rule: ToolRule)] { bot.toolRuleList }
+
+    func removeToolRule(_ key: String) async {
+        do {
+            let updated = try await session.api.removeToolRule(botId: bot.id, key: key)
+            bot = updated
+            bots.upsert(updated)
+            let editing = saveTask != nil
+            config.toolRules = updated.config?.toolRules
+            // The gateway already changed the draft in place: only edits still waiting to be saved need a save.
+            if !editing {
+                saveTask?.cancel()
+                saveTask = nil
+            }
+            Haptics.success()
+        } catch {
+            self.error = error.localizedDescription
+            Haptics.error()
+        }
+    }
+
     private func scheduleSave() {
         saveTask?.cancel()
         saveTask = Task { [weak self] in

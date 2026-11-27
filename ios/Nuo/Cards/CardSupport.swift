@@ -80,6 +80,8 @@ extension EnvironmentValues {
     @Entry var cardBotName: String?
     /// Scanning and parcels of the gateway; nil in the demo and before pairing.
     @Entry var scanAPI: (any NuoScanAPI)?
+    /// The `::email` card's drafts; nil before pairing, when the card stays read only.
+    @Entry var emailDraftAPI: (any NuoEmailDraftAPI)?
     /// Shows all of a code block or a pasted text the chat laid out in part, by its `TranscriptRows` key.
     @Entry var expandTranscriptPart: TranscriptExpander?
     /// Horizontal offsets of the code blocks the chat cut into rows, so that their slices scroll together.

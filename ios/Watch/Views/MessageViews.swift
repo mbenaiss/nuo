@@ -8,7 +8,7 @@ struct MessageView: View {
         case .user:
             HStack {
                 Spacer(minLength: 24)
-                Text(message.text)
+                Text(message.wake.flatMap { $0.isShown ? $0.summary : nil } ?? message.text)
                     .font(.footnote)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)

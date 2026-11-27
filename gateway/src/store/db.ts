@@ -5,6 +5,7 @@ import { defaultLayout } from "../paths";
 import { uniqueSlug } from "./slug";
 import { authMigration } from "../auth/schema";
 import { googleMigration } from "../google/schema";
+import { wakeMigration } from "../hooks/store";
 
 export function defaultDataDir(): string {
   return defaultLayout().data;
@@ -202,6 +203,9 @@ export const MIGRATIONS: Migration[] = [
     created_at TEXT NOT NULL
   );
   `,
+  // Webhooks and mail that wake a bot from outside (src/hooks/).
+  wakeMigration,
+  `ALTER TABLE messages ADD COLUMN wake TEXT;`,
 ];
 
 export function openDb(dataDir: string): Database {

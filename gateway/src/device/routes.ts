@@ -1,6 +1,7 @@
 import { HttpError } from "../bots/service";
 import type { Device } from "../store/store";
 import type { DeviceBridge } from "./bridge";
+import type { GoalGuard } from "../runner/goal";
 
 type Ctx = { req: Request; params: string[]; url: URL; device: Device };
 type LocalCtx = { req: Request; params: string[]; url: URL };
@@ -47,13 +48,15 @@ export function deviceRoutes(bridge: DeviceBridge): DeviceRoute[] {
 }
 
 /** For the profile's `nuo` MCP server (local token). */
-export function deviceLocalRoutes(bridge: DeviceBridge): DeviceLocalRoute[] {
+export function deviceLocalRoutes(bridge: DeviceBridge, guard?: GoalGuard): DeviceLocalRoute[] {
   return [
     [
       "POST",
       /^\/api\/device\/tools\/([a-z_]+)$/,
       async ({ req, params }) => {
-        const result = await bridge.call(params[0]!, await body(req));
+        const args = await body(req);
+        await guard?.(req, params[0]!, args);
+        const result = await bridge.call(params[0]!, args);
         return { text: typeof result === "string" ? result : JSON.stringify(result) };
       },
     ],

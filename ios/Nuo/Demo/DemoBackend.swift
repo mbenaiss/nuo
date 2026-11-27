@@ -117,6 +117,19 @@ actor DemoBackend: NuoAPI {
         }
     }
 
+    func removeToolRule(botId: String, key: String) async throws -> Bot {
+        try mutate(botId) { bot in
+            bot.draft?.toolRules?[key] = nil
+            if bot.draft?.toolRules?.isEmpty == true { bot.draft?.toolRules = nil }
+            if let published = bot.published, published.config.toolRules?[key] != nil {
+                var config = published.config
+                config.toolRules?[key] = nil
+                if config.toolRules?.isEmpty == true { config.toolRules = nil }
+                bot.published = BotVersion(version: published.version + 1, config: config, note: String(localized: "Tool rule removed: \(key)"), publishedAt: Date())
+            }
+        }
+    }
+
     func publish(botId: String, note: String?) async throws -> Bot {
         var versions = versionsByBot[botId] ?? []
         let bot = try mutate(botId) { bot in

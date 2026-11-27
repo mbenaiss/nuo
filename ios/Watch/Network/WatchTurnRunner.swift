@@ -175,7 +175,7 @@ final class LiveTurnRunner: WatchTurnRunner {
             case let .error(_, message):
                 out.yield(.failed(message))
                 return true
-            case let .permissionRequest(_, requestId, title, options):
+            case let .permissionRequest(_, requestId, title, options, _):
                 out.yield(.permission(requestId: requestId, title: title, options: options, answerable: false))
             default: break
             }

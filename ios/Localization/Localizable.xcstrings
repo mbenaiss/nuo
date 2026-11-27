@@ -577,6 +577,22 @@
         }
       }
     },
+    "%@ kg last time" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kg last time"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kg la dernière fois"
+          }
+        }
+      }
+    },
     "%@ left in this project." : {
       "localizations" : {
         "en" : {
@@ -685,6 +701,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ de trajet"
+          }
+        }
+      }
+    },
+    "%@ webhook" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ webhook"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Webhook %@"
           }
         }
       }
@@ -813,6 +845,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ · %lld en cours"
+          }
+        }
+      }
+    },
+    "%@ · %lld/%lld sets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %lld/%lld sets"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %lld/%lld séries"
           }
         }
       }
@@ -1121,6 +1169,46 @@
         }
       }
     },
+    "%lld blocks" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld block"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld blocks"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld bloc"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld blocs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld bots ready" : {
       "localizations" : {
         "en" : {
@@ -1154,6 +1242,46 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld bots prêts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld calls" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld call"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld calls"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld appel"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld appels"
                 }
               }
             }
@@ -2097,6 +2225,22 @@
         }
       }
     },
+    "%lld of %lld sets done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld of %lld sets done"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld séries faites sur %lld"
+          }
+        }
+      }
+    },
     "%lld overdue" : {
       "localizations" : {
         "en" : {
@@ -2313,6 +2457,46 @@
         }
       }
     },
+    "%lld reps in reserve" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rep in reserve"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reps in reserve"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rep en réserve"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reps en réserve"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld requests" : {
       "localizations" : {
         "en" : {
@@ -2421,6 +2605,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld s"
+          }
+        }
+      }
+    },
+    "%lld sets" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld set"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sets"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld série"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld séries"
+                }
+              }
+            }
           }
         }
       }
@@ -2721,6 +2945,22 @@
         }
       }
     },
+    "%lld/%lld sets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/%lld sets"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/%lld séries"
+          }
+        }
+      }
+    },
     "%u departures" : {
       "localizations" : {
         "en" : {
@@ -2765,6 +3005,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(vide)"
+          }
+        }
+      }
+    },
+    "(no subject)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(no subject)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(sans objet)"
           }
         }
       }
@@ -3713,6 +3969,54 @@
         }
       }
     },
+    "Abandon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abandon"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abandonner"
+          }
+        }
+      }
+    },
+    "Abandon this session?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abandon this session?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abandonner la séance ?"
+          }
+        }
+      }
+    },
+    "Abandon without saving" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abandon without saving"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abandonner sans l'enregistrer"
+          }
+        }
+      }
+    },
     "About" : {
       "localizations" : {
         "en" : {
@@ -4481,6 +4785,22 @@
         }
       }
     },
+    "Add at least one recipient." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add at least one recipient."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoute au moins un destinataire."
+          }
+        }
+      }
+    },
     "Add buy bread and call Julie Martin tomorrow at 9 am" : {
       "localizations" : {
         "en" : {
@@ -4557,6 +4877,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajoute le premier en bas."
+          }
+        }
+      }
+    },
+    "Add to its memory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to its memory"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter à sa mémoire"
           }
         }
       }
@@ -5489,6 +5825,22 @@
         }
       }
     },
+    "Already sent or deleted" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already sent or deleted"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déjà envoyé ou supprimé"
+          }
+        }
+      }
+    },
     "Also Cancel the Reminders" : {
       "localizations" : {
         "en" : {
@@ -5565,6 +5917,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toujours autoriser"
+          }
+        }
+      }
+    },
+    "Always allowed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always allowed"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toujours autorisé"
+          }
+        }
+      }
+    },
+    "Always for this tool" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always for this tool"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toujours pour cet outil"
           }
         }
       }
@@ -5677,6 +6061,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Un domaine regroupe des projets et des rappels sans fin : Pro, Maison, Santé…"
+          }
+        }
+      }
+    },
+    "An email to this address wakes the bot. Yours, once verified, are requests it carries through; anyone else's are information it reads without obeying." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An email to this address wakes the bot. Yours, once verified, are requests it carries through; anyone else's are information it reads without obeying."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un e-mail à cette adresse réveille le bot. Les tiens, vérifiés, sont des demandes qu'il mène au bout ; ceux des autres, des informations qu'il lit sans leur obéir."
           }
         }
       }
@@ -5989,6 +6389,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apparence"
+          }
+        }
+      }
+    },
+    "Apple Pay payment fails after the address is entered, since 3.8.0." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Pay payment fails after the address is entered, since 3.8.0."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le paiement Apple Pay échoue après la saisie de l'adresse, depuis la 3.8.0."
           }
         }
       }
@@ -6537,6 +6953,22 @@
         }
       }
     },
+    "Ask another bot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask another bot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interroger un autre bot"
+          }
+        }
+      }
+    },
     "Ask me what I ate today and log the macros." : {
       "localizations" : {
         "en" : {
@@ -6553,6 +6985,22 @@
         }
       }
     },
+    "Ask the Coach to prepare a gym session." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask the Coach to prepare a gym session."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande au Coach de préparer une séance de muscu."
+          }
+        }
+      }
+    },
     "Ask the bot" : {
       "localizations" : {
         "en" : {
@@ -6565,6 +7013,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Demander au bot"
+          }
+        }
+      }
+    },
+    "Ask the expert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask the expert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demander à l'expert"
           }
         }
       }
@@ -7145,6 +7609,22 @@
         }
       }
     },
+    "Back to it" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to it"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C'est reparti"
+          }
+        }
+      }
+    },
     "Back to the recording" : {
       "localizations" : {
         "en" : {
@@ -7337,6 +7817,22 @@
         }
       }
     },
+    "Bcc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bcc"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cci"
+          }
+        }
+      }
+    },
     "Before leaving" : {
       "localizations" : {
         "en" : {
@@ -7433,6 +7929,54 @@
         }
       }
     },
+    "Block %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloc %@"
+          }
+        }
+      }
+    },
+    "Block %@ · set %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %@ · set %lld/%lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloc %@ · série %lld/%lld"
+          }
+        }
+      }
+    },
+    "Block change" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block change"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changement de bloc"
+          }
+        }
+      }
+    },
     "Block options" : {
       "localizations" : {
         "en" : {
@@ -7461,6 +8005,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fête de quartier"
+          }
+        }
+      }
+    },
+    "Block this tool" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block this tool"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloquer cet outil"
+          }
+        }
+      }
+    },
+    "Blocked" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqué"
           }
         }
       }
@@ -8921,6 +9497,22 @@
         }
       }
     },
+    "Change a setting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change a setting"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un réglage"
+          }
+        }
+      }
+    },
     "Change emoji" : {
       "localizations" : {
         "en" : {
@@ -9049,6 +9641,22 @@
         }
       }
     },
+    "Check printability" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check printability"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifier l'imprimabilité"
+          }
+        }
+      }
+    },
     "Check the name or create a bot from the home screen." : {
       "localizations" : {
         "en" : {
@@ -9061,6 +9669,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vérifie le nom ou crée un bot depuis l'accueil."
+          }
+        }
+      }
+    },
+    "Check the weather" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the weather"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consulter la météo"
           }
         }
       }
@@ -10777,6 +11401,22 @@
         }
       }
     },
+    "Copy URL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy URL"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copier l'URL"
+          }
+        }
+      }
+    },
     "Copy Value" : {
       "localizations" : {
         "en" : {
@@ -10789,6 +11429,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copier la valeur"
+          }
+        }
+      }
+    },
+    "Copy address" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy address"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copier l'adresse"
+          }
+        }
+      }
+    },
+    "Copy it now: it won't be shown again. Anyone who has it can wake the bot." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy it now: it won't be shown again. Anyone who has it can wake the bot."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie-la maintenant : elle ne sera plus affichée. Quiconque la connaît peut réveiller le bot."
           }
         }
       }
@@ -11465,6 +12137,38 @@
         }
       }
     },
+    "Create a calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create a calendar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un agenda"
+          }
+        }
+      }
+    },
+    "Create a design" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create a design"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un modèle"
+          }
+        }
+      }
+    },
     "Create a public page: people pick a free slot and the invitation comes from your Google Calendar." : {
       "localizations" : {
         "en" : {
@@ -11477,6 +12181,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Crée une page publique : on choisit un créneau libre, l'invitation part de ton agenda Google."
+          }
+        }
+      }
+    },
+    "Create an event" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an event"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un évènement"
           }
         }
       }
@@ -11517,6 +12237,22 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Create or replace files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create or replace files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer ou remplacer des fichiers"
           }
         }
       }
@@ -11741,6 +12477,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chaque jour"
+          }
+        }
+      }
+    },
+    "Daily summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily summary"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bilan du jour"
           }
         }
       }
@@ -12465,6 +13217,70 @@
         }
       }
     },
+    "Delete a calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete a calendar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer un agenda"
+          }
+        }
+      }
+    },
+    "Delete a meal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete a meal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer un repas"
+          }
+        }
+      }
+    },
+    "Delete a planned workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete a planned workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer une séance prévue"
+          }
+        }
+      }
+    },
+    "Delete a scheduled task" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete a scheduled task"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer une tâche planifiée"
+          }
+        }
+      }
+    },
     "Delete alerts" : {
       "localizations" : {
         "en" : {
@@ -12493,6 +13309,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer toutes les alertes ?"
+          }
+        }
+      }
+    },
+    "Delete an event" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete an event"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer un évènement"
           }
         }
       }
@@ -13665,6 +14497,38 @@
         }
       }
     },
+    "Draft an email to Julie with the revised kitchen quote, and cc accounting." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draft an email to Julie with the revised kitchen quote, and cc accounting."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prépare un mail à Julie avec le devis cuisine revu, mets la compta en copie."
+          }
+        }
+      }
+    },
+    "Draft preview, read only." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draft preview, read only."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperçu du brouillon, en lecture seule."
+          }
+        }
+      }
+    },
     "Draft vs v%lld" : {
       "localizations" : {
         "en" : {
@@ -13825,6 +14689,86 @@
         }
       }
     },
+    "Edit a calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit a calendar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un agenda"
+          }
+        }
+      }
+    },
+    "Edit a design" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit a design"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un modèle"
+          }
+        }
+      }
+    },
+    "Edit a notebook" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit a notebook"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un notebook"
+          }
+        }
+      }
+    },
+    "Edit a scheduled task" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit a scheduled task"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier une tâche planifiée"
+          }
+        }
+      }
+    },
+    "Edit an event" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit an event"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un évènement"
+          }
+        }
+      }
+    },
     "Edit bot" : {
       "localizations" : {
         "en" : {
@@ -13837,6 +14781,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modifier le bot"
+          }
+        }
+      }
+    },
+    "Edit files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier des fichiers"
           }
         }
       }
@@ -14001,6 +14961,70 @@
         }
       }
     },
+    "Email address" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email address"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse e-mail"
+          }
+        }
+      }
+    },
+    "Email draft" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email draft"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brouillon d'e-mail"
+          }
+        }
+      }
+    },
+    "Email from %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email from %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail de %@"
+          }
+        }
+      }
+    },
+    "Email from you" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email from you"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail de toi"
+          }
+        }
+      }
+    },
     "Email or phone" : {
       "localizations" : {
         "en" : {
@@ -14033,6 +15057,38 @@
         }
       }
     },
+    "Email sent from %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email sent from %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail envoyé depuis %@."
+          }
+        }
+      }
+    },
+    "Email sent from a card" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email sent from a card"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail envoyé depuis une carte"
+          }
+        }
+      }
+    },
     "Email sent to Julie Martin with the Lyon trade show quote." : {
       "localizations" : {
         "en" : {
@@ -14045,6 +15101,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mail envoyé à Julie Martin avec le devis du salon de Lyon."
+          }
+        }
+      }
+    },
+    "Email sent." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email sent."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail envoyé."
           }
         }
       }
@@ -14961,6 +16033,22 @@
         }
       }
     },
+    "Export" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporter"
+          }
+        }
+      }
+    },
     "Export as Markdown…" : {
       "localizations" : {
         "en" : {
@@ -15101,6 +16189,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aéroports et trajets favoris"
+          }
+        }
+      }
+    },
+    "Fewer %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fewer %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moins de %@"
           }
         }
       }
@@ -15361,6 +16465,22 @@
         }
       }
     },
+    "Finish and save" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish and save"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer et enregistrer"
+          }
+        }
+      }
+    },
     "Finish dictation" : {
       "localizations" : {
         "en" : {
@@ -15373,6 +16493,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminer la dictée"
+          }
+        }
+      }
+    },
+    "Finish now?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish now?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer maintenant ?"
+          }
+        }
+      }
+    },
+    "Finish session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish session"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer la séance"
           }
         }
       }
@@ -15553,6 +16705,22 @@
         }
       }
     },
+    "Fitness coach" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fitness coach"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach fitness"
+          }
+        }
+      }
+    },
     "Fix any misread word if needed. The list is kept: the next scan of this code will use it." : {
       "localizations" : {
         "en" : {
@@ -15629,6 +16797,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vol Rome → Paris"
+          }
+        }
+      }
+    },
+    "Flight card" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flight card"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte d'un vol"
           }
         }
       }
@@ -16305,6 +17489,22 @@
         }
       }
     },
+    "Gateway unreachable: read-only preview." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gateway unreachable: read-only preview."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passerelle injoignable : aperçu en lecture seule."
+          }
+        }
+      }
+    },
     "Gateway unreachable: trying again next time you open the app. The audio is kept." : {
       "localizations" : {
         "en" : {
@@ -16577,6 +17777,38 @@
         }
       }
     },
+    "Goal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objectif"
+          }
+        }
+      }
+    },
+    "Goal on: each message is seen through to the end, until you turn it off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal on: each message is seen through to the end, until you turn it off"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objectif activé : chaque message est mené jusqu'au bout, jusqu'à ce que tu le désactives"
+          }
+        }
+      }
+    },
     "Goal: a half marathon in under 1:35." : {
       "localizations" : {
         "en" : {
@@ -16589,6 +17821,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Objectif : semi-marathon en moins de 1 h 35."
+          }
+        }
+      }
+    },
+    "Goal: the bot sees it through without asking at each step" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal: the bot sees it through without asking at each step"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objectif : le bot va jusqu'au bout sans demander à chaque étape"
+          }
+        }
+      }
+    },
+    "Goal: the expected result" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal: the expected result"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objectif : le résultat attendu"
           }
         }
       }
@@ -17069,6 +18333,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invités (adresses e-mail)"
+          }
+        }
+      }
+    },
+    "Gym" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gym"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muscu"
+          }
+        }
+      }
+    },
+    "Gym session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gym session"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance de muscu"
           }
         }
       }
@@ -18945,6 +20241,22 @@
         }
       }
     },
+    "Its URL will stop working right away." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its URL will stop working right away."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son URL cessera aussitôt de fonctionner."
+          }
+        }
+      }
+    },
     "Its conversations and versions are deleted from the gateway." : {
       "localizations" : {
         "en" : {
@@ -19121,6 +20433,22 @@
         }
       }
     },
+    "Julie's kitchen quote" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Julie's kitchen quote"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devis cuisine de Julie"
+          }
+        }
+      }
+    },
     "Just a moment longer…" : {
       "localizations" : {
         "en" : {
@@ -19165,6 +20493,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Garder"
+          }
+        }
+      }
+    },
+    "Keep %lld reps in reserve." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Keep %lld rep in reserve."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Keep %lld reps in reserve."
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Garde %lld rep en réserve."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Garde %lld reps en réserve."
+                }
+              }
+            }
           }
         }
       }
@@ -19325,6 +20693,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuisine"
+          }
+        }
+      }
+    },
+    "Kitchen quote, version 2" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitchen quote, version 2"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devis cuisine, version 2"
+          }
+        }
+      }
+    },
+    "Know where you are" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Know where you are"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Savoir où tu es"
           }
         }
       }
@@ -19777,6 +21177,38 @@
         }
       }
     },
+    "Linear webhook" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linear webhook"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Webhook Linear"
+          }
+        }
+      }
+    },
+    "Linear, GitHub or IFTTT send a POST to its URL: the bot reads what arrives as data, in a separate conversation, and lets you know." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linear, GitHub or IFTTT send a POST to its URL: the bot reads what arrives as data, in a separate conversation, and lets you know."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linear, GitHub ou IFTTT envoient un POST à son URL : le bot lit ce qui arrive comme des données, dans une conversation à part, et te prévient."
+          }
+        }
+      }
+    },
     "Link" : {
       "localizations" : {
         "en" : {
@@ -19837,6 +21269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Liste"
+          }
+        }
+      }
+    },
+    "List files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister des fichiers"
           }
         }
       }
@@ -20129,6 +21577,38 @@
         }
       }
     },
+    "Log a meal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log a meal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noter un repas"
+          }
+        }
+      }
+    },
+    "Log a workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log a workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noter une séance"
+          }
+        }
+      }
+    },
     "Log in" : {
       "localizations" : {
         "en" : {
@@ -20205,6 +21685,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Texte long"
+          }
+        }
+      }
+    },
+    "Look up a barcode" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Look up a barcode"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher un code-barres"
           }
         }
       }
@@ -20593,6 +22089,38 @@
         }
       }
     },
+    "Machine taken" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machine taken"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machine prise"
+          }
+        }
+      }
+    },
+    "Machine taken? Do another block, this one will wait." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machine taken? Do another block, this one will wait."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machine prise ? Fais un autre bloc, celui-ci t'attend."
+          }
+        }
+      }
+    },
     "Machine tools" : {
       "localizations" : {
         "en" : {
@@ -20877,6 +22405,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Repas, séances, WHOOP"
+          }
+        }
+      }
+    },
+    "Measure" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mesurer"
           }
         }
       }
@@ -21681,6 +23225,22 @@
         }
       }
     },
+    "More %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus de %@"
+          }
+        }
+      }
+    },
     "More accurate, spells participants' names correctly. The recording is deleted afterwards." : {
       "localizations" : {
         "en" : {
@@ -22065,6 +23625,22 @@
         }
       }
     },
+    "Name it after the service that will call it." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name it after the service that will call it."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Donne-lui le nom du service qui l'appellera."
+          }
+        }
+      }
+    },
     "Name: %@ %@" : {
       "localizations" : {
         "en" : {
@@ -22253,6 +23829,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Jamais"
+          }
+        }
+      }
+    },
+    "Never called" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never called"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jamais appelé"
           }
         }
       }
@@ -23185,6 +24777,22 @@
         }
       }
     },
+    "New webhook" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New webhook"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau webhook"
+          }
+        }
+      }
+    },
     "News feed | example.org" : {
       "localizations" : {
         "en" : {
@@ -23341,6 +24949,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Prochaine exécution : %1$@ à %2$@"
+          }
+        }
+      }
+    },
+    "Next workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prochaine séance"
           }
         }
       }
@@ -24433,6 +26057,22 @@
         }
       }
     },
+    "No recipient" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No recipient"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun destinataire"
+          }
+        }
+      }
+    },
     "No recordings" : {
       "localizations" : {
         "en" : {
@@ -24593,6 +26233,38 @@
         }
       }
     },
+    "No rules. On a permission request, “Always for this tool” or “Block this tool” adds one here." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rules. On a permission request, “Always for this tool” or “Block this tool” adds one here."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune règle. Sur une demande d'autorisation, « Toujours pour cet outil » ou « Bloquer cet outil » en ajoute une ici."
+          }
+        }
+      }
+    },
+    "No rules: a permission request adds one" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rules: a permission request adds one"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune règle : une demande d'autorisation en ajoute une"
+          }
+        }
+      }
+    },
     "No run planned" : {
       "localizations" : {
         "en" : {
@@ -24669,6 +26341,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucun service"
+          }
+        }
+      }
+    },
+    "No session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No session"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune séance"
           }
         }
       }
@@ -25037,6 +26725,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Non envoyées"
+          }
+        }
+      }
+    },
+    "Not sent to the Coach yet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not sent to the Coach yet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore envoyée au Coach"
           }
         }
       }
@@ -26737,6 +28441,38 @@
         }
       }
     },
+    "Open a design" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open a design"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir un modèle"
+          }
+        }
+      }
+    },
+    "Open a web page" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open a web page"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir une page web"
+          }
+        }
+      }
+    },
     "Open conversation" : {
       "localizations" : {
         "en" : {
@@ -27357,6 +29093,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Autre emoji"
+          }
+        }
+      }
+    },
+    "Other sessions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other sessions"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autres séances"
           }
         }
       }
@@ -28481,6 +30233,22 @@
         }
       }
     },
+    "Plan a route" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan a route"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculer un trajet"
+          }
+        }
+      }
+    },
     "Plan the long run" : {
       "localizations" : {
         "en" : {
@@ -28769,6 +30537,22 @@
         }
       }
     },
+    "Prepare a draft" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepare a draft"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparer un brouillon"
+          }
+        }
+      }
+    },
     "Preparing for the chip (about a minute)…" : {
       "localizations" : {
         "en" : {
@@ -28989,6 +30773,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Période précédente (⌘[)"
+          }
+        }
+      }
+    },
+    "Printer status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Printer status"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "État de l'imprimante"
           }
         }
       }
@@ -29937,6 +31737,54 @@
         }
       }
     },
+    "Read a conversation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read a conversation"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire une conversation"
+          }
+        }
+      }
+    },
+    "Read a file" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read a file"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire un fichier"
+          }
+        }
+      }
+    },
+    "Read activity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read activity"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire l'activité"
+          }
+        }
+      }
+    },
     "Read activity, heart rate, sleep, workouts and weight in Health. Nothing is written, nothing is kept on the gateway." : {
       "localizations" : {
         "en" : {
@@ -29949,6 +31797,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lire l'activité, le cardio, le sommeil, les séances et le poids dans Santé. Rien n'est écrit, rien n'est gardé sur la passerelle."
+          }
+        }
+      }
+    },
+    "Read an email" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read an email"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire un e-mail"
           }
         }
       }
@@ -29969,6 +31833,22 @@
         }
       }
     },
+    "Read body measurements" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read body measurements"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire les mesures du corps"
+          }
+        }
+      }
+    },
     "Read by %@" : {
       "localizations" : {
         "en" : {
@@ -29981,6 +31861,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lu par %@"
+          }
+        }
+      }
+    },
+    "Read events" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read events"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire les évènements"
+          }
+        }
+      }
+    },
+    "Read files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire des fichiers"
+          }
+        }
+      }
+    },
+    "Read heart data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read heart data"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le cœur"
+          }
+        }
+      }
+    },
+    "Read its memory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read its memory"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire sa mémoire"
           }
         }
       }
@@ -30013,6 +31957,102 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lire les réponses"
+          }
+        }
+      }
+    },
+    "Read settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read settings"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire les réglages"
+          }
+        }
+      }
+    },
+    "Read sleep" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read sleep"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le sommeil"
+          }
+        }
+      }
+    },
+    "Read the guide" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read the guide"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le guide"
+          }
+        }
+      }
+    },
+    "Read the health summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read the health summary"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le résumé santé"
+          }
+        }
+      }
+    },
+    "Read the history" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read the history"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire l'historique"
+          }
+        }
+      }
+    },
+    "Read workouts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read workouts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire les entraînements"
           }
         }
       }
@@ -30897,6 +32937,22 @@
         }
       }
     },
+    "Remember for “%@” in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remember for “%@” in %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retenir pour « %1$@ », chez %2$@"
+          }
+        }
+      }
+    },
     "Remember: relative nullity can only be invoked by the protected party." : {
       "localizations" : {
         "en" : {
@@ -31153,6 +33209,22 @@
         }
       }
     },
+    "Remove a workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove a workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer une séance"
+          }
+        }
+      }
+    },
     "Remove file" : {
       "localizations" : {
         "en" : {
@@ -31293,6 +33365,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retirer la plage"
+          }
+        }
+      }
+    },
+    "Remove the rule for %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the rule for %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer la règle de %@"
+          }
+        }
+      }
+    },
+    "Remove “%@”" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove “%@”"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer « %@ »"
           }
         }
       }
@@ -31713,6 +33817,54 @@
         }
       }
     },
+    "Rest" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repos"
+          }
+        }
+      }
+    },
+    "Rest over" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest over"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repos terminé"
+          }
+        }
+      }
+    },
+    "Rest · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest · %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repos · %@"
+          }
+        }
+      }
+    },
     "Restore" : {
       "localizations" : {
         "en" : {
@@ -31837,6 +33989,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reprendre"
+          }
+        }
+      }
+    },
+    "Resume now" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprendre maintenant"
           }
         }
       }
@@ -32017,6 +34185,22 @@
         }
       }
     },
+    "Revoke %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Révoquer %@"
+          }
+        }
+      }
+    },
     "Revoke relay access?" : {
       "localizations" : {
         "en" : {
@@ -32061,6 +34245,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Révoquer coupe l'accès immédiatement, extensions comprises (widgets, partage, montre). L'appareil devra être appairé à nouveau, depuis le réseau de la passerelle, avec un code 2FA."
+          }
+        }
+      }
+    },
+    "Rewrite its memory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rewrite its memory"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réécrire sa mémoire"
           }
         }
       }
@@ -32141,6 +34341,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rue de Clichy, Paris 9e"
+          }
+        }
+      }
+    },
+    "Rule not removed: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rule not removed: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Règle non retirée : %@"
           }
         }
       }
@@ -32417,6 +34633,38 @@
         }
       }
     },
+    "Save a flight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save a flight"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer un vol"
+          }
+        }
+      }
+    },
+    "Save a planned workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save a planned workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer une séance prévue"
+          }
+        }
+      }
+    },
     "Save to %@" : {
       "localizations" : {
         "en" : {
@@ -32477,6 +34725,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enregistré"
+          }
+        }
+      }
+    },
+    "Saved for the Coach" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved for the Coach"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrée pour le Coach"
           }
         }
       }
@@ -32621,6 +34885,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Programmer une séance structurée dans Fitness et sur l'Apple Watch, et l'annuler."
+          }
+        }
+      }
+    },
+    "Schedule a task" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schedule a task"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planifier une tâche"
+          }
+        }
+      }
+    },
+    "Schedule a workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schedule a workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programmer une séance"
           }
         }
       }
@@ -32801,6 +35097,22 @@
         }
       }
     },
+    "Search emails" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search emails"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher dans les e-mails"
+          }
+        }
+      }
+    },
     "Search facts" : {
       "localizations" : {
         "en" : {
@@ -32833,6 +35145,22 @@
         }
       }
     },
+    "Search for a place" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search for a place"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher un lieu"
+          }
+        }
+      }
+    },
     "Search for a secret or a file" : {
       "localizations" : {
         "en" : {
@@ -32845,6 +35173,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechercher un secret ou un fichier"
+          }
+        }
+      }
+    },
+    "Search for activities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search for activities"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher des activités"
           }
         }
       }
@@ -32881,6 +35225,22 @@
         }
       }
     },
+    "Search for files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search for files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher des fichiers"
+          }
+        }
+      }
+    },
     "Search in %@" : {
       "localizations" : {
         "en" : {
@@ -32897,6 +35257,22 @@
         }
       }
     },
+    "Search in files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search in files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher dans les fichiers"
+          }
+        }
+      }
+    },
     "Search places and work out routes with Apple Maps." : {
       "localizations" : {
         "en" : {
@@ -32909,6 +35285,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chercher des lieux et calculer des itinéraires avec Apple Plans."
+          }
+        }
+      }
+    },
+    "Search the web" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the web"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher sur le web"
           }
         }
       }
@@ -33265,6 +35657,54 @@
         }
       }
     },
+    "Send a bar chart" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send a bar chart"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer un histogramme"
+          }
+        }
+      }
+    },
+    "Send a line chart" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send a line chart"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer une courbe"
+          }
+        }
+      }
+    },
+    "Send a stats card" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send a stats card"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer une carte de stats"
+          }
+        }
+      }
+    },
     "Send after the reply (↩)" : {
       "localizations" : {
         "en" : {
@@ -33277,6 +35717,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Envoyer après la réponse (↩)"
+          }
+        }
+      }
+    },
+    "Send an email" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send an email"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer un e-mail"
           }
         }
       }
@@ -33457,6 +35913,22 @@
         }
       }
     },
+    "Send this email?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send this email?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer cet e-mail ?"
+          }
+        }
+      }
+    },
     "Send to" : {
       "localizations" : {
         "en" : {
@@ -33489,6 +35961,38 @@
         }
       }
     },
+    "Send to %@ and %lld other recipients?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send to %@ and %lld other recipients?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer à %@ et %lld autres destinataires ?"
+          }
+        }
+      }
+    },
+    "Send to %@ and 1 other recipient?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send to %@ and 1 other recipient?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer à %@ et 1 autre destinataire ?"
+          }
+        }
+      }
+    },
     "Send to %@?" : {
       "localizations" : {
         "en" : {
@@ -33501,6 +36005,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Envoyer à %@ ?"
+          }
+        }
+      }
+    },
+    "Send today's macros" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send today's macros"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer les macros du jour"
+          }
+        }
+      }
+    },
+    "Send you a notification" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send you a notification"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T'envoyer une notification"
           }
         }
       }
@@ -33573,6 +36109,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Envoi à l'iPhone…"
+          }
+        }
+      }
+    },
+    "Sending to the Coach…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sending to the Coach…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi au Coach…"
           }
         }
       }
@@ -33737,6 +36289,22 @@
         }
       }
     },
+    "Session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance"
+          }
+        }
+      }
+    },
     "Session expired. Open Nuo to sign in again." : {
       "localizations" : {
         "en" : {
@@ -33749,6 +36317,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Session expirée. Ouvre Nuo pour te reconnecter."
+          }
+        }
+      }
+    },
+    "Session finished" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session finished"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance terminée"
+          }
+        }
+      }
+    },
+    "Set done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set done"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Série faite"
+          }
+        }
+      }
+    },
+    "Set parameters" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set parameters"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Régler les paramètres"
           }
         }
       }
@@ -34065,6 +36681,22 @@
         }
       }
     },
+    "Show all" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher tout"
+          }
+        }
+      }
+    },
     "Show all %lld attendees" : {
       "localizations" : {
         "en" : {
@@ -34157,6 +36789,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher et synchroniser"
+          }
+        }
+      }
+    },
+    "Show less" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show less"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réduire"
           }
         }
       }
@@ -34525,6 +37173,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skills"
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer"
+          }
+        }
+      }
+    },
+    "Skips this set without saving it" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skips this set without saving it"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saute cette série sans l'enregistrer"
+          }
+        }
+      }
+    },
+    "Slice for printing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slice for printing"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trancher pour l'impression"
           }
         }
       }
@@ -35057,6 +37753,38 @@
         }
       }
     },
+    "Start a print" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a print"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer une impression"
+          }
+        }
+      }
+    },
+    "Start a subagent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a subagent"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer un sous-agent"
+          }
+        }
+      }
+    },
     "Start from scratch" : {
       "localizations" : {
         "en" : {
@@ -35553,6 +38281,22 @@
         }
       }
     },
+    "Subject" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subject"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objet"
+          }
+        }
+      }
+    },
     "Subscription" : {
       "localizations" : {
         "en" : {
@@ -35873,6 +38617,22 @@
         }
       }
     },
+    "Swap" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swap"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer"
+          }
+        }
+      }
+    },
     "Sweetener classified as possibly carcinogenic (IARC 2B, 2023)." : {
       "localizations" : {
         "en" : {
@@ -35921,6 +38681,22 @@
         }
       }
     },
+    "Switch block" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch block"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer de bloc"
+          }
+        }
+      }
+    },
     "Switch to keyboard" : {
       "localizations" : {
         "en" : {
@@ -35949,6 +38725,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Passage à Opus"
+          }
+        }
+      }
+    },
+    "Sync WHOOP" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync WHOOP"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser WHOOP"
           }
         }
       }
@@ -36641,6 +39433,22 @@
         }
       }
     },
+    "Terminal commands" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal commands"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commandes du terminal"
+          }
+        }
+      }
+    },
     "Test an alert and a departure" : {
       "localizations" : {
         "en" : {
@@ -37105,6 +39913,22 @@
         }
       }
     },
+    "The bot sees it through without asking you at each step. It will still ask you to confirm sending an email, an invitation or a deletion. Stays on until you turn it off." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The bot sees it through without asking you at each step. It will still ask you to confirm sending an email, an invitation or a deletion. Stays on until you turn it off."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le bot va jusqu'au bout sans te demander à chaque étape. Il te fera confirmer un envoi d'e-mail, une invitation ou une suppression. Reste actif jusqu'à ce que tu le désactives."
+          }
+        }
+      }
+    },
     "The bot that writes the summary" : {
       "localizations" : {
         "en" : {
@@ -37393,6 +40217,22 @@
         }
       }
     },
+    "The draft is ready in Gmail, nothing has been sent. Review it, edit it if needed and send it from the card." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The draft is ready in Gmail, nothing has been sent. Review it, edit it if needed and send it from the card."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le brouillon est prêt dans Gmail, rien n'est parti. Relis-le, modifie-le si besoin et envoie-le depuis la carte."
+          }
+        }
+      }
+    },
     "The draft will be deleted." : {
       "localizations" : {
         "en" : {
@@ -37637,6 +40477,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La passerelle n'a pas d'adresse de réservation (NUO_BOOKING_HOSTS)."
+          }
+        }
+      }
+    },
+    "The gateway has no mail domain (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The gateway has no mail domain (%@)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La passerelle n'a pas de domaine e-mail (%@)."
+          }
+        }
+      }
+    },
+    "The gateway has no webhook host (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The gateway has no webhook host (%@)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La passerelle n'a pas d'hôte de webhooks (%@)."
           }
         }
       }
@@ -38373,6 +41245,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le jour même à %@"
+          }
+        }
+      }
+    },
+    "The sets you did are sent to the Coach." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The sets you did are sent to the Coach."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les séries faites sont envoyées au Coach."
           }
         }
       }
@@ -39257,6 +42145,22 @@
         }
       }
     },
+    "This draft no longer exists in Gmail: it was sent or deleted." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This draft no longer exists in Gmail: it was sent or deleted."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce brouillon n'existe plus dans Gmail : il a été envoyé ou supprimé."
+          }
+        }
+      }
+    },
     "This event only" : {
       "localizations" : {
         "en" : {
@@ -39317,6 +42221,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ce fichier n'est pas un PDF valide."
+          }
+        }
+      }
+    },
+    "This gateway doesn't have the Gym screen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This gateway doesn't have the Gym screen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette passerelle n'a pas l'écran Muscu."
           }
         }
       }
@@ -39961,6 +42881,22 @@
         }
       }
     },
+    "Today's WHOOP recovery" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's WHOOP recovery"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Récupération WHOOP du jour"
+          }
+        }
+      }
+    },
     "Today's macros and calories" : {
       "localizations" : {
         "en" : {
@@ -40021,6 +42957,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rappels du jour"
+          }
+        }
+      }
+    },
+    "Today's session" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's session"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance du jour"
           }
         }
       }
@@ -40357,6 +43309,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Outil"
+          }
+        }
+      }
+    },
+    "Tool Rules" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tool Rules"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Règles d'outils"
+          }
+        }
+      }
+    },
+    "Tool rule removed: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tool rule removed: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Règle d'outil : %@ retirée"
+          }
+        }
+      }
+    },
+    "Tool rules" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tool rules"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Règles d'outils"
           }
         }
       }
@@ -41801,6 +44801,54 @@
         }
       }
     },
+    "Unverified" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unverified"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non vérifié"
+          }
+        }
+      }
+    },
+    "Unverified emails" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unverified emails"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mails non vérifiés"
+          }
+        }
+      }
+    },
+    "Up next: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up next: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ensuite : %@"
+          }
+        }
+      }
+    },
     "Up to %lld days ahead" : {
       "localizations" : {
         "en" : {
@@ -42145,6 +45193,54 @@
         }
       }
     },
+    "View calendars" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View calendars"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les agendas"
+          }
+        }
+      }
+    },
+    "View connected accounts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View connected accounts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les comptes connectés"
+          }
+        }
+      }
+    },
+    "View designs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View designs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les modèles"
+          }
+        }
+      }
+    },
     "View details" : {
       "localizations" : {
         "en" : {
@@ -42177,6 +45273,54 @@
         }
       }
     },
+    "View files" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View files"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les fichiers"
+          }
+        }
+      }
+    },
+    "View folders" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View folders"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les dossiers"
+          }
+        }
+      }
+    },
+    "View my flights" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View my flights"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir mes vols"
+          }
+        }
+      }
+    },
     "View on Open Beauty Facts" : {
       "localizations" : {
         "en" : {
@@ -42189,6 +45333,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voir sur Open Beauty Facts"
+          }
+        }
+      }
+    },
+    "View other bots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View other bots"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les autres bots"
+          }
+        }
+      }
+    },
+    "View planned workouts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View planned workouts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les séances prévues"
+          }
+        }
+      }
+    },
+    "View scheduled tasks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View scheduled tasks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les tâches planifiées"
+          }
+        }
+      }
+    },
+    "View scheduled workouts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View scheduled workouts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir les séances programmées"
           }
         }
       }
@@ -42417,6 +45625,22 @@
         }
       }
     },
+    "WHOOP runs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WHOOP runs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Courses WHOOP"
+          }
+        }
+      }
+    },
     "WHOOP sync" : {
       "localizations" : {
         "en" : {
@@ -42553,6 +45777,22 @@
         }
       }
     },
+    "Wake-ups" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wake-ups"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réveils"
+          }
+        }
+      }
+    },
     "Walking" : {
       "localizations" : {
         "en" : {
@@ -42645,6 +45885,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Météo et balcon"
+          }
+        }
+      }
+    },
+    "Webhooks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Webhooks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Webhooks"
           }
         }
       }
@@ -42793,6 +46049,22 @@
         }
       }
     },
+    "Weekly plan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly plan"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan de la semaine"
+          }
+        }
+      }
+    },
     "Weekly review" : {
       "localizations" : {
         "en" : {
@@ -42821,6 +46093,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bilan de la semaine avec conseils"
+          }
+        }
+      }
+    },
+    "Weekly summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly summary"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bilan de la semaine"
+          }
+        }
+      }
+    },
+    "Weight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poids"
           }
         }
       }
@@ -43317,6 +46621,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Séances"
+          }
+        }
+      }
+    },
+    "Write a file" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write a file"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écrire un fichier"
           }
         }
       }
@@ -47061,6 +50381,23 @@
         }
       }
     },
+    "demo.drafts.quote" : {
+      "comment" : "Demo: body of the Gmail draft shown in the email card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hi Julie,\n\nHere is the revised quote after our talk on Tuesday: solid oak worktop, white zellige backsplash and installation included, for €4,280 including VAT.\n\nProduction can start on December 8 if you confirm by Friday.\n\nHave a good day,\nAlex"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonjour Julie,\n\nVoici le devis revu après notre échange de mardi : plan de travail en chêne massif, crédence en zellige blanc et pose comprise, pour 4 280 € TTC.\n\nLa fabrication peut démarrer le 8 décembre si tu me confirmes d'ici vendredi.\n\nBonne journée,\nAlex"
+          }
+        }
+      }
+    },
     "demo.longChat.hotels" : {
       "comment" : "Demo hotel table in a long travel conversation",
       "localizations" : {
@@ -47814,6 +51151,74 @@
         }
       }
     },
+    "demo.wakes.hook.answer" : {
+      "comment" : "Demo: the bot's answer to a Linear webhook call (Markdown)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New urgent ticket **MOB-412 · iOS checkout bug**: Apple Pay fails after the address is entered, since 3.8.0. I added it to your list for today."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau ticket urgent **MOB-412 · Bug checkout iOS** : Apple Pay échoue après la saisie de l'adresse depuis la 3.8.0. Je l'ai ajouté à ta liste du jour."
+          }
+        }
+      }
+    },
+    "demo.wakes.mail" : {
+      "comment" : "Demo: email from a supplier that wakes the bot",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hello Alex,\n\nHere is version 2 of the kitchen quote: solid oak worktop, sea green zellige backsplash and new lighting under the wall cabinets. The total comes to €14,860 including VAT, installation included.\n\nIf that works for you, I can book the week of December 14 for the installation. I would need your go-ahead by Friday.\n\nBest regards,\nJulie Martin\nAtelier Lumen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonjour Alex,\n\nVoici la version 2 du devis pour la cuisine : plan de travail en chêne massif, crédence en zellige vert d'eau et reprise de l'éclairage sous les meubles hauts. Le total passe à 14 860 € TTC, pose comprise.\n\nSi cela vous convient, je peux bloquer la semaine du 14 décembre pour la pose. Il me faudrait votre accord d'ici vendredi.\n\nBien à vous,\nJulie Martin\nAtelier Lumen"
+          }
+        }
+      }
+    },
+    "demo.wakes.mail.answer" : {
+      "comment" : "Demo: the bot's answer to the supplier's email (Markdown)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Julie Martin sent **version 2 of the kitchen quote**: €14,860 including VAT, installation included, solid oak and zellige. She suggests installing the week of December 14 and needs your answer **by Friday**. I haven't replied."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Julie Martin envoie la **version 2 du devis cuisine** : 14 860 € TTC pose comprise, chêne massif et zellige. Elle propose la pose la semaine du 14 décembre et attend ta réponse **d'ici vendredi**. Je n'ai rien répondu."
+          }
+        }
+      }
+    },
+    "demo.wakes.mail.attachment" : {
+      "comment" : "Demo: attachment file name of the supplier's email",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kitchen-quote-v2.pdf"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "devis-cuisine-v2.pdf"
+          }
+        }
+      }
+    },
     "demo.watch.coachReply" : {
       "localizations" : {
         "en" : {
@@ -48168,6 +51573,22 @@
         }
       }
     },
+    "iOS checkout bug" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS checkout bug"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bug checkout iOS"
+          }
+        }
+      }
+    },
     "iPhone not paired with the gateway." : {
       "localizations" : {
         "en" : {
@@ -48352,6 +51773,22 @@
         }
       }
     },
+    "instead of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "instead of %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "à la place de %@"
+          }
+        }
+      }
+    },
     "just now" : {
       "localizations" : {
         "en" : {
@@ -48444,6 +51881,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "modifié %@"
+          }
+        }
+      }
+    },
+    "name@example.com" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "name@example.com"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "adresse@exemple.fr"
           }
         }
       }
@@ -48652,6 +52105,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ouvrir"
+          }
+        }
+      }
+    },
+    "or %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sinon %@"
           }
         }
       }
@@ -49022,6 +52491,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "remplacé par le texte tapé après la commande"
+          }
+        }
+      }
+    },
+    "reps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "reps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "reps"
+          }
+        }
+      }
+    },
+    "rest %@ / %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "rest %@ / %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "repos %@ / %@"
           }
         }
       }
@@ -49896,6 +53397,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "« %@ »"
+          }
+        }
+      }
+    },
+    "“%@” URL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” URL"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL de « %@ »"
           }
         }
       }

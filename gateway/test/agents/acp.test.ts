@@ -7,7 +7,8 @@ import { AcpRuntime, resolveOption, type AcpSession, type SpawnSpec, type Status
 import { parseGrokModels } from "../../src/agents/grok";
 import { ClaudeRuntime } from "../../src/agents/claude";
 import { LOCAL_HOST } from "../../src/agents/host";
-import type { PermissionAsk, RunEvent, UnpromptedWork } from "../../src/agents/types";
+import type { PermissionAsk, RunEvent, SessionOptions, UnpromptedWork } from "../../src/agents/types";
+import type { ToolRule } from "../../src/protocol";
 
 const FAKE = join(import.meta.dir, "fake-agent.ts");
 
@@ -46,11 +47,11 @@ afterAll(async () => {
 async function start(
   policy: PermissionPolicy = "auto",
   rt: AcpRuntime = new FakeRuntime(),
-  extra: { model?: string; effort?: string; resumeId?: string; noTools?: boolean } = {},
+  extra: Partial<Pick<SessionOptions, "model" | "effort" | "resumeId" | "noTools" | "relay" | "toolRule">> = {},
 ) {
   const workdir = mkdtempSync(join(tmpdir(), "nuo-acp-test-"));
   dirs.push(workdir);
-  const s = (await rt.start({ workdir, model: extra.model ?? "", effort: extra.effort, mcpServers: [], permissionPolicy: policy, resumeId: extra.resumeId, noTools: extra.noTools })) as AcpSession;
+  const s = (await rt.start({ workdir, mcpServers: [], permissionPolicy: policy, ...extra, model: extra.model ?? "" })) as AcpSession;
   sessions.push(s);
   return s;
 }
@@ -182,6 +183,48 @@ describe("permissions", () => {
     await wasAsked;
     await s.cancel();
     expect((await p).result.stopReason).toBe("cancelled");
+  });
+});
+
+describe("tool rules", () => {
+  const rules: Record<string, ToolRule> = { "nuo/gmail_search": "allow", Bash: "block", Edit: "allow" };
+  const toolRule: SessionOptions["toolRule"] = (tool) => rules[tool.server ? `${tool.server}/${tool.name}` : tool.name];
+  const asked: PermissionAsk[] = [];
+  const ask = async (a: PermissionAsk) => {
+    asked.push(a);
+    return "no";
+  };
+
+  test("an allowed tool is not asked about under ask, and an unknown one still is", async () => {
+    asked.length = 0;
+    const s = await start("ask", new FakeRuntime(), { toolRule });
+    expect((await run(s, "permtool:mcp__nuo__gmail_search", ask)).text).toBe("chosen:once");
+    expect(asked).toEqual([]);
+    expect((await run(s, "permtool:mcp__nuo__gmail_draft", ask)).text).toBe("chosen:no");
+    expect(asked.map((a) => a.tool)).toEqual([{ server: "nuo", name: "gmail_draft" }]);
+  });
+
+  test("a blocked tool is refused even with full access", async () => {
+    const s = await start("auto", new FakeRuntime(), { toolRule });
+    expect((await run(s, "permtool:Bash")).text).toBe("chosen:no");
+    expect((await run(s, "permtool:mcp__nuo__gmail_draft")).text).toBe("chosen:once");
+  });
+
+  test("an allow rule does not widen a read-only bot", async () => {
+    const s = await start("readonly", new FakeRuntime(), { toolRule });
+    expect((await run(s, "permtool:Edit")).text).toBe("chosen:no");
+  });
+
+  test("a call the agent does not name is never decided by a rule", async () => {
+    const s = await start("auto", new FakeRuntime(), { toolRule: () => "block" });
+    expect((await run(s, "perm:execute")).text).toBe("chosen:once");
+  });
+
+  test("a relay session ignores the rules and keeps its whitelist", async () => {
+    asked.length = 0;
+    const s = await start("ask", new FakeRuntime(), { relay: true, toolRule: () => "allow" });
+    expect((await run(s, "permtool:mcp__nuo__apple_event_create", ask)).text).toBe("chosen:no");
+    expect(asked.map((a) => a.tool?.name)).toEqual(["apple_event_create"]);
   });
 });
 

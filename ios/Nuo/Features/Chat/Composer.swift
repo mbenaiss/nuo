@@ -21,6 +21,10 @@ struct Composer: View {
             if clipboardHasImage {
                 clipboardChip.transition(.opacity.combined(with: .move(edge: .bottom)))
             }
+            if store.goalMode {
+                GoalNotice()
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
             if !store.queued.isEmpty {
                 QueuedPromptsView(store: store)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
@@ -43,7 +47,7 @@ struct Composer: View {
                 RecipientChip(config: store.config)
                 ZStack(alignment: .topLeading) {
                     if store.draft.isEmpty {
-                        Text(store.commands.isEmpty ? String(localized: "Message or #tool") : String(localized: "Message, /command or #tool"))
+                        Text(store.goalMode ? String(localized: "Goal: the expected result") : store.commands.isEmpty ? String(localized: "Message or #tool") : String(localized: "Message, /command or #tool"))
                             .font(.body)
                             .foregroundStyle(Color(uiColor: .placeholderText))
                             .lineLimit(1)
@@ -98,6 +102,18 @@ struct Composer: View {
                     .buttonStyle(PressableStyle())
                     .accessibilityLabel("Commands")
 
+                    Button { store.goalMode.toggle(); Haptics.selection() } label: {
+                        Image(systemName: "scope")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(store.goalMode ? Color.onInk : Color.ink)
+                            .frame(width: 34, height: 34)
+                            .background(store.goalMode ? Color.inkFill : Color.chip, in: Circle())
+                            .contentTransition(.interpolate)
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel("Goal")
+                    .accessibilityValue(store.goalMode ? String(localized: "Enabled") : String(localized: "Disabled"))
+
                     ViewThatFits(in: .horizontal) {
                         modelControls(effort: .full)
                         modelControls(effort: .icon)
@@ -116,6 +132,7 @@ struct Composer: View {
         .animation(.snappy(duration: 0.25), value: store.attachments)
         .animation(.snappy(duration: 0.25), value: store.queued)
         .animation(.snappy(duration: 0.25), value: clipboardHasImage)
+        .animation(.snappy(duration: 0.25), value: store.goalMode)
         .onAppear(perform: refreshClipboard)
         .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in refreshClipboard() }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in refreshClipboard() }

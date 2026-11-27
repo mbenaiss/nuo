@@ -17,7 +17,7 @@ final class PreviewVoiceTransport: ChatTransport {
 
     func send(_ event: ClientEvent) async throws {
         switch event {
-        case let .prompt(conversationId, _, _, _, _, _, _, _, _):
+        case let .prompt(conversationId, _, _, _, _, _, _, _, _, _):
             replyTask?.cancel()
             counter += 1
             let messageId = "m\(counter)"

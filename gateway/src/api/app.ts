@@ -22,6 +22,8 @@ import { GoogleOAuth, type GoogleOAuthOptions } from "../google/oauth";
 import type { BridgeOptions } from "../device/bridge";
 import type { SecretsOptions } from "../secrets/store";
 import type { ScanOptions } from "../scan/service";
+import type { MuscuOptions } from "../muscu/service";
+import type { WakeOptions } from "../hooks/public";
 
 /** How a profile other than the owner runs its agents (its Linux user, see src/agents/host.ts). */
 export interface ProfileExecution {
@@ -80,6 +82,10 @@ export interface AppOptions {
   scan?: Partial<ScanOptions>;
   /** Speech to text behind `POST /api/transcriptions` (NUO_TRANSCRIPTION_PROVIDER), shared by every profile. */
   transcription?: TranscriptionService;
+  /** The fitness coach's database and chrono folder (NUO_FITNESS_DIR); without it the Muscu routes do not exist. */
+  muscu?: MuscuOptions;
+  /** The hooks host, the mail Worker's secret, the bots' mail domain and the owner's addresses (src/hooks/). */
+  wake?: WakeOptions;
 }
 
 /** In the profile's tree: the owner's is the gateway user's alone, another profile's is shared with its Linux user only. */
@@ -97,6 +103,8 @@ export function createApp(o: AppOptions) {
     oauth: googleOAuth,
     sharedElsewhere: (email: string, self: string) => profiles.all().some((s) => s.id !== self && !!s.google?.has(email)),
   };
+  const hooksHost = [...(o.wake?.hosts ?? [])][0];
+  const wake = { hooksBaseUrl: hooksHost ? `https://${hooksHost}` : undefined, mailDomain: o.wake?.mailDomain, ownerEmails: new Set(o.wake?.ownerEmails ?? []) };
   const pusher =
     o.pusher ??
     createPusher(o.apns, (deviceId) => {
@@ -110,9 +118,9 @@ export function createApp(o: AppOptions) {
     machineToken: o.machineToken,
     // Called while the set is being built: the layout comes as an argument, `profiles` is not assigned yet.
     stack: (p, layout) => {
-      const shared = { pusher, authKey: o.authKey, authNow: o.authNow, networkInfo: o.networkInfo, scheduler: o.scheduler, data: o.data, google, device: o.device, scan: o.scan, transcription: o.transcription };
+      const shared = { pusher, authKey: o.authKey, authNow: o.authNow, networkInfo: o.networkInfo, scheduler: o.scheduler, data: o.data, google, device: o.device, scan: o.scan, transcription: o.transcription, wake };
       if (p.id === OWNER) {
-        return { ...shared, runtimes: o.runtimes, localToken: o.localToken, runner: { ...o.runner, agentEnv: { dir: join(layout.home, AGENT_ENV_DIR) } }, machine: o.machine, claudeConfigDir: o.claudeConfigDir, calendar: o.calendar, browser: o.browser, secrets: o.secrets };
+        return { ...shared, runtimes: o.runtimes, localToken: o.localToken, runner: { ...o.runner, agentEnv: { dir: join(layout.home, AGENT_ENV_DIR) } }, machine: o.machine, claudeConfigDir: o.claudeConfigDir, calendar: o.calendar, browser: o.browser, secrets: o.secrets, muscu: o.muscu };
       }
       const exec = o.profileExecution?.(p, layout.agentHome);
       return {
@@ -127,7 +135,7 @@ export function createApp(o: AppOptions) {
       };
     },
   });
-  const server = startServer({ port: o.port, hostname: o.hostname, profiles, network: o.network, cfAccess: o.cfAccess, google: googleOAuth });
+  const server = startServer({ port: o.port, hostname: o.hostname, profiles, network: o.network, cfAccess: o.cfAccess, google: googleOAuth, wake: o.wake });
   profiles.start({ url: `http://127.0.0.1:${server.port}`, token: "" });
   const owner = profiles.owner;
 

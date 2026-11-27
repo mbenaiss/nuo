@@ -37,6 +37,7 @@ struct WatchRootView: View {
     @Environment(Speaker.self) private var speaker
     @Environment(\.scenePhase) private var scenePhase
     @State private var path: [WatchRoute] = []
+    @State private var showsRest = false
 
     var body: some View {
         Group {
@@ -107,6 +108,13 @@ struct WatchRootView: View {
             // Not paired: the screen that explains it stays, nothing records for an iPhone that will not take it.
             guard session.isPaired else { return }
             openCapture()
+        }
+        // The iPhone's Muscu screen is resting: the countdown comes up over whatever is on screen.
+        .onChange(of: WatchRest.shared.rest, initial: true) { _, rest in showsRest = rest != nil }
+        .sheet(isPresented: $showsRest, onDismiss: { WatchRest.shared.dismiss() }) {
+            if let rest = WatchRest.shared.rest {
+                WatchRestView(rest: rest) { showsRest = false }
+            }
         }
         .onOpenURL { url in
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)

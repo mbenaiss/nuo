@@ -11,6 +11,9 @@ final class WatchSync: NSObject, WCSessionDelegate, @unchecked Sendable {
     private var lastSent: [String: String] = [:]
     private var observers: [NSObjectProtocol] = []
     private var unlockObserver: NSObjectProtocol?
+    private var lastMuscuRest: MuscuRestLink.Rest?
+    /// The first stop is sent too: a watch left counting by a killed app hears that the rest is over.
+    private var muscuRestSent = false
 
     private static var isDemo: Bool { ProcessInfo.processInfo.arguments.contains("-demo") }
 
@@ -58,6 +61,25 @@ final class WatchSync: NSObject, WCSessionDelegate, @unchecked Sendable {
         lock.unlock()
         guard changed else { return }
         try? session.updateApplicationContext(current)
+    }
+
+    /// The Muscu screen's rest on the wrist; nil stops it. Queued when the watch app is asleep, so it still learns of it.
+    func sendMuscuRest(_ rest: MuscuRestLink.Rest?) {
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated, session.isPaired, session.isWatchAppInstalled else { return }
+        lock.lock()
+        let changed = !muscuRestSent || rest != lastMuscuRest
+        lastMuscuRest = rest
+        muscuRestSent = true
+        lock.unlock()
+        guard changed else { return }
+        nonisolated(unsafe) let payload = MuscuRestLink.payload(rest)
+        guard session.isReachable else {
+            session.transferUserInfo(payload)
+            return
+        }
+        session.sendMessage(payload, replyHandler: nil) { _ in WCSession.default.transferUserInfo(payload) }
     }
 
     // MARK: - WCSessionDelegate
@@ -334,7 +356,7 @@ enum WatchPromptRelay {
             message = [RecordingLink.event: "tool", RecordingLink.requestId: toolCallId, RecordingLink.text: title]
         case let .toolEnd(conv, _, _, _, _) where conv == conversationId:
             message = [RecordingLink.event: "toolEnd"]
-        case let .permissionRequest(conv, requestId, title, options) where conv == conversationId:
+        case let .permissionRequest(conv, requestId, title, options, _) where conv == conversationId:
             permissions[requestId] = (socket, conversationId, options)
             message = [RecordingLink.event: "permission", RecordingLink.requestId: requestId, RecordingLink.title: title,
                        RecordingLink.options: (try? JSONEncoder().encode(options)) ?? Data()]

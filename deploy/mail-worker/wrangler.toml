@@ -1,0 +1,14 @@
+# Cloudflare Email Routing hands every mail sent to the bots' subdomain (catch-all rule) to this Worker.
+# The shared secret is a Worker secret, never written here: `npx wrangler secret put MAIL_SECRET`.
+name = "nuo-mail"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+workers_dev = false
+
+[vars]
+GATEWAY_URL = "https://hooks.example.com"
+# A verified Email Routing destination that gets the mail when the gateway cannot take it; empty, the mail is dropped.
+FALLBACK_FORWARD = ""
+
+[observability]
+enabled = true

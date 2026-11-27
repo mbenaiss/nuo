@@ -119,6 +119,7 @@ extension View {
             .environment(PushManager.shared)
             .environment(\.mediaLoader, session.mediaLoader)
             .environment(\.scanAPI, session.api as? any NuoScanAPI)
+            .environment(\.emailDraftAPI, session.api as? any NuoEmailDraftAPI)
             .preferredColorScheme(session.appearance.colorScheme)
             .tint(Color.accent)
     }

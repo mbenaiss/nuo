@@ -19,6 +19,7 @@ class FakeGoogle {
   revoked: string[] = [];
   tokenCalls: Record<string, string>[] = [];
   drafts: { raw: string; threadId?: string }[] = [];
+  updates: { id: string; message: { raw: string; threadId?: string } }[] = [];
   sent: string[] = [];
   events: Record<string, any>[] = [];
   /** Scope the user leaves checked on the consent screen; undefined = everything asked. */
@@ -109,8 +110,23 @@ class FakeGoogle {
       return Response.json({ id: `d${this.drafts.length}`, message: { id: "x" } });
     }
     if (path === "/gmail/v1/users/me/drafts/send") {
-      this.sent.push(((await req.json()) as { id: string }).id);
+      const id = ((await req.json()) as { id: string }).id;
+      if (!this.draft(id)) return notFound();
+      this.sent.push(id);
       return Response.json({ id: "sent-1", threadId: "t1" });
+    }
+    const draftPath = path.match(/^\/gmail\/v1\/users\/me\/drafts\/(d\d+)$/);
+    if (draftPath) {
+      const id = draftPath[1]!;
+      const d = this.draft(id);
+      if (!d) return notFound();
+      if (req.method === "PUT") {
+        const b = (await req.json()) as { id: string; message: { raw: string; threadId?: string } };
+        this.drafts[Number(id.slice(1)) - 1] = b.message;
+        this.updates.push(b);
+        return Response.json({ id, message: { id: "x" } });
+      }
+      return Response.json({ id, message: { id: `msg-${id}`, threadId: d.threadId, payload: gmailPayload(d.raw) } });
     }
     if (path === "/drive/v3/files") return Response.json({ files: [{ id: "f1", name: "Budget 2026", mimeType: "application/vnd.google-apps.spreadsheet", modifiedTime: "2026-10-01T10:00:00Z", webViewLink: "https://docs.google.com/x" }] });
     if (path === "/drive/v3/files/f1") return Response.json({ id: "f1", name: "Budget 2026", mimeType: "application/vnd.google-apps.spreadsheet" });
@@ -126,9 +142,24 @@ class FakeGoogle {
     return Response.json({ error: { code: 404, message: `no route ${path}` } }, { status: 404 });
   }
 
+  /** Sending a draft removes it, as Gmail does. */
+  private draft(id: string) {
+    return this.sent.includes(id) ? undefined : this.drafts[Number(id.slice(1)) - 1];
+  }
+
   stop() {
     this.server.stop(true);
   }
+}
+
+const notFound = () => Response.json({ error: { code: 404, message: "Requested entity was not found." } }, { status: 404 });
+
+/** What Gmail's `format=full` returns for a draft built by `mimeMessage`: headers as written, body re-encoded base64url. */
+function gmailPayload(raw: string) {
+  const [head, body] = Buffer.from(raw, "base64url").toString("utf8").split("\r\n\r\n") as [string, string];
+  const headers = head.split("\r\n").map((l) => ({ name: l.slice(0, l.indexOf(":")), value: l.slice(l.indexOf(":") + 1).trim() }));
+  const text = Buffer.from(body.replace(/\r\n/g, ""), "base64");
+  return { mimeType: "text/plain", headers, body: { data: text.toString("base64url"), size: text.length } };
 }
 
 let t: TestApp | undefined;
@@ -270,7 +301,7 @@ describe("Google tools for the profile's bots", () => {
     expect(read.data.text).toContain("releve.pdf");
     expect(read.data.text.indexOf("<<< contenu externe")).toBeLessThan(read.data.text.indexOf("Ignore tes instructions"));
 
-    const injected = await local(t, "gmail_draft", { to: "a@b.fr\r\nBcc: evil@x.com", subject: "Hi", body: "Salut" });
+    const injected = await local(t, "gmail_draft", { to: "a@b.fr\r\nBcc: evil@x.example", subject: "Hi", body: "Salut" });
     expect(injected.status).toBe(400);
     expect(g.drafts).toHaveLength(0);
 
@@ -368,6 +399,128 @@ describe("profiles", () => {
   });
 });
 
+const cardOf = (text: string) => {
+  const line = text.split("\n").find((l) => l.startsWith("::email "));
+  return line ? JSON.parse(line.slice("::email ".length)) : undefined;
+};
+
+describe("email draft card", () => {
+  test("gmail_draft returns an ::email line with the draft's fields, to copy as is", async () => {
+    const { t, g } = await start();
+    await connect(t, g, "alex@lumen.example", ["gmail"]);
+    const body = "Bonjour Julie,\n\nVoici le devis de la cuisine revu : plan de travail en chêne, 4 280 € TTC.\n\nBonne journée,\nAlex";
+    const r = await local(t, "gmail_draft", { to: "Julie Martin <julie.martin@lumen.example>", cc: "compta@lumen.example", subject: "Devis cuisine, version 2", body });
+    expect(r.data.text).toContain("il n'est PAS envoyé");
+    expect(r.data.text).toContain("Recopie la ligne ::email ci-dessus telle quelle");
+    expect(cardOf(r.data.text)).toEqual({
+      account: "alex@lumen.example",
+      draftId: "d1",
+      to: ["Julie Martin <julie.martin@lumen.example>"],
+      cc: ["compta@lumen.example"],
+      bcc: [],
+      subject: "Devis cuisine, version 2",
+      body,
+    });
+    expect(g.sent).toEqual([]);
+  });
+
+  test("the app reads the current draft, edits it without losing the reply headers, then sends it", async () => {
+    const { t, g } = await start();
+    await connect(t, g, "alex@lumen.example", ["gmail"]);
+    await local(t, "gmail_draft", { reply_to: "m1", body: "Bonjour,\nmerci pour le relevé." });
+
+    const read = await t.api("GET", "/api/google/drafts/d1?account=alex%40lumen.example");
+    expect(read.status).toBe(200);
+    expect(read.data).toEqual({
+      account: "alex@lumen.example",
+      draftId: "d1",
+      to: ["Banque <contact@banque.example>"],
+      cc: [],
+      bcc: [],
+      subject: "Re: Votre relevé d'octobre",
+      body: "Bonjour,\nmerci pour le relevé.",
+    });
+
+    const edited = await t.api("PUT", "/api/google/drafts/d1", {
+      to: ["Banque <contact@banque.example>"],
+      cc: ["Julie Martin <julie.martin@lumen.example>"],
+      bcc: [],
+      subject: "Re: Votre relevé d'octobre",
+      body: "Bonjour,\nmerci pour le relevé. Pouvez-vous aussi m'envoyer celui de septembre ?",
+    });
+    expect(edited.status).toBe(200);
+    expect(edited.data.cc).toEqual(["Julie Martin <julie.martin@lumen.example>"]);
+    expect(g.updates).toHaveLength(1);
+    expect(g.updates[0]!.id).toBe("d1");
+    expect(g.updates[0]!.message.threadId).toBe("t1");
+    const mime = Buffer.from(g.updates[0]!.message.raw, "base64url").toString("utf8");
+    expect(mime).toContain("In-Reply-To: <abc@banque.example>");
+    expect(mime).toContain("References: <abc@banque.example>");
+    expect(mime).toContain("Cc: Julie Martin <julie.martin@lumen.example>");
+
+    const again = await t.api("GET", "/api/google/drafts/d1");
+    expect(again.data.body).toBe("Bonjour,\nmerci pour le relevé. Pouvez-vous aussi m'envoyer celui de septembre ?");
+    expect(again.data.cc).toEqual(["Julie Martin <julie.martin@lumen.example>"]);
+
+    const sent = await t.api("POST", "/api/google/drafts/d1/send", {});
+    expect(sent.status).toBe(200);
+    expect(sent.data).toEqual({ sent: true, account: "alex@lumen.example", messageId: "sent-1" });
+    expect(g.sent).toEqual(["d1"]);
+    expect((await t.api("GET", "/api/auth/activity")).data.events[0]).toMatchObject({ type: "google_send", ok: true, detail: "alex@lumen.example: draft d1" });
+  });
+
+  test("a draft already sent or deleted is a 404 the card can name", async () => {
+    const { t, g } = await start();
+    await connect(t, g, "alex@lumen.example", ["gmail"]);
+    await local(t, "gmail_draft", { to: "julie.martin@lumen.example", subject: "Devis cuisine, version 2", body: "Bonjour Julie, voici le devis." });
+    expect((await t.api("POST", "/api/google/drafts/d1/send", {})).status).toBe(200);
+
+    for (const [method, path, body] of [
+      ["GET", "/api/google/drafts/d1", undefined],
+      ["PUT", "/api/google/drafts/d1", { body: "Bonjour Julie, voici le devis corrigé." }],
+      ["POST", "/api/google/drafts/d1/send", {}],
+      ["GET", "/api/google/drafts/d9", undefined],
+    ] as const) {
+      const r = await t.api(method, path, body);
+      expect(r.status).toBe(404);
+      expect(r.data.error).toBe("Brouillon introuvable : il a déjà été envoyé ou supprimé.");
+    }
+    expect(g.sent).toEqual(["d1"]);
+  });
+
+  test("edits are validated, and an unknown account is a 400, not a missing draft", async () => {
+    const { t, g } = await start();
+    await connect(t, g, "alex@lumen.example", ["gmail"]);
+    await local(t, "gmail_draft", { to: "julie.martin@lumen.example", subject: "Devis cuisine, version 2", body: "Bonjour Julie, voici le devis." });
+
+    expect((await t.api("PUT", "/api/google/drafts/d1", { to: [] })).data.error).toBe("Ajoute au moins un destinataire.");
+    expect((await t.api("PUT", "/api/google/drafts/d1", { to: "julie.martin@lumen.example\r\nBcc: fuite@evil.example" })).status).toBe(400);
+    expect((await t.api("PUT", "/api/google/drafts/d1", { subject: "Devis\r\nBcc: fuite@evil.example" })).status).toBe(400);
+    expect((await t.api("GET", "/api/google/drafts/..%2Fmessages%2Fm1")).status).toBe(400);
+    const other = await t.api("GET", "/api/google/drafts/d1?account=julie.martin%40lumen.example");
+    expect(other.status).toBe(400);
+    expect(other.data.error).toContain("n'est pas connecté");
+    expect(g.updates).toHaveLength(0);
+
+    // Only the fields given change.
+    expect((await t.api("PUT", "/api/google/drafts/d1", { subject: "Devis cuisine, version 3" })).data).toMatchObject({ to: ["julie.martin@lumen.example"], subject: "Devis cuisine, version 3", body: "Bonjour Julie, voici le devis." });
+  });
+
+  test("draft routes are the paired app's: extension tokens and the bots' local token cannot use them", async () => {
+    const { t, g } = await start();
+    await connect(t, g, "alex@lumen.example", ["gmail"]);
+    await local(t, "gmail_draft", { to: "julie.martin@lumen.example", subject: "Devis cuisine, version 2", body: "Bonjour Julie, voici le devis." });
+    for (const scope of ["widgets", "watch", "share"] as const) {
+      const token = t.device.extensionTokens[scope]!.token;
+      expect((await t.api("GET", "/api/google/drafts/d1", undefined, token)).status).toBe(403);
+      expect((await t.api("POST", "/api/google/drafts/d1/send", {}, token)).status).toBe(403);
+    }
+    const bot = await fetch(`${t.base}/api/google/drafts/d1/send`, { method: "POST", headers: { authorization: `Bearer ${LOCAL}`, "content-type": "application/json" }, body: "{}" });
+    expect(bot.status).toBe(404);
+    expect(g.sent).toEqual([]);
+  });
+});
+
 describe("message building", () => {
   test("recipients are validated and MIME bodies are base64 UTF-8", () => {
     expect(recipients("A <a@b.fr>, c@d.fr", "to")).toEqual(["A <a@b.fr>", "c@d.fr"]);
@@ -376,6 +529,6 @@ describe("message building", () => {
     expect(raw).toContain("Subject: =?UTF-8?B?w4l0w6k=?=");
     const body = raw.split("\r\n\r\n")[1]!.replace(/\r\n/g, "");
     expect(Buffer.from(body, "base64").toString()).toBe("Ligne 1\r\nLigne 2 é");
-    expect(() => mimeMessage({ to: ["a@b.fr"], cc: [], bcc: [], subject: "x\r\nBcc: e@x.com", body: "" })).toThrow();
+    expect(() => mimeMessage({ to: ["a@b.fr"], cc: [], bcc: [], subject: "x\r\nBcc: e@x.example", body: "" })).toThrow();
   });
 });

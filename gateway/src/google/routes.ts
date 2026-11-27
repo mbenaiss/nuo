@@ -5,6 +5,7 @@ import type { GoogleAccounts } from "./accounts";
 import { GoogleTools } from "./api";
 import { APP_RETURN_URL, idTokenClaims, parseServices, servicesOf, type GoogleOAuth } from "./oauth";
 import { GOOGLE_TOOL_NAMES } from "./tools";
+import type { GoalGuard } from "../runner/goal";
 
 type Ctx = { req: Request; params: string[]; url: URL; device: Device };
 type LocalCtx = { req: Request; params: string[]; url: URL };
@@ -20,9 +21,42 @@ async function body(req: Request): Promise<Record<string, unknown>> {
   throw new HttpError(400, "invalid JSON body");
 }
 
+const DRAFT_ID = /^[A-Za-z0-9_-]{1,200}$/;
+
+/** The account named by `?account=`; a missing or unauthorised one is a 400, never a 404 or 403 the app would misread. */
+function draftAccount(g: GoogleAccounts, url: URL): string {
+  try {
+    return g.resolve("gmail", url.searchParams.get("account") ?? undefined);
+  } catch (e) {
+    if (e instanceof HttpError && (e.status === 404 || e.status === 403)) throw new HttpError(400, e.message);
+    throw e;
+  }
+}
+
+function draftId(raw: string): string {
+  const id = decodeURIComponent(raw);
+  if (!DRAFT_ID.test(id)) throw new HttpError(400, "invalid draft id");
+  return id;
+}
+
 /** Paired app only: the gate refuses extension tokens on these paths. */
 export function googleRoutes(g: GoogleAccounts): GoogleRoute[] {
+  const tools = new GoogleTools(g);
   return [
+    // The `::email` card: the user reads, edits and sends the bot's draft himself, so no goal confirmation applies.
+    ["GET", /^\/api\/google\/drafts\/([^/]+)$/, ({ params, url }) => tools.readDraft(draftAccount(g, url), draftId(params[0]!))],
+    ["PUT", /^\/api\/google\/drafts\/([^/]+)$/, async ({ req, params, url }) => tools.updateDraft(draftAccount(g, url), draftId(params[0]!), await body(req))],
+    [
+      "POST",
+      /^\/api\/google\/drafts\/([^/]+)\/send$/,
+      async ({ params, url, device }) => {
+        const email = draftAccount(g, url);
+        const id = draftId(params[0]!);
+        const sent = await tools.sendDraft(email, id);
+        g.audit("google_send", true, { deviceId: device.id, deviceName: device.name, detail: `${email}: draft ${id}` });
+        return { sent: true, ...sent };
+      },
+    ],
     ["GET", /^\/api\/google\/accounts$/, () => ({ configured: g.oauth.configured && g.canStore, accounts: g.list() })],
     [
       "POST",
@@ -47,7 +81,7 @@ export function googleRoutes(g: GoogleAccounts): GoogleRoute[] {
 }
 
 /** For the profile's `nuo` MCP server (local token): the tools run here, with tokens the agent never sees. */
-export function googleLocalRoutes(g: GoogleAccounts): GoogleLocalRoute[] {
+export function googleLocalRoutes(g: GoogleAccounts, guard?: GoalGuard): GoogleLocalRoute[] {
   const tools = new GoogleTools(g);
   return [
     ["GET", /^\/api\/google\/accounts$/, () => ({ accounts: g.list() })],
@@ -56,7 +90,9 @@ export function googleLocalRoutes(g: GoogleAccounts): GoogleLocalRoute[] {
       /^\/api\/google\/tools\/([a-z_]+)$/,
       async ({ req, params }) => {
         if (!GOOGLE_TOOL_NAMES.has(params[0]!)) throw new HttpError(404, `unknown Google tool ${params[0]}`);
-        return { text: await tools.call(params[0]!, await body(req)) };
+        const args = await body(req);
+        await guard?.(req, params[0]!, args, () => tools.draftSummary(args));
+        return { text: await tools.call(params[0]!, args) };
       },
     ],
   ];

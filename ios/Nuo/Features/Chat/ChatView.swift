@@ -45,10 +45,10 @@ struct ChatView: View {
             .environment(\.sendCardPrompt, CardPromptSender { prompt in store.send(prompt: prompt) })
             .environment(\.cardBotName, store.config?.name)
             .sheet(item: $store.pendingPermission) { prompt in
-                PermissionSheet(prompt: prompt, botName: store.config?.name ?? String(localized: "The bot")) { option in
-                    store.answerPermission(option)
+                PermissionSheet(prompt: prompt, botName: store.config?.name ?? String(localized: "The bot")) { option, rule in
+                    store.answerPermission(option, rule: rule)
                 }
-                .presentationDetents([.height(320), .medium])
+                .presentationDetents(prompt.offer == nil ? [.height(320), .medium] : [.height(490), .large])
                 .interactiveDismissDisabled()
             }
             .sheet(item: Binding(get: { safariURL.map(IdentifiedURL.init) }, set: { safariURL = $0?.url })) { item in
@@ -223,7 +223,7 @@ struct ChatView: View {
             for: store.messages.withoutTaskPrompts, liveMessageId: live, expanded: expansions,
             metrics: TranscriptMetrics().scaled(by: bodySize / 17)
         ) { message in
-            message.notice != nil || (compacting && message.id == live && message.text.isEmpty)
+            message.notice != nil || message.wake?.isShown == true || (compacting && message.id == live && message.text.isEmpty)
         }
     }
 
@@ -294,6 +294,9 @@ struct ChatView: View {
         }
     }
 
+    /// The Coach's tool server: its bot gets the Muscu screen's button.
+    private static let fitnessServer = "fitness"
+
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
@@ -326,6 +329,17 @@ struct ChatView: View {
             .dynamicTypeSize(...DynamicTypeSize.xLarge)
         }
         .sharedBackgroundVisibility(.hidden)
+        if store.config?.toolServers.contains(Self.fitnessServer) == true {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Haptics.tap()
+                    WorkspaceRouter.shared.showsMuscu = true
+                } label: {
+                    Image(systemName: "dumbbell.fill").foregroundStyle(Color.ink)
+                }
+                .accessibilityLabel("Gym session")
+            }
+        }
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button {
@@ -478,6 +492,8 @@ private struct TranscriptRowView: View {
         case .whole:
             if let notice = message.notice {
                 NoticeChip(payload: notice).padding(.vertical, 6)
+            } else if let wake = message.wake, wake.isShown {
+                WakeCard(wake: wake)
             } else {
                 CompactingChip()
             }
@@ -750,7 +766,7 @@ private struct ErrorBanner: View {
 struct PermissionSheet: View {
     let prompt: PermissionPrompt
     let botName: String
-    let onAnswer: (PermissionOption) -> Void
+    let onAnswer: (PermissionOption, ToolRule?) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -767,8 +783,22 @@ struct PermissionSheet: View {
             }
             VStack(spacing: 10) {
                 ForEach(sortedOptions) { option in
-                    Button(option.name) { onAnswer(option) }
+                    Button(option.name) { onAnswer(option, nil) }
                         .buttonStyle(InkButtonStyle(prominent: option.kind == "allow_once", destructive: option.kind.hasPrefix("reject")))
+                }
+            }
+            if let offer = prompt.offer {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Remember for “\(ToolRuleLabel.name(offer.tool))” in \(botName)")
+                        .font(.footnote).foregroundStyle(Color.text2)
+                    if let option = prompt.option(for: .allow) {
+                        Button("Always for this tool") { onAnswer(option, .allow) }
+                            .buttonStyle(InkButtonStyle(prominent: false, destructive: false))
+                    }
+                    if let option = prompt.option(for: .block) {
+                        Button("Block this tool") { onAnswer(option, .block) }
+                            .buttonStyle(InkButtonStyle(prominent: false, destructive: true))
+                    }
                 }
             }
         }
@@ -779,7 +809,7 @@ struct PermissionSheet: View {
 
     private var sortedOptions: [PermissionOption] {
         let order = ["allow_once": 0, "allow_always": 1, "reject_once": 2, "reject_always": 3]
-        return prompt.options.sorted { (order[$0.kind] ?? 9) < (order[$1.kind] ?? 9) }
+        return prompt.shownOptions.sorted { (order[$0.kind] ?? 9) < (order[$1.kind] ?? 9) }
     }
 }
 

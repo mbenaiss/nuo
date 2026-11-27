@@ -36,7 +36,7 @@ extension ClientEvent: Encodable {
     func encode(to encoder: any Encoder) throws {
         var c = encoder.container(keyedBy: Keys.self)
         switch self {
-        case let .prompt(conversationId, text, attachments, agent, model, effort, voice, _, _):
+        case let .prompt(conversationId, text, attachments, agent, model, effort, voice, _, _, _):
             try c.encode("prompt", forKey: .type)
             try c.encode(conversationId, forKey: .conversationId)
             try c.encode(text, forKey: .text)
@@ -48,7 +48,7 @@ extension ClientEvent: Encodable {
         case let .cancel(conversationId):
             try c.encode("cancel", forKey: .type)
             try c.encode(conversationId, forKey: .conversationId)
-        case let .permission(requestId, optionId):
+        case let .permission(requestId, optionId, _):
             try c.encode("permission", forKey: .type)
             try c.encode(requestId, forKey: .requestId)
             try c.encode(optionId, forKey: .optionId)
@@ -149,9 +149,9 @@ extension ServerEvent: Decodable {
 
     var conversationId: String? {
         switch self {
-        case let .messageStart(id, _, _, _, _), let .turnPhase(id, _, _), let .messageDelta(id, _, _), let .thoughtDelta(id, _, _),
+        case let .messageUser(id, _), let .messageStart(id, _, _, _, _), let .turnPhase(id, _, _), let .messageDelta(id, _, _), let .thoughtDelta(id, _, _),
              let .toolStart(id, _, _, _, _), let .toolDetail(id, _, _, _), let .toolEnd(id, _, _, _, _), let .messageEnd(id, _, _, _, _, _, _, _), let .subagent(id, _, _),
-             let .permissionRequest(id, _, _, _), let .context(id, _), let .notice(id, _, _, _, _):
+             let .permissionRequest(id, _, _, _, _), let .context(id, _), let .notice(id, _, _, _, _):
             id
         case let .error(id, _), let .notification(_, _, _, id):
             id

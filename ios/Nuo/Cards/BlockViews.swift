@@ -80,6 +80,8 @@ struct BlockView: View {
             ArtifactCard(payload: payload)
         case let .conversation(payload):
             ConversationLinkCard(payload: payload)
+        case let .email(payload):
+            EmailDraftCard(payload: payload)
         case let .questions(questions):
             QuestionCard(questions: questions)
         }

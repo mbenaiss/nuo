@@ -1,9 +1,13 @@
-.PHONY: all gateway-check editor-check ios-build mac-test deploy local-setup local-run local-pair
+.PHONY: all gateway-check mail-worker-check editor-check ios-build mac-test deploy local-setup local-run local-pair
 
-all: gateway-check editor-check ios-build mac-test
+all: gateway-check mail-worker-check editor-check ios-build mac-test
 
 gateway-check:
 	cd gateway && bun install && bun run typecheck && bun test
+
+# The Cloudflare Worker that passes the bots' mail to the gateway (deploy/mail-worker/README.md).
+mail-worker-check:
+	cd deploy/mail-worker && bun install && bun run typecheck && bun test
 
 # Round-trip tests of the document editor, then its bundle in ios/Nuo/Resources/DocEditor (commit the result).
 editor-check:

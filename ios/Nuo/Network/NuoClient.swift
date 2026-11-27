@@ -47,6 +47,8 @@ protocol NuoAPI: NuoDataAPI, NuoCalendarAPI {
     func discardDraft(botId: String) async throws -> Bot
     func publish(botId: String, note: String?) async throws -> Bot
     func setPermissions(botId: String, policy: PermissionPolicy) async throws -> Bot
+    /// Forgets what the user decided for a tool (`BotConfig.toolRules`), on the published bot and its draft alike.
+    func removeToolRule(botId: String, key: String) async throws -> Bot
     func versions(botId: String) async throws -> [BotVersion]
     func rollback(botId: String, version: Int) async throws -> Bot
     func deleteBot(id: String) async throws
@@ -144,6 +146,10 @@ struct NuoClient: NuoAPI {
     func setPermissions(botId: String, policy: PermissionPolicy) async throws -> Bot {
         struct Body: Encodable { let permissionPolicy: PermissionPolicy }
         return try await request("PUT", "/api/bots/\(botId)/permissions", body: Body(permissionPolicy: policy))
+    }
+
+    func removeToolRule(botId: String, key: String) async throws -> Bot {
+        try await request("DELETE", "/api/bots/\(botId)/tool-rules/\(key)")
     }
 
     func versions(botId: String) async throws -> [BotVersion] { try await request("GET", "/api/bots/\(botId)/versions") }

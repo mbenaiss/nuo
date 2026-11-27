@@ -32,11 +32,13 @@ final class WorkspaceRouter {
     var showsBookings = false
     /// The shared browser should open (`nuo://browser`, « Connexion requise » notification).
     var showsBrowser = false
+    /// The Muscu screen should open (`nuo://muscu`, the Coach's chat, the end of a rest).
+    var showsMuscu = false
     /// The Mac's Réunions screen should open (meeting prompt without a calendar event).
     var showsMeetings = false
 
     /// Handles `nuo://data/<collection>[/<rowId>]`, `nuo://dashboard/<slug>`, `nuo://docs/<path>`,
-    /// `nuo://reminders[/<id>]`, `nuo://calendar[/<itemId>]`, `nuo://booking` and `nuo://browser`; other links
+    /// `nuo://reminders[/<id>]`, `nuo://calendar[/<itemId>]`, `nuo://booking`, `nuo://browser` and `nuo://muscu`; other links
     /// are left to `AppRouter`.
     @discardableResult
     func open(url: URL) -> Bool {
@@ -68,6 +70,8 @@ final class WorkspaceRouter {
             openBookings()
         case "browser":
             showsBrowser = true
+        case "muscu":
+            showsMuscu = true
         default:
             return false
         }

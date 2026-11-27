@@ -440,14 +440,14 @@ final class VoiceSession {
                 speakNotice(String(localized: "Sorry, I could not answer. You can try again."))
             }
             if !(speaker?.isActive ?? false) { finishResponse() }
-        case let .permissionRequest(cid, _, title, _):
+        case let .permissionRequest(cid, _, title, _, _):
             guard cid == conversationId else { return }
             notice = String(localized: "Permission requested: \(title)")
             speakNotice(String(localized: "\(botName) needs your permission. Switch to the keyboard to answer."))
         case let .error(cid, message):
             guard cid == nil || cid == conversationId, awaitingResponse || activeMessageId != nil else { return }
             serverFailed(message)
-        case .thoughtDelta, .notification, .pong, .context, .notice, .turnPhase, .turnsSnapshot, .deviceRequest, .subagent, .toolDetail, .alert:
+        case .messageUser, .thoughtDelta, .notification, .pong, .context, .notice, .turnPhase, .turnsSnapshot, .deviceRequest, .subagent, .toolDetail, .alert:
             break
         }
     }

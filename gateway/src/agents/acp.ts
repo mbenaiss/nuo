@@ -837,6 +837,12 @@ export class AcpSession implements AgentSession {
       this.opts.onRelayRefusal?.(tool?.name ?? req.toolCall?.title ?? "");
       return select(pick("reject_once", "reject_always"));
     }
+    const rule = tool && !this.opts.relay ? this.opts.toolRule?.(tool) : undefined;
+    if (rule === "block") return select(pick("reject_once", "reject_always"));
+    if (rule === "allow" && this.opts.permissionPolicy === "ask") {
+      const allowed = pick("allow_once", "allow_always");
+      if (allowed) return select(allowed);
+    }
     switch (this.opts.relay ? "ask" : this.opts.permissionPolicy) {
       case "auto":
         return select(pick("allow_once", "allow_always") ?? options[0]);
