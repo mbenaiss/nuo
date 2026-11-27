@@ -107,13 +107,21 @@ enum PlatformApp {
 
 enum Haptics {
     #if canImport(UIKit)
-    @MainActor static func tap() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
-    @MainActor static func send() { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
+    // Kept alive rather than made per call: the Taptic Engine takes a moment to wake, and a generator that is
+    // created and fired in the same breath drops its first impulse.
+    @MainActor private static let light = UIImpactFeedbackGenerator(style: .light)
+    @MainActor private static let medium = UIImpactFeedbackGenerator(style: .medium)
+
+    /// Wakes the engine when a feedback is coming but not yet due, so it lands instead of being swallowed.
+    @MainActor static func prepare() { medium.prepare() }
+    @MainActor static func tap() { light.impactOccurred() }
+    @MainActor static func send() { medium.impactOccurred() }
     @MainActor static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
     @MainActor static func error() { UINotificationFeedbackGenerator().notificationOccurred(.error) }
     @MainActor static func selection() { UISelectionFeedbackGenerator().selectionChanged() }
     #else
     // Only Force Touch trackpads give feedback; a send or a pick needs none on a Mac.
+    @MainActor static func prepare() {}
     @MainActor static func tap() {}
     @MainActor static func send() {}
     @MainActor static func success() { NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now) }

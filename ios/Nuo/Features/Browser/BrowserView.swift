@@ -38,6 +38,8 @@ private struct BrowserContent: View {
     @State private var canvasSize: CGSize = .zero
     @State private var showsCredentials = false
     @State private var forcesInput = false
+    /// A slider or a map needs the button held down while the finger travels, which a scroll can never say.
+    @State private var dragsPage = false
     @Environment(\.displayScale) private var displayScale
 
     private static var prefersMobileLayout: Bool {
@@ -53,7 +55,7 @@ private struct BrowserContent: View {
             topBar
             if model.page.tabs.count > 1 { tabStrip }
             if !model.page.logins.isEmpty { loginBanner }
-            BrowserCanvas(model: model, onPageTap: resetTyping)
+            BrowserCanvas(model: model, onPageTap: resetTyping, dragsPage: dragsPage)
                 .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
                     canvasSize = size
                     applyLayout()
@@ -125,6 +127,12 @@ private struct BrowserContent: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(Color.chip, in: Capsule())
+                #if os(iOS)
+                iconButton("hand.draw", label: dragsPage ? "Back to scrolling" : "Drag instead of scrolling", enabled: model.phase == .ready, active: dragsPage) {
+                    dragsPage.toggle()
+                    Haptics.selection()
+                }
+                #endif
                 iconButton("person.badge.key", label: "Fill in a login", enabled: model.phase == .ready) { showsCredentials = true }
                 iconButton(model.page.loading ? "xmark" : "arrow.clockwise", label: "Reload", enabled: model.phase == .ready) { model.send(.reload) }
             }
@@ -314,12 +322,13 @@ private struct BrowserContent: View {
         if submit { model.send(.key("Enter")) }
     }
 
-    private func iconButton(_ symbol: String, label: LocalizedStringKey, enabled: Bool, action: @escaping () -> Void) -> some View {
+    private func iconButton(_ symbol: String, label: LocalizedStringKey, enabled: Bool, active: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.body.weight(.medium))
                 .frame(width: 30, height: 30)
-                .foregroundStyle(enabled ? Color.ink : Color.text3)
+                .foregroundStyle(active ? Color.white : enabled ? Color.ink : Color.text3)
+                .background(active ? Color.accent : .clear, in: Circle())
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
@@ -335,6 +344,8 @@ private struct BrowserContent: View {
 private struct BrowserCanvas: View {
     let model: BrowserModel
     let onPageTap: () -> Void
+    /// Drag mode: the toolbar's own switch, for a page the hold-to-grab shortcut is too fiddly for.
+    var dragsPage = false
     @State private var pinch: CGFloat = 1
     @State private var lastDrag: CGSize = .zero
     @State private var lastTap: (time: Date, point: CGPoint)?
@@ -400,6 +411,7 @@ private struct BrowserCanvas: View {
         coasting?.cancel()
         if hold == nil {
             touch.began()
+            Haptics.prepare()
             hold = Task { @MainActor in
                 try? await Task.sleep(for: BrowserTouch.hold)
                 guard !Task.isCancelled else { return }
@@ -409,7 +421,7 @@ private struct BrowserCanvas: View {
             }
         }
         let at = CGPoint(x: value.location.x / size.width, y: value.location.y / size.height)
-        switch touch.moved(translation: value.translation) {
+        switch touch.moved(translation: value.translation, grabbing: dragsPage) {
         case .nothing:
             break
         case .scroll:

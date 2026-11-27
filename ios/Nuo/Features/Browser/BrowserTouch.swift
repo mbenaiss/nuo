@@ -48,9 +48,15 @@ struct BrowserTouch: Equatable {
         mode = .armed
     }
 
-    mutating func moved(translation: CGSize) -> Action {
+    /// `always` is the drag mode of the toolbar: the finger takes hold the moment it lands, with nothing to time.
+    mutating func moved(translation: CGSize, grabbing always: Bool = false) -> Action {
         switch mode {
         case .undecided:
+            if always {
+                mode = .grabbing
+                grabbed = true
+                return .press
+            }
             guard abs(translation.width) > Self.slop || abs(translation.height) > Self.slop else { return .nothing }
             mode = .scrolling
             return .scroll

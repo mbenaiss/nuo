@@ -67,6 +67,23 @@ struct BrowserTouchTests {
         #expect(!touch.grabbed)
     }
 
+    @Test func grabsFromTheFirstMoveInDragMode() {
+        var touch = BrowserTouch()
+        touch.began()
+        #expect(touch.moved(translation: .zero, grabbing: true) == .press)
+        #expect(touch.moved(translation: past, grabbing: true) == .drag)
+        #expect(touch.ended() == .release)
+    }
+
+    /// The whole point of the switch: in drag mode nothing has to be timed, and nothing ever scrolls.
+    @Test func neverScrollsInDragMode() {
+        var touch = BrowserTouch()
+        touch.began()
+        #expect(touch.moved(translation: CGSize(width: 200, height: 0), grabbing: true) == .press)
+        #expect(touch.mode == .grabbing)
+        #expect(touch.grabbed)
+    }
+
     @Test func startsEachTouchOverFromTheLastOne() {
         var touch = BrowserTouch()
         touch.began()

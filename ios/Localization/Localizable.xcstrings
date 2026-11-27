@@ -7625,6 +7625,22 @@
         }
       }
     },
+    "Back to scrolling" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to scrolling"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenir au défilement"
+          }
+        }
+      }
+    },
     "Back to the recording" : {
       "localizations" : {
         "en" : {
@@ -14541,6 +14557,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Brouillon vs v%lld"
+          }
+        }
+      }
+    },
+    "Drag instead of scrolling" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag instead of scrolling"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glisser au lieu de défiler"
           }
         }
       }
