@@ -133,7 +133,7 @@ struct HomeView: View {
                 Haptics.tap()
                 showsRecordings = true
             } label: {
-                Image(systemName: recordings.inProgress > 0 ? "waveform.badge.ellipsis" : "waveform")
+                Image(systemName: recordings.inProgress > 0 ? "waveform.badge.mic" : "waveform")
                     .font(.body.weight(.medium))
                     .foregroundStyle(recordings.inProgress > 0 ? Color.accentInk : Color.text2)
                     .frame(width: 44, height: 44)
