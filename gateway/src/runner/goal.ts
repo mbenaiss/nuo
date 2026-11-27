@@ -1,3 +1,5 @@
+import { head } from "../text";
+
 /**
  * A goal turn (« Objectif » in the composer): the bot carries the request to its end without asking at each step.
  * The gateway answers its permission requests itself, except for what acts on other people or loses data, which the
@@ -23,7 +25,7 @@ export const GOAL_REFUSAL = "refusé : l'utilisateur n'a pas autorisé cette act
 const said = (v: unknown, max = 80): string => {
   if (typeof v !== "string" && typeof v !== "number") return "";
   const t = String(v).replace(/\s+/g, " ").trim();
-  return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
+  return t.length > max ? `${head(t, max - 1).trimEnd()}…` : t;
 };
 const quoted = (v: unknown) => (said(v) ? `« ${said(v)} »` : "");
 const join = (...parts: string[]) => parts.filter(Boolean).join(" ");

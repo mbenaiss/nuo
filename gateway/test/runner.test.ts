@@ -127,6 +127,17 @@ test("tool steps carry measured durations", async () => {
   expect(msgs[1].steps).toEqual([{ toolCallId: "t1", title: "flight_status", kind: "fetch", status: "completed", durationMs: toolEnd.durationMs }]);
 });
 
+test("a conversation title is never cut inside an emoji", async () => {
+  const { bot, conv, sock } = await setup();
+  // 58 characters, then 🏃 across the 59-character cut the title keeps before its ellipsis.
+  const lead = "Programme la sortie Z2 de 45 min sur mon Apple Watch pour ce soir".slice(0, 58);
+  sock.send({ type: "prompt", conversationId: conv.id, text: `${lead}🏃 et dis-moi quand c'est fait` });
+  await sock.next("message.end");
+  const c = (await t.api("GET", `/api/conversations?botId=${bot.id}`)).data[0];
+  expect(c.title).toBe(`${lead.trimEnd()}…`);
+  expect(c.title.isWellFormed()).toBe(true);
+});
+
 test("a command's description is sent to the app and kept with its step", async () => {
   const { conv, sock } = await setup();
   sock.send({ type: "prompt", conversationId: conv.id, text: "Surveille le deploy de main" });

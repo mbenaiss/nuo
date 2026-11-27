@@ -21,6 +21,7 @@ import { googleOAuthOptionsFromEnv } from "./google/oauth";
 import { secretsOptionsFromEnv } from "./secrets/store";
 import { trackerFromEnv } from "./scan/tracking";
 import { wakeOptionsFromEnv } from "./hooks/public";
+import { legacyAppPrefix } from "./compat/app-names";
 import { launcherBrowser, PROFILE_BROWSER_DIR, profileCdpPort, userUid } from "./browser/profile";
 
 const browserEnv = browserOptionsFromEnv();
@@ -30,6 +31,9 @@ const KNOWN = new Set<string>(["claude", "codex", "grok", "gemini"]);
 const layout = defaultLayout();
 for (const f of seedConfig(layout.config, REPO_CONFIG_DIR)) console.log(`[nuo] ${f} copied to ${layout.config}`);
 console.log(`[nuo] home ${layout.home}, data ${layout.data}, config ${layout.config}`);
+// Checked at start: a mistyped NUO_LEGACY_APP_PREFIX would otherwise fail every request of the older apps.
+const legacyApp = legacyAppPrefix();
+if (legacyApp) console.log(`[nuo] apps built under the name "${legacyApp}" are accepted until NUO_LEGACY_APP_PREFIX is removed`);
 
 const profileRuntime = await prepareProfileRuntime().catch((e) => {
   console.warn(`[profiles] runtime for profile users not prepared: ${e?.message ?? e}`);

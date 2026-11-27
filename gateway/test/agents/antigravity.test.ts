@@ -107,6 +107,14 @@ describe("AntigravitySession", () => {
     ]);
   });
 
+  test("a long command in a step title is cut before an emoji, not inside it", async () => {
+    const { session } = await start();
+    const { events } = await run(session, "long-command");
+    const title = (events.find((e) => e.type === "tool.start") as { title: string }).title;
+    expect(title).toBe(`run_command: ${"grep -rn 'Sortie Z2' ~/Documents/entrainements/2026/novembre/ | sort ".padEnd(76, "-")}…`);
+    expect(title.isWellFormed()).toBe(true);
+  });
+
   test("errors carry the result error or stderr", async () => {
     const { session } = await start();
     const failed = await run(session, "fail");

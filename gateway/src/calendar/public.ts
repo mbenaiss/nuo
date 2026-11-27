@@ -78,6 +78,8 @@ export interface PublicSiteOptions {
   ownerName?: string;
   /** Address printed on /privacy and /terms (NUO_LEGAL_CONTACT). */
   contactEmail?: string;
+  /** NUO_BOOKING_UID_DOMAIN, `nuo` by default. */
+  icsUidDomain?: string;
 }
 
 /** Everything the booking hostname serves (docs/calendar.md#public-booking-host); anything else is 404. */
@@ -226,7 +228,7 @@ ${t.description ? `<p class="desc">${esc(t.description)}</p>` : ""}
     const v = this.o.bookings.publicView(b);
     const where = t.location.kind === "google_meet" ? b.meetUrl ?? undefined : t.location.kind === "phone" ? `Téléphone : ${t.location.value}` : t.location.value;
     const body = icsCalendar({
-      uid: `${root.id}@nuo`,
+      uid: `${root.id}@${this.o.icsUidDomain ?? "nuo"}`,
       start: b.start,
       end: b.end,
       title: `${t.title}${this.o.ownerName ? ` · ${this.o.ownerName}` : ""}`,

@@ -335,4 +335,5 @@ device; cancellations and reschedules by the invitee push « 📅 Rendez-vous an
 | `NUO_GOOGLE_CALENDAR` | (none) | default Google target `account[/calendarId]` |
 | `NUO_GOOGLE_ACCOUNTS` | account of `NUO_GOOGLE_CALENDAR` | accounts listed by `/api/calendar/google/calendars` |
 | `NUO_BOOKING_OWNER` | (none) | name shown on the public pages and in the `.ics` title |
+| `NUO_BOOKING_UID_DOMAIN` | `nuo` | what follows `@` in the UID of the `.ics` files; an install renamed since its first bookings keeps the value its invitations had, or a guest who downloads one again gets it twice |
 | `NUO_GOG_BIN` | `gog` | path of the gog binary; it needs `GOG_KEYRING_PASSWORD` in the gateway env when its keyring is file-based |

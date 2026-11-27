@@ -206,6 +206,8 @@ export const MIGRATIONS: Migration[] = [
   // Webhooks and mail that wake a bot from outside (src/hooks/).
   wakeMigration,
   `ALTER TABLE messages ADD COLUMN wake TEXT;`,
+  // NULL for the devices paired before it: their apps used the earlier name (src/compat/app-names.ts).
+  `ALTER TABLE devices ADD COLUMN app_naming TEXT;`,
 ];
 
 export function openDb(dataDir: string): Database {

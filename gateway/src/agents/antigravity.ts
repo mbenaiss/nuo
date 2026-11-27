@@ -1,3 +1,4 @@
+import { head } from "../text";
 import type { ChildProcess } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -80,7 +81,7 @@ const SUBAGENT_TOOLS = new Set(["invoke_subagent", "browser_subagent"]);
 
 export function subagentTitle(name: string, params: Json | undefined): string {
   const detail = params ? ["TaskName", "Task", "Name", "Description", "Prompt", "Goal"].map((k) => str(params[k])).find(Boolean) : undefined;
-  if (detail) return detail.length > 80 ? `${detail.slice(0, 77)}…` : detail;
+  if (detail) return detail.length > 80 ? `${head(detail, 77)}…` : detail;
   return name === "browser_subagent" ? "Navigateur" : "Sous-agent";
 }
 
@@ -94,7 +95,7 @@ function toolTitle(name: string, params: Json | undefined): string {
   }
   const detail = params ? TITLE_KEYS.map((k) => str(params[k])).find(Boolean) : undefined;
   if (!detail) return name || "tool";
-  const short = detail.length > 80 ? `${detail.slice(0, 77)}…` : detail;
+  const short = detail.length > 80 ? `${head(detail, 77)}…` : detail;
   return name ? `${name}: ${short}` : short;
 }
 

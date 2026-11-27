@@ -45,7 +45,8 @@ import { GOAL_REFUSAL, type GoalGuard } from "../runner/goal";
 import { RELAY_ADD_TOOL_NAMES, runRelayTool } from "../relay/tools";
 import { RELAY_DROPPED_FIELDS, RELAY_REFUSAL, relayRefusal, relayRefusalText } from "../relay/whitelist";
 import { resolveBot } from "../scheduler/scheduler";
-import { isTrue } from "../transcription/service";
+import { isTrue, JOB_ID_HEADER } from "../transcription/service";
+import { appHeader, currentAppLink } from "../compat/app-names";
 import type { WakeService } from "../hooks/service";
 import { WakeSite, type WakeOptions } from "../hooks/public";
 
@@ -476,10 +477,11 @@ function profileApi(d: ProfileDeps) {
   const notify = async (req: Request) => {
     const b = await body<{ title?: string; body?: string; botId?: string; conversationId?: unknown; url?: string; key?: unknown; repeatHours?: unknown }>(req);
     if (typeof b.title !== "string" || typeof b.body !== "string") throw new HttpError(400, "title and body are required");
-    if (b.url !== undefined && (typeof b.url !== "string" || !b.url.startsWith("nuo://"))) throw new HttpError(400, "url must be a nuo:// link");
+    const link = typeof b.url === "string" ? currentAppLink(b.url) : undefined;
+    if (b.url !== undefined && !link) throw new HttpError(400, "url must be a nuo:// link");
     if (b.key !== undefined && (typeof b.key !== "string" || !b.key.trim() || b.key.length > 200)) throw new HttpError(400, "key must be a short string");
     const botId = typeof b.botId === "string" && b.botId ? b.botId : undefined;
-    const url = b.url || undefined;
+    const url = link || undefined;
     if (typeof b.key === "string") {
       // A watcher that finds the same thing every hour alerts once, not every hour.
       const metaKey = `notify.once.${botId ?? "-"}.${b.key.trim()}`;
@@ -769,7 +771,7 @@ export function startServer(s: ServerDeps): Server<SocketData> {
       // else, not even the Google callback below.
       if (wakeSite.hosts.has(requestHost(req))) return secure(await wakeSite.handle(req, path, origin.ip), origin);
       // Google sends the user's browser here, outside Cloudflare Access and without any gateway credential.
-      if (s.google && path === CALLBACK_PATH && req.method === "GET") return googleCallback(s.google, url, (id) => s.profiles.stack(id)?.google);
+      if (s.google && path === CALLBACK_PATH && req.method === "GET") return googleCallback(s.google, url, (id) => s.profiles.stack(id)?.google, (id, deviceId) => s.profiles.stack(id)?.store.appNaming(deviceId));
       // The booking hostname is a separate, unauthenticated site of the owner: it never reaches the gate or any app route.
       const booking = s.profiles.owner.calendar;
       if (booking.bookingHosts.has(requestHost(req))) return booking.site.handle(req, path, url, origin.ip);
@@ -906,7 +908,7 @@ export const RELAY_MAX_AUDIO = 4 * 1024 * 1024;
 async function relayDictationRefusal(req: Request): Promise<{ status: number; message: string } | undefined> {
   const length = Number(req.headers.get("content-length") ?? "NaN");
   if (!Number.isFinite(length) || length > RELAY_MAX_AUDIO) return { status: 413, message: "the relay sends short dictations only" };
-  if (req.headers.get("x-nuo-transcription-id") || new URL(req.url).searchParams.has("id")) return { status: 403, message: "the relay cannot name a transcription job" };
+  if (appHeader(req.headers, JOB_ID_HEADER) || new URL(req.url).searchParams.has("id")) return { status: 403, message: "the relay cannot name a transcription job" };
   try {
     const form = await req.clone().formData();
     if (isTrue(form.get("background")) || form.get("id")) return { status: 403, message: "the relay cannot start a background transcription" };

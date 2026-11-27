@@ -1,3 +1,4 @@
+import { head, tail } from "../text";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -404,7 +405,7 @@ export class Runner {
     const s = this.turnStates.get(conversationId);
     if (!s) return undefined;
     const tool = currentTool(s);
-    const partial = full || s.text.length <= PARTIAL_TEXT_MAX ? s.text : `…${s.text.slice(-PARTIAL_TEXT_MAX)}`;
+    const partial = full || s.text.length <= PARTIAL_TEXT_MAX ? s.text : `…${tail(s.text, PARTIAL_TEXT_MAX)}`;
     return {
       messageId: s.messageId,
       startedAt: new Date(s.startedAt).toISOString(),
@@ -1138,7 +1139,7 @@ export class Runner {
           const sa = subagent(e.id);
           if (e.title) sa.title = e.title;
           if (e.description && !sa.description) sa.description = truncate(e.description.trim(), SUBAGENT_DESCRIPTION_MAX);
-          if (e.result) sa.text = e.result.slice(-SUBAGENT_TEXT_MAX);
+          if (e.result) sa.text = tail(e.result, SUBAGENT_TEXT_MAX);
           if (e.state) {
             sa.state = e.state;
             if (e.state === "running" || e.state === "waiting") delete sa.endedAt;
@@ -1165,7 +1166,7 @@ export class Runner {
         }
         case "subagent.text": {
           const sa = subagent(e.id);
-          sa.text = ((sa.text ?? "") + e.text).slice(-SUBAGENT_TEXT_MAX);
+          sa.text = tail((sa.text ?? "") + e.text, SUBAGENT_TEXT_MAX);
           publishSubagent(sa, true);
           break;
         }
@@ -1943,5 +1944,5 @@ function allowOption(options: PermissionOption[]): string | undefined {
 
 function truncate(text: string, max: number): string {
   const t = text.replace(/\s+/g, " ").trim();
-  return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
+  return t.length > max ? `${head(t, max - 1).trimEnd()}…` : t;
 }

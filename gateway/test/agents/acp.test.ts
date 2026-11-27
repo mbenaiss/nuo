@@ -248,6 +248,22 @@ describe("cancel and crashes", () => {
     expect(Date.now() - t0).toBeLessThan(3_000);
   });
 
+  test("a long command description is cut before an emoji, not inside it", async () => {
+    const s = await start();
+    const { events } = await run(s, "described-tool-emoji");
+    const detail = events.find((e) => e.type === "tool.detail") as { detail: string };
+    expect(detail.detail).toBe("Programme la sortie Z2 de 45 min sur l'Apple Watch de Julie Martin ".repeat(3).slice(0, 199));
+    expect(detail.detail.isWellFormed()).toBe(true);
+  });
+
+  test("the stderr tail of a crash never starts on half of an emoji", async () => {
+    const s = await start();
+    const { result } = await run(s, "crash-emoji");
+    expect(result.stopReason).toBe("error");
+    expect(result.error).toContain(`stderr: ${"x".repeat(1499)}`);
+    expect(result.error!.isWellFormed()).toBe(true);
+  });
+
   test("process crash during a prompt reports the stderr tail", async () => {
     const s = await start();
     const { result, text } = await run(s, "crash");

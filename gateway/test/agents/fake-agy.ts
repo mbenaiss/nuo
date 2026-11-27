@@ -20,6 +20,12 @@ if (prompt === "auth") {
 if (prompt === "hang") {
   await new Promise(() => {});
 }
+if (prompt === "long-command") {
+  // 76 characters, then a runner emoji whose two halves sit on either side of the 77-character cut.
+  const command = `${"grep -rn 'Sortie Z2' ~/Documents/entrainements/2026/novembre/ | sort ".padEnd(76, "-")}🏃 | head -20`;
+  step({ step_index: 1, state: "ACTIVE", step_type: "tool", tool_name: "run_command", tool_info: { name: "run_command", parameters: { CommandLine: command } } });
+  step({ step_index: 1, state: "DONE", step_type: "tool", tool_name: "run_command", tool_info: { name: "run_command", output: "" } });
+}
 if (prompt === "tool") {
   step({ step_index: 1, state: "ACTIVE", step_type: "tool", tool_name: "run_command", tool_info: { name: "run_command", parameters: { CommandLine: "ls" } } });
   step({ step_index: 1, state: "DONE", step_type: "tool", tool_name: "run_command", tool_info: { name: "run_command", output: "a\n" } });

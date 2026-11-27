@@ -1,6 +1,8 @@
+import { head } from "../text";
 import type { Database } from "bun:sqlite";
 import { uniqueSlug } from "./slug";
 import type { PushDestination } from "../push/apns";
+import type { AppNaming } from "../compat/app-names";
 import type { Alert, Attachment, Bot, BotConfig, BotVersion, ContextUsage, Conversation, ConversationSearchHit, Message, MessageTask, MessageWake, ScheduledTask, SubagentInfo, TaskAction, TaskRun, TaskSchedule, ToolStep } from "../protocol";
 
 export const now = () => new Date().toISOString();
@@ -34,6 +36,8 @@ export interface Device {
   name: string;
   apnsToken?: string;
   apnsEnv?: "development" | "production";
+  /** Name the device's app last signed with; absent for a device paired before the gateway kept track. */
+  appNaming?: AppNaming;
 }
 
 /** A native session of one agent for a conversation, and the last message it has seen. */
@@ -180,6 +184,14 @@ export class Store {
 
   touchDevice(deviceId: string) {
     this.db.query("UPDATE devices SET last_seen_at = ? WHERE id = ?").run(now(), deviceId);
+  }
+
+  setAppNaming(deviceId: string, naming: AppNaming) {
+    this.db.query("UPDATE devices SET app_naming = ?1 WHERE id = ?2 AND app_naming IS NOT ?1").run(naming, deviceId);
+  }
+
+  appNaming(deviceId: string): AppNaming | undefined {
+    return opt((this.db.query("SELECT app_naming FROM devices WHERE id = ?").get(deviceId) as Row | null)?.app_naming);
   }
 
   // Bots
@@ -620,10 +632,10 @@ export function preview(text: string, max = 120): string {
     .replace(/[*_`#>]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  return prose.length > max ? `${prose.slice(0, max - 1)}…` : prose;
+  return prose.length > max ? `${head(prose, max - 1)}…` : prose;
 }
 
-const toDevice = (r: Row): Device => ({ id: r.id, name: r.name, apnsToken: opt(r.apns_token), apnsEnv: opt(r.apns_env) });
+const toDevice = (r: Row): Device => ({ id: r.id, name: r.name, apnsToken: opt(r.apns_token), apnsEnv: opt(r.apns_env), appNaming: opt(r.app_naming) });
 
 const toVersion = (r: Row): BotVersion => ({
   version: r.version,

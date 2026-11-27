@@ -2,6 +2,7 @@ import { createPrivateKey, sign, type KeyObject } from "node:crypto";
 import { readFileSync } from "node:fs";
 import http2 from "node:http2";
 import type { Device } from "../store/store";
+import { APP_NAME, appCategory, appLink, appNameFor } from "../compat/app-names";
 
 /** Screen the app opens on tap; the app's `NotificationDestination` reads it back. */
 export type PushDestination =
@@ -125,7 +126,7 @@ class ApnsPusher implements Pusher {
 
   send(device: Device, p: PushPayload): Promise<void> {
     if (!device.apnsToken) return Promise.resolve();
-    const body = apnsBody(p);
+    const body = apnsBodyFor(device, p);
     return this.post(device.apnsEnv ?? "production", device.apnsToken, "alert", this.config.topic, "10", body, device.name, p.messageId).then((r) => {
       if (r.invalid) this.onInvalidToken(device.id);
     });
@@ -202,18 +203,26 @@ function defaultCategory(p: PushPayload): string {
   return p.conversationId ? "nuo.answer" : "nuo.alert";
 }
 
-/** The flat ids stay next to `destination`: inline replies need them, and older app versions route on them. */
-export function apnsBody(p: PushPayload): Record<string, unknown> {
+export function apnsBodyFor(device: Device, p: PushPayload): Record<string, unknown> {
+  return apnsBody(p, appNameFor(device.appNaming));
+}
+
+/**
+ * The flat ids stay next to `destination`: inline replies need them, and older app versions route on them. `appName`:
+ * the name the device's app knows, for the category (it decides the notification's buttons) and the links.
+ */
+export function apnsBody(p: PushPayload, appName = APP_NAME): Record<string, unknown> {
+  const destination = p.destination.kind === "link" ? { ...p.destination, url: appLink(p.destination.url, appName) } : p.destination;
   return {
-    aps: { alert: { title: p.title, body: p.body }, sound: "default", category: p.category ?? defaultCategory(p), ...(p.botId ? { "thread-id": p.botId } : {}) },
-    destination: p.destination,
+    aps: { alert: { title: p.title, body: p.body }, sound: "default", category: appCategory(p.category ?? defaultCategory(p), appName), ...(p.botId ? { "thread-id": p.botId } : {}) },
+    destination,
     ...(p.botId ? { botId: p.botId } : {}),
     ...(p.conversationId ? { conversationId: p.conversationId } : {}),
     ...(p.taskId ? { taskId: p.taskId } : {}),
     ...(p.runId ? { runId: p.runId } : {}),
     ...(p.reminderId ? { reminderId: p.reminderId } : {}),
     ...(p.bookingId ? { bookingId: p.bookingId } : {}),
-    ...(p.url ? { url: p.url } : {}),
+    ...(p.url ? { url: appLink(p.url, appName) } : {}),
   };
 }
 

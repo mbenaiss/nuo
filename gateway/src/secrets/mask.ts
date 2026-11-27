@@ -1,3 +1,5 @@
+import { safeCut } from "../text";
+
 export const MASKED = "[secret masqué]";
 
 const REFRESH_MS = 30_000;
@@ -59,8 +61,9 @@ export class SecretMask {
           pending = masked;
           return "";
         }
-        pending = masked.slice(masked.length - hold);
-        return masked.slice(0, masked.length - hold);
+        const cut = safeCut(masked, masked.length - hold);
+        pending = masked.slice(cut);
+        return masked.slice(0, cut);
       },
       flush: () => {
         const out = this.mask(pending);

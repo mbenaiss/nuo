@@ -150,6 +150,17 @@ export class FakeRuntime implements AgentRuntime {
           on({ type: "text", text: "done" });
           return { stopReason: "end_turn" };
         }
+        if (text.includes("compte rendu long")) {
+          // Each text ends 6000 characters after the second half of a runner emoji: a cut there splits the pair.
+          const report = (lead: string) => `${lead} 🏃${"Sortie Z2 de 45 min sous 145 bpm. ".repeat(200).slice(0, 5999)}`;
+          on({ type: "subagent", id: "sub-1", title: "Explore", description: "Relire les sorties de novembre", state: "running" });
+          on({ type: "subagent.text", id: "sub-1", text: report("Bilan") });
+          on({ type: "subagent", id: "sub-2", title: "Plan", description: "Préparer la séance", state: "running" });
+          on({ type: "subagent", id: "sub-2", state: "completed", result: report("Plan") });
+          on({ type: "subagent", id: "sub-1", state: "completed" });
+          on({ type: "text", text: "Les deux bilans sont prêts." });
+          return { stopReason: "end_turn" };
+        }
         if (text.includes("delegate")) {
           on({ type: "tool.start", toolCallId: "spawn", title: "Task", kind: "think" });
           on({ type: "subagent", id: "sub-1", title: "Explore", description: "Compter les fichiers de /etc/systemd", state: "running" });

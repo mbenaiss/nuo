@@ -12,6 +12,8 @@ export interface CalendarOptions {
   ownerName?: string;
   /** Address printed on /privacy and /terms (NUO_LEGAL_CONTACT). */
   contactEmail?: string;
+  /** What follows `@` in the UID of the booking `.ics` files (NUO_BOOKING_UID_DOMAIN). */
+  icsUidDomain?: string;
   turnstileSiteKey?: string;
   turnstileSecret?: string;
   /** Turnstile siteverify call (tests). */
@@ -44,12 +46,24 @@ export function calendarOptionsFromEnv(env: Record<string, string | undefined> =
     baseUrl: env.NUO_BOOKING_BASE_URL || undefined,
     ownerName: env.NUO_BOOKING_OWNER || undefined,
     contactEmail: env.NUO_LEGAL_CONTACT || undefined,
+    icsUidDomain: icsUidDomainFromEnv(env),
     turnstileSiteKey: env.NUO_TURNSTILE_SITEKEY || undefined,
     turnstileSecret: env.NUO_TURNSTILE_SECRET || undefined,
     googleCalendar: env.NUO_GOOGLE_CALENDAR || undefined,
     googleAccounts: list(env.NUO_GOOGLE_ACCOUNTS),
     gogBin: env.NUO_GOG_BIN || undefined,
   };
+}
+
+/**
+ * Calendars match a re-downloaded invitation to the one already imported by its UID: an install keeps the value
+ * its earlier invitations used, or every guest who downloads one again gets the appointment twice.
+ */
+export function icsUidDomainFromEnv(env: Record<string, string | undefined> = process.env): string | undefined {
+  const raw = env.NUO_BOOKING_UID_DOMAIN?.trim();
+  if (!raw) return undefined;
+  if (!/^[A-Za-z0-9](?:[A-Za-z0-9.-]{0,62})$/.test(raw)) throw new Error("NUO_BOOKING_UID_DOMAIN must be 1 to 63 letters, digits, dots or dashes");
+  return raw;
 }
 
 /** Builds a GoogleCalendar for the CLI and the gateway; undefined when gog is explicitly disabled. */
@@ -71,6 +85,6 @@ export function createCalendarServices(db: Database, notify: (title: string, bod
     if (!turnstile.enabled) console.warn("[booking] NUO_TURNSTILE_SITEKEY/NUO_TURNSTILE_SECRET are not set: the public booking form has NO bot protection (dev only)");
     if (!defaultTarget) console.warn("[booking] NUO_GOOGLE_CALENDAR is not set: booking types without googleCalendar create no Google event");
   }
-  const site = new PublicSite({ bookings, turnstile, ownerName: o.ownerName, contactEmail: o.contactEmail });
+  const site = new PublicSite({ bookings, turnstile, ownerName: o.ownerName, contactEmail: o.contactEmail, icsUidDomain: o.icsUidDomain });
   return { store, bookings, google, defaultTarget, googleAccounts, turnstile, bookingHosts, site };
 }

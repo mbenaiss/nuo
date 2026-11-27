@@ -349,4 +349,37 @@ describe("masking what the bots write", () => {
     const out = ["Le secret est cfaccess_fix", "ture_secr", "et_77 voilà", " fin."].map((c) => stream.push(c)).join("") + stream.flush();
     expect(out).toBe(`Le secret est ${MASKED} voilà fin.`);
   });
+
+  describe("streamed deltas never split an emoji", () => {
+    const card =
+      `::facts {"title":"Sortie Z2 45 min · aujourd'hui","items":[{"label":"Mise en route","value":"10 min · FC < 140"},` +
+      `{"label":"Z2 facile","value":"30 min · FC < 145"},{"label":"Retour au calme","value":"5 min · FC < 140"},{"label":"Total","value":"45 min"}]}`;
+    const answer = `La séance est envoyée sur ta montre 🏃\n\n${card}\n\nTu la trouves dans l'app Exercice, sous « Sortie Z2 45 min ».`;
+    // The apps decode each event with JSONDecoder, which rejects a lone surrogate escape and drops the whole event.
+    const shownByApp = (chunks: string[]) => {
+      const stream = new SecretMask(() => values).stream();
+      const deltas = [...chunks.map((c) => stream.push(c)), stream.flush()].filter(Boolean);
+      return { deltas, shown: deltas.filter((d) => d.isWellFormed()).join("") };
+    };
+
+    test("the Apple Watch session answer keeps its card line", () => {
+      // Chunk ends that put a delta boundary between the two halves of 🏃, given the 25 characters held back.
+      const hold = "cfaccess_fixture_secret_77".length - 1;
+      const ends = ["La séance est".length, answer.indexOf("🏃") + 1, answer.indexOf("Sortie")].map((at) => at + hold);
+      const chunks = [0, ...ends].map((at, i) => answer.slice(at, ends[i] ?? answer.length));
+      const { deltas, shown } = shownByApp(chunks);
+      expect(deltas.every((d) => d.isWellFormed())).toBe(true);
+      expect(shown).toBe(answer);
+      expect(shown.split("\n")).toContain(card);
+    });
+
+    test("at every chunk size", () => {
+      for (let size = 1; size <= 40; size++) {
+        const chunks = Array.from({ length: Math.ceil(answer.length / size) }, (_, i) => answer.slice(i * size, (i + 1) * size));
+        const { deltas, shown } = shownByApp(chunks);
+        expect({ size, wellFormed: deltas.every((d) => d.isWellFormed()) }).toEqual({ size, wellFormed: true });
+        expect(shown).toBe(answer);
+      }
+    });
+  });
 });

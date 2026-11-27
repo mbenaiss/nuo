@@ -158,6 +158,11 @@ acp
       await send({ sessionUpdate: "tool_call_update", toolCallId: "d1", rawInput: { command: "gh run watch", description: "Wait for the deploy workflow on main" } });
       await send({ sessionUpdate: "tool_call_update", toolCallId: "d1", status: "completed", rawInput: { command: "gh run watch", description: "Wait for the deploy workflow on main" } });
       await send({ sessionUpdate: "tool_call_update", toolCallId: "d2", rawInput: { description: "Not started yet" } });
+    } else if (cmd === "described-tool-emoji") {
+      // 199 characters, then a runner emoji whose two halves sit on either side of the 200-character cut.
+      const description = `${"Programme la sortie Z2 de 45 min sur l'Apple Watch de Julie Martin ".repeat(3).slice(0, 199)}🏃 puis vérifie`;
+      await send({ sessionUpdate: "tool_call", toolCallId: "d1", title: "Terminal", kind: "execute", status: "pending", rawInput: {} });
+      await send({ sessionUpdate: "tool_call_update", toolCallId: "d1", status: "completed", rawInput: { command: "workout_schedule", description } });
     } else if (cmd === "open-tool") {
       await send({ sessionUpdate: "tool_call", toolCallId: "o1", title: "Never ends", kind: "other", status: "in_progress" });
     } else if (cmd.startsWith("perm:") || cmd.startsWith("permtool:")) {
@@ -196,6 +201,10 @@ acp
     } else if (cmd === "silent") {
       await sleep(60_000, signal).catch(() => {});
       return { stopReason: "cancelled" };
+    } else if (cmd === "crash-emoji") {
+      // The last 1500 characters start on the second half of the runner emoji.
+      process.stderr.write(`séance 🏃${"x".repeat(1499)}`);
+      process.exit(3);
     } else if (cmd === "crash") {
       await say("partial");
       process.stderr.write("boom: fatal failure in fake agent\n");

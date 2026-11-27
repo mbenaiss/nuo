@@ -97,6 +97,20 @@ describe("subagents", () => {
     expect(saved.subagents[1]).toMatchObject({ id: "sub-2", title: "Plan", state: "completed" });
   });
 
+  test("a long subagent text or result never starts on half of an emoji", async () => {
+    const { conv, sock } = await setup();
+    sock.send({ type: "prompt", conversationId: conv.id, text: "compte rendu long" });
+    const start = await sock.next("message.start");
+    await sock.next("message.end");
+    const sent = sock.events.filter((e) => e.type === "subagent").map((e) => (e as { subagent: { text?: string } }).subagent.text ?? "");
+    expect(sent.every((text) => text.isWellFormed())).toBe(true);
+    const saved = (await t!.api("GET", `/api/conversations/${conv.id}/messages`)).data.find((m: { id: string }) => m.id === start.messageId);
+    for (const sub of saved.subagents) {
+      expect(sub.text).toHaveLength(5999);
+      expect(sub.text).toStartWith("Sortie Z2 de 45 min");
+    }
+  });
+
   test("Claude's states and Antigravity's titles map to the app's", () => {
     expect(rfdState({ state: "running" })).toBe("running");
     expect(rfdState({ state: "requires_action" })).toBe("waiting");

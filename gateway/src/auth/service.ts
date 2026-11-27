@@ -4,6 +4,7 @@ import { newId, now as isoNow } from "../store/store";
 import { normalizePublicKey, open, seal, sha256, verifyP256 } from "./keys";
 import { EXTENSION_SCOPES, type ExtensionScope, type Scope } from "./policy";
 import { base32Encode, generateTotpSecret, otpauthUri, verifyTotp } from "./totp";
+import { acceptedAppNames, APP_NAME, namingOf } from "../compat/app-names";
 
 export const PAIR_CODE_TTL_MS = 10 * 60 * 1000;
 export const ACCESS_TTL_MS = 15 * 60 * 1000;
@@ -94,14 +95,15 @@ export type Failure = { status: number; error: string; reauth?: boolean; retryAt
 type Result<T> = T | Failure;
 export const isFailure = (r: unknown): r is Failure => !!r && typeof r === "object" && "status" in r && "error" in r;
 
-export const signedMessage = (purpose: "refresh" | "step-up" | "relay", deviceId: string, nonce: string) => `nuo-auth:v1:${purpose}:${deviceId}:${nonce}`;
+export const signedMessage = (purpose: "refresh" | "step-up" | "relay", deviceId: string, nonce: string, appName = APP_NAME) =>
+  `${appName}-auth:v1:${purpose}:${deviceId}:${nonce}`;
 
 /**
  * What the device's action key signs for one sensitive call: the exact method, path (with its query) and body,
  * so a signature cannot be replayed on another secret, another value or another route.
  */
-export const actionMessage = (deviceId: string, nonce: string, method: string, pathAndQuery: string, body: string) =>
-  `nuo-action:v1:${deviceId}:${nonce}:${method.toUpperCase()}:${pathAndQuery}:${createHash("sha256").update(body).digest("hex")}`;
+export const actionMessage = (deviceId: string, nonce: string, method: string, pathAndQuery: string, body: string, appName = APP_NAME) =>
+  `${appName}-action:v1:${deviceId}:${nonce}:${method.toUpperCase()}:${pathAndQuery}:${createHash("sha256").update(body).digest("hex")}`;
 
 export function createPairCode(store: Store): string {
   const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
@@ -267,7 +269,9 @@ export class AuthService {
     if (!this.store.consumePairCode(codeHash)) return { detail: "pair code race" };
     const platform = typeof b.platform === "string" ? b.platform.slice(0, 20) : undefined;
     const id = newId();
-    this.db.query("INSERT INTO devices (id, name, platform, public_key, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?)").run(id, name, platform ?? null, publicKey, isoNow(), isoNow());
+    this.db
+      .query("INSERT INTO devices (id, name, platform, public_key, created_at, last_seen_at, app_naming) VALUES (?, ?, ?, ?, ?, ?, 'current')")
+      .run(id, name, platform ?? null, publicKey, isoNow(), isoNow());
     this.event("pair", true, { ip, deviceId: id, deviceName: name, detail: factor === "recovery" ? `recovery code (${this.recoveryCodesLeft()} left)` : platform });
     this.opts.alert?.("Nuo · nouvel appareil", `« ${name} » vient d'être appairé depuis ${ip}${factor === "recovery" ? " avec un code de secours" : ""}.`, id);
     return { grant: { ...this.grant(id, { forceExtensions: true }), network: this.opts.network ?? {} }, recovery: factor === "recovery" };
@@ -315,7 +319,7 @@ export class AuthService {
     const device = this.db.query("SELECT action_key FROM devices WHERE id = ?").get(ctx.deviceId) as Row | null;
     if (!device?.action_key) return { status: 403, error: "this device has no action key yet" };
     if (!this.takeNonce(nonce)) return { status: 403, error: "unknown or expired nonce" };
-    if (typeof signature !== "string" || !verifyP256(device.action_key, actionMessage(ctx.deviceId, nonce as string, method, pathAndQuery, body), signature)) {
+    if (!this.signedBy(ctx.deviceId, device.action_key, signature, (name) => actionMessage(ctx.deviceId, nonce as string, method, pathAndQuery, body, name))) {
       return { status: 403, error: "invalid action signature" };
     }
     return undefined;
@@ -378,7 +382,7 @@ export class AuthService {
     if (!device || !device.public_key) return refuse({ status: 401, error: "unknown or revoked device: pair again", reauth: true });
     if (!device.relay_key || this.profileId !== "owner") return refuse({ status: 401, error: "no relay key for this device", reauth: false });
     if (!this.takeNonce(b.nonce)) return refuse({ status: 401, error: "unknown or expired nonce", reauth: false });
-    if (typeof b.signature !== "string" || !verifyP256(device.relay_key, signedMessage("relay", deviceId, b.nonce as string), b.signature)) {
+    if (!this.signedBy(deviceId, device.relay_key, b.signature, (name) => signedMessage("relay", deviceId, b.nonce as string, name))) {
       return refuse({ status: 401, error: "invalid signature", reauth: false });
     }
     this.db.query("DELETE FROM auth_tokens WHERE expires_at < ?").run(this.now());
@@ -416,6 +420,18 @@ export class AuthService {
     return { nonce, expiresAt: new Date(t + NONCE_TTL_MS).toISOString() };
   }
 
+  /**
+   * Checks the signature against the message in each accepted app name and remembers which one the device used: the
+   * gateway answers it in that name. Every name is bound to the same single-use nonce, already taken by the caller.
+   */
+  private signedBy(deviceId: string, key: string, signature: unknown, message: (appName: string) => string): boolean {
+    if (typeof signature !== "string") return false;
+    const name = acceptedAppNames().find((n) => verifyP256(key, message(n), signature));
+    if (name === undefined) return false;
+    this.store.setAppNaming(deviceId, namingOf(name));
+    return true;
+  }
+
   private takeNonce(nonce: unknown): boolean {
     if (typeof nonce !== "string") return false;
     const exp = this.nonces.get(nonce);
@@ -428,7 +444,7 @@ export class AuthService {
     if (!device) return { status: 401, error: "unknown or revoked device: pair again", reauth: true };
     if (!device.public_key) return { status: 401, error: "this device was paired before device keys: pair again", reauth: true };
     if (!this.takeNonce(b.nonce)) return { status: 401, error: "unknown or expired nonce", reauth: false };
-    if (typeof b.signature !== "string" || !verifyP256(device.public_key, signedMessage(purpose, deviceId, b.nonce as string), b.signature)) {
+    if (!this.signedBy(deviceId, device.public_key, b.signature, (name) => signedMessage(purpose, deviceId, b.nonce as string, name))) {
       return { status: 401, error: "invalid signature", reauth: false };
     }
     return device;

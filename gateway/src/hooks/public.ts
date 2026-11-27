@@ -1,3 +1,4 @@
+import { head } from "../text";
 import { timingSafeEqual } from "node:crypto";
 import { sha256 } from "../auth/keys";
 import { HttpError } from "../bots/service";
@@ -313,13 +314,13 @@ export class WakeSite {
     }
     const attachments = (Array.isArray(b.attachments) ? b.attachments : [])
       .map((a) => (typeof a === "string" ? a : str((a as { filename?: unknown } | null)?.filename)))
-      .map((n) => n.replace(/[\r\n]+/g, " ").trim().slice(0, 200))
+      .map((n) => head(n.replace(/[\r\n]+/g, " ").trim(), 200))
       .filter(Boolean)
       .slice(0, 50);
     const mail: IncomingMail = {
       to,
       from,
-      fromName: (str(b.fromName) || str(b.from).replace(/<[^<>]*>\s*$/, "")).replace(/[\r\n"]+/g, " ").trim().slice(0, 200) || undefined,
+      fromName: head((str(b.fromName) || str(b.from).replace(/<[^<>]*>\s*$/, "")).replace(/[\r\n"]+/g, " ").trim(), 200) || undefined,
       subject: str(b.subject).replace(/[\r\n]+/g, " ").trim(),
       text: str(b.text),
       date: str(b.date).trim().slice(0, 100) || undefined,

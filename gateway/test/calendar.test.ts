@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { computeSlots, type SlotRules } from "../src/calendar/availability";
 import { GoogleCalendar, GoogleError, spawnRunner, type CommandRunner } from "../src/calendar/google";
+import { calendarOptionsFromEnv, icsUidDomainFromEnv } from "../src/calendar/service";
 import { pairDevice, startTestApp, type TestApp } from "./helpers";
 
 const iso = (s: string) => new Date(s).toISOString();
@@ -397,6 +398,7 @@ describe("public booking host", () => {
     const ics = await pub(t, "GET", `/m/${token}/event.ics`);
     expect(ics.headers.get("content-type")).toContain("text/calendar");
     expect(ics.data).toContain("DTSTART:20261020T080000Z");
+    expect(ics.data).toMatch(/^UID:[^@\r\n]+@nuo\r?$/m);
 
     const moved = await pub(t, "POST", `/m/${token}`, { action: "reschedule", start: "2026-10-20T09:00:00Z", turnstileToken: "" });
     expect(moved.status).toBe(200);
@@ -411,6 +413,25 @@ describe("public booking host", () => {
     expect(gog.calls.some((c) => c.args[1] === "delete")).toBe(true);
     expect((await t.app.data.db.query("SELECT count(*) AS n FROM bookings").get()) as any).toEqual({ n: 2 });
     expect(() => t!.app.data.db.exec("DELETE FROM bookings")).toThrow();
+  });
+
+  test("an install renamed since its first invitations keeps their UID, so a guest's calendar updates them", async () => {
+    const { app } = await bookingApp({ calendar: { icsUidDomain: "halo" } });
+    t = app;
+    const r = await pub(t, "POST", "/api/public/booking/rdv-30", invitee("2026-10-20T08:00:00Z"));
+    expect(r.status).toBe(201);
+    const token = r.data.manageUrl.split("/m/")[1];
+    const first = (await pub(t, "GET", `/m/${token}/event.ics`)).data as string;
+    expect(first).toMatch(/^UID:[^@\r\n]+@halo\r?$/m);
+    expect((await pub(t, "POST", `/m/${token}`, { action: "reschedule", start: "2026-10-20T09:00:00Z", turnstileToken: "" })).status).toBe(200);
+    const moved = (await pub(t, "GET", `/m/${token}/event.ics`)).data as string;
+    const uid = (ics: string) => /^UID:(.+?)\r?$/m.exec(ics)?.[1];
+    expect(uid(moved)).toBe(uid(first));
+
+    expect(icsUidDomainFromEnv({})).toBeUndefined();
+    expect(icsUidDomainFromEnv({ NUO_BOOKING_UID_DOMAIN: " halo " })).toBe("halo");
+    expect(calendarOptionsFromEnv({ NUO_BOOKING_UID_DOMAIN: "rdv.lumen-studio.fr" }).icsUidDomain).toBe("rdv.lumen-studio.fr");
+    for (const bad of ["halo\nX-INJECTED:1", "halo@lumen", "-halo", "x".repeat(64)]) expect(() => icsUidDomainFromEnv({ NUO_BOOKING_UID_DOMAIN: bad })).toThrow();
   });
 
   test("validation, honeypot and Google failure", async () => {

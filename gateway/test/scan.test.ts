@@ -459,6 +459,15 @@ describe("parcels", () => {
     return { db, pusher, parcels, clock };
   }
 
+  test("a long label is cut before an emoji, not inside it", async () => {
+    const { parcels } = setup(new ScriptedTracker({ [COLISSIMO]: [inTransit] }));
+    // 119 characters, then 🎁 across the 120-character cut.
+    const label = "Chaussures de trail pour l'anniversaire de Julie Martin, à cacher avant samedi, ".repeat(2).slice(0, 119);
+    const p = await parcels.add({ number: COLISSIMO, label: `${label}🎁 merci` });
+    expect(p.label).toBe(label);
+    expect(p.label!.isWellFormed()).toBe(true);
+  });
+
   test("adding asks the carrier right away and stores the parcel in the Colis collection, without a push", async () => {
     const { db, pusher, parcels } = setup(new ScriptedTracker({ [COLISSIMO]: [inTransit] }));
     const p = await parcels.add({ number: " 6a12345678901 ", label: "Chaussures de trail" });

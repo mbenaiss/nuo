@@ -1,4 +1,5 @@
 import { Database } from "bun:sqlite";
+import { head } from "../text";
 import { existsSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
 import { loadCatalog, type ExerciseCatalog } from "./catalog";
@@ -87,7 +88,7 @@ const RUN_ID = /^[A-Za-z0-9-]{8,64}$/;
 
 const int = (v: unknown, fallback: number, min: number, max: number) =>
   typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : fallback;
-const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+const text = (v: unknown, max: number) => (typeof v === "string" ? head(v.trim(), max) : "");
 
 /** A stored session config, in the structured shape the coach's `save_wod` writes. */
 export function parseSession(row: { id: number; name: string; config_json: string; note: string | null }): MuscuSession | null {

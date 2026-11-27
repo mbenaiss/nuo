@@ -1,6 +1,7 @@
 import { HttpError } from "../bots/service";
 import { ElevenLabsSpeechToText, timeoutMs } from "./elevenlabs";
 import { JOB_ID, type JobRecord, JobStore } from "./jobs";
+import { appHeader } from "../compat/app-names";
 
 /** One stretch of speech; `speaker` is "1", "2"… in order of first appearance, only when speakers were asked for. */
 export interface TranscriptSegment {
@@ -156,8 +157,11 @@ const STOPPED_PER_DEVICE = 100;
  * longest a job can run: the provider's budget for the longest audio, twice (one retry when it answers too late).
  */
 export const STALE_MS = 2 * timeoutMs(MAX_SECONDS, true);
-/** Lets the app name its job before sending the audio, so a job it already sent is found without reading the upload. */
-export const JOB_ID_HEADER = "x-nuo-transcription-id";
+/**
+ * `x-nuo-transcription-id`: lets the app name its job before sending the audio, so a job it already sent is found
+ * without reading the upload.
+ */
+export const JOB_ID_HEADER = "transcription-id";
 
 /** One profile's transcriptions: dictations answered at once, meetings as jobs kept on disk until fetched or expired. */
 export class ProfileTranscriptions {
@@ -417,7 +421,7 @@ export function isTrue(v: unknown): boolean {
 
 /** The id the app gave its job in a header or the query string, read without touching the upload. */
 function namedJob(req: Request): string | undefined {
-  const raw = req.headers.get(JOB_ID_HEADER) ?? new URL(req.url).searchParams.get("id");
+  const raw = appHeader(req.headers, JOB_ID_HEADER)?.value ?? new URL(req.url).searchParams.get("id");
   if (!raw) return undefined;
   const id = raw.trim().toLowerCase();
   if (!JOB_ID.test(id)) throw new HttpError(400, "identifiant de transcription invalide");

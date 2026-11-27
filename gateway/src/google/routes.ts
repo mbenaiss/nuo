@@ -5,6 +5,7 @@ import type { GoogleAccounts } from "./accounts";
 import { GoogleTools } from "./api";
 import { APP_RETURN_URL, idTokenClaims, parseServices, servicesOf, type GoogleOAuth } from "./oauth";
 import { GOOGLE_TOOL_NAMES } from "./tools";
+import { APP_NAME, appLink, appNameFor, type AppNaming } from "../compat/app-names";
 import type { GoalGuard } from "../runner/goal";
 
 type Ctx = { req: Request; params: string[]; url: URL; device: Device };
@@ -110,8 +111,8 @@ const PAGE_HEADERS: Record<string, string> = {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 /** Redirects to the app (which closes the authentication sheet); the page is what a regular browser shows. */
-function backToApp(params: Record<string, string>, title: string, text: string): Response {
-  const location = `${APP_RETURN_URL}?${new URLSearchParams(params)}`;
+function backToApp(params: Record<string, string>, title: string, text: string, appName = APP_NAME): Response {
+  const location = `${appLink(APP_RETURN_URL, appName)}?${new URLSearchParams(params)}`;
   const page = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
 <style>body{font:17px -apple-system,system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;background:#f6f5f2;color:#1b1b1b}main{max-width:26rem;padding:2rem;text-align:center}a{color:inherit}</style></head>
 <body><main><h1>${esc(title)}</h1><p>${esc(text)}</p><p><a href="${esc(location)}">Revenir dans Nuo</a></p></main></body></html>`;
@@ -122,18 +123,25 @@ function backToApp(params: Record<string, string>, title: string, text: string):
  * GET /oauth/google/callback: reached by the user's browser without any gateway credential, so the state (random,
  * single use, 10 min, bound to the profile and device that asked) is the only proof; the code is exchanged here.
  */
-export async function googleCallback(oauth: GoogleOAuth, url: URL, accountsOf: (profileId: string) => GoogleAccounts | undefined): Promise<Response> {
+export async function googleCallback(
+  oauth: GoogleOAuth,
+  url: URL,
+  accountsOf: (profileId: string) => GoogleAccounts | undefined,
+  appNamingOf: (profileId: string, deviceId: string) => AppNaming | undefined = () => "current",
+): Promise<Response> {
   const pending = oauth.take(url.searchParams.get("state"));
   const accounts = pending && accountsOf(pending.profileId);
   if (!pending || !accounts) return backToApp({ error: "expired" }, "Lien expiré", "Recommence depuis Nuo : Réglages › Comptes Google.");
+  // The sign-in sheet of the app that asked only closes on a link in the name that app knows.
+  const appName = appNameFor(appNamingOf(pending.profileId, pending.deviceId));
   const by = { deviceId: pending.deviceId, deviceName: pending.deviceName };
   const denied = url.searchParams.get("error");
   if (denied) {
     accounts.audit("google_connect", false, { ...by, detail: `consent: ${denied.slice(0, 60)}` });
-    return backToApp({ error: denied === "access_denied" ? "denied" : "failed" }, "Connexion annulée", "Aucun compte n'a été connecté. Tu peux revenir dans Nuo.");
+    return backToApp({ error: denied === "access_denied" ? "denied" : "failed" }, "Connexion annulée", "Aucun compte n'a été connecté. Tu peux revenir dans Nuo.", appName);
   }
   const code = url.searchParams.get("code");
-  if (!code) return backToApp({ error: "failed" }, "Connexion impossible", "Google n'a pas renvoyé d'autorisation. Recommence depuis Nuo.");
+  if (!code) return backToApp({ error: "failed" }, "Connexion impossible", "Google n'a pas renvoyé d'autorisation. Recommence depuis Nuo.", appName);
   try {
     const t = await oauth.exchange(code, pending.verifier);
     const { email, sub } = idTokenClaims(t.idToken);
@@ -146,11 +154,12 @@ export async function googleCallback(oauth: GoogleOAuth, url: URL, accountsOf: (
       { email, services: granted.join(","), ...(missing.length ? { missing: missing.join(",") } : {}) },
       "Compte connecté",
       `${email} est connecté à Nuo. Tu peux revenir dans l'app.`,
+      appName,
     );
   } catch (e) {
     const message = (e as Error)?.message ?? String(e);
     console.warn(`[google] connection for profile ${pending.profileId} failed: ${message}`);
     accounts.audit("google_connect", false, { ...by, detail: message.slice(0, 200) });
-    return backToApp({ error: "failed" }, "Connexion impossible", "Google a refusé la connexion. Recommence depuis Nuo.");
+    return backToApp({ error: "failed" }, "Connexion impossible", "Google a refusé la connexion. Recommence depuis Nuo.", appName);
   }
 }

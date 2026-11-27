@@ -153,6 +153,30 @@ scripts/install.sh --host alex@192.0.2.10 --from-local         # same, plus pack
 Both restart the gateway; database migrations run at start. A backup first is cheap:
 `scripts/backup.sh --host alex@192.0.2.10 --out ~/nuo-backups`.
 
+## Apps built under an earlier name
+
+The gateway and the apps share names built on the app's name: the signed messages (`nuo-auth:v1:…`,
+`nuo-action:v1:…`), the `x-nuo-…` headers, the notification categories (`nuo.answer`…) and the `nuo://` links. When
+a deployment renames the project, the apps already installed still use the earlier name until each one is updated,
+and a locked iPhone or a watch is not updated the same minute. `NUO_LEGACY_APP_PREFIX=<earlier name>` covers that
+time:
+
+- the gateway accepts both names: signatures, `x-<name>-action-nonce`/`-signature`, `x-<name>-transcription-id`,
+  `<name>://` links sent to `POST /api/notify` (kept in the current name);
+- it remembers which name each device last signed with (token refresh, Face ID, relay token, secret confirmation)
+  and sends that device's pushes, their category and links, and the end of a Google sign-in in that name. A device
+  paired before this was tracked counts as an earlier app until it signs in the current name, which an updated app
+  does at its first launch (its access token lives in memory only, so every launch starts with a signed refresh);
+- nothing is relaxed: each name is checked against the same key, purpose and single-use nonce, and the earlier name
+  may only be letters and digits, so no message in one name reads as another message in the other.
+
+Links written inside messages and documents stay in the current name: an earlier app shows them but cannot open them.
+Remove the variable once every iPhone, Mac and watch runs a build of the current name: from then on a forgotten
+device fails to refresh its token and must be updated.
+
+The booking invitations (`.ics`) keep their UID only with `NUO_BOOKING_UID_DOMAIN=<earlier name>` (docs/calendar.md):
+unlike `NUO_LEGACY_APP_PREFIX`, it stays set for good, since guests keep the invitations they already downloaded.
+
 ## Moving to a new host
 
 ```sh

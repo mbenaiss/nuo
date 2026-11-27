@@ -1,3 +1,4 @@
+import { head } from "../text";
 import { randomBytes } from "node:crypto";
 import { sha256 } from "../auth/keys";
 import type { AuthEventType } from "../auth/service";
@@ -79,7 +80,7 @@ export const wrapExternal = (s: string) => `${UNTRUSTED_OPEN}\n${defuse(s)}\n${U
 
 const REPLY_SUBJECT = /^\s*(re|fwd?|tr|réf|aw|wg)\s*:/i;
 
-const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+const clip = (s: string, n: number) => (s.length > n ? `${head(s, n - 1)}…` : s);
 
 /**
  * A bot with full access, or one that reaches every bot, runs any tool without asking: only its owner may set it to

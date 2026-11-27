@@ -3,6 +3,7 @@ import type { Zone } from "../auth/network";
 import type { AuthContext, AuthEventType, AuthService } from "../auth/service";
 import type { Device } from "../store/store";
 import type { SecretStore } from "./store";
+import { appHeader } from "../compat/app-names";
 
 type Ctx = { req: Request; params: string[]; url: URL; device: Device; ip: string; auth: AuthContext; zone: Zone };
 export type SecretsRoute = [string, RegExp, (ctx: Ctx) => unknown];
@@ -50,8 +51,9 @@ export function secretsRoutes(s: SecretStore, auth: AuthService, now: () => numb
     const times = (recent.get(ctx.device.id) ?? []).filter((x) => t - x < RATE_WINDOW_MS);
     if (times.length >= RATE_MAX) return refuse(429, "too many secret operations, try again later");
     if (!auth.hasActionKey(ctx.device.id)) return refuse(403, "this device has no Face ID key for secrets yet", { actionKey: true });
-    const h = ctx.req.headers;
-    const denied = auth.verifyAction(ctx.auth, h.get("x-nuo-action-nonce"), h.get("x-nuo-action-signature"), method, ctx.url.pathname + ctx.url.search, text);
+    const nonce = appHeader(ctx.req.headers, "action-nonce");
+    const signature = nonce && ctx.req.headers.get(`x-${nonce.name}-action-signature`);
+    const denied = auth.verifyAction(ctx.auth, nonce?.value, signature, method, ctx.url.pathname + ctx.url.search, text);
     if (denied) return refuse(denied.status, denied.error, { action: true });
     times.push(t);
     recent.set(ctx.device.id, times);

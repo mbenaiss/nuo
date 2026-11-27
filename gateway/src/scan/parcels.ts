@@ -1,3 +1,4 @@
+import { head } from "../text";
 import type { Database } from "bun:sqlite";
 import { asApp, NOW_SQL } from "../data/db";
 import type { Pusher } from "../push/apns";
@@ -196,7 +197,7 @@ export class Parcels {
   async add(input: { number: string; label?: string; carrier?: string }): Promise<Parcel> {
     const number = cleanTrackingNumber(input.number ?? "");
     if (!number) throw new ParcelError(400, "numéro de suivi invalide : 6 à 40 lettres ou chiffres");
-    const label = input.label?.trim().slice(0, 120) || null;
+    const label = head(input.label?.trim() ?? "", 120) || null;
     const carrier = carrierOf(input.carrier)?.id ?? guessParcel(number)?.carrier;
     const existing = this.byNumber(number);
     let id: string;

@@ -544,6 +544,18 @@ describe("what the apps show of a wake-up", () => {
     expect(sent).toContain(long);
   });
 
+  test("a long sender name is cut before an emoji, not inside it", async () => {
+    const bot = await setup();
+    // 199 characters, then 🏃 across the 200-character cut.
+    const name = "Julie Martin, coach running du club Lumen Athlétisme, section trail et Z2 ".repeat(3).slice(0, 199);
+    expect((await sendMail({ ...strangerMail(3), fromName: `${name}🏃 Paris` })).status).toBe(202);
+    const conv = await until(() => conversationTitled(bot.id, "E-mails non vérifiés"));
+    await answered(conv.id);
+    const wake = (await history(conv.id)).find((m) => m.role === "user")!.wake as Extract<MessageWake, { kind: "mail" }>;
+    expect(wake.fromName).toBe(name.trim());
+    expect(wake.fromName!.isWellFormed()).toBe(true);
+  });
+
   test("a sender without a display name is shown by address only", async () => {
     const bot = await setup();
     expect((await sendMail(strangerMail(2))).status).toBe(202);

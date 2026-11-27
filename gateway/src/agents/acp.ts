@@ -1,3 +1,4 @@
+import { head, tail } from "../text";
 import * as acp from "@agentclientprotocol/sdk";
 import type { ChildProcess } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -94,10 +95,10 @@ class RingBuffer {
   constructor(private readonly limit: number) {}
   push(s: string) {
     this.buf += s;
-    if (this.buf.length > this.limit) this.buf = this.buf.slice(this.buf.length - this.limit);
+    if (this.buf.length > this.limit) this.buf = tail(this.buf, this.limit);
   }
   tail(chars = 2000): string {
-    return this.buf.slice(-chars).trim();
+    return tail(this.buf, chars).trim();
   }
 }
 
@@ -793,7 +794,7 @@ export class AcpSession implements AgentSession {
   private toolDetail(a: ActivePrompt, id: string, rawInput: unknown) {
     const description = (rawInput as { description?: unknown } | null | undefined)?.description;
     if (!a.seenTools.has(id) || typeof description !== "string") return;
-    const detail = description.trim().slice(0, TOOL_DETAIL_MAX);
+    const detail = head(description.trim(), TOOL_DETAIL_MAX);
     if (!detail || a.details.get(id) === detail) return;
     a.details.set(id, detail);
     a.onEvent({ type: "tool.detail", toolCallId: id, detail });

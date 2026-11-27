@@ -1,3 +1,5 @@
+import { head } from "../text";
+
 /**
  * What a bot may do during a turn the relay passed on (the watch's request while the iPhone is locked): add, and
  * nothing else (docs/security.md, « Accès de relais »). Every tool a bot session can be offered is named here; the
@@ -186,7 +188,7 @@ const SUMMARY_MAX = 90;
 function said(v: unknown, max = SUMMARY_MAX): string {
   if (typeof v !== "string" && typeof v !== "number") return "";
   const t = String(v).replace(/\s+/g, " ").trim();
-  return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
+  return t.length > max ? `${head(t, max - 1).trimEnd()}…` : t;
 }
 
 /** `2026-11-16T10:00` (Paris time, as the tools take it) as « lun. 16 nov., 10:00 »; anything else as written. */

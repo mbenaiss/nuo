@@ -135,6 +135,19 @@ test("the list keeps only the end of a long partial text", async () => {
   await sock.next("message.end");
 });
 
+test("the end of a partial text never starts on half of an emoji", async () => {
+  const { bot, conv, sock } = await setup();
+  const start = await hangingTurn(sock, conv.id);
+  // "Voici" then 199 characters after the runner: the last 200 start on the second half of 🏃.
+  const rest = "Sortie Z2 de 45 min sous 145 bpm, retour au calme de 5 min. ".repeat(4).slice(0, 199);
+  (t.app.runner as any).emit({ type: "message.delta", conversationId: conv.id, messageId: start.messageId, text: `🏃${rest}` } satisfies ServerEvent);
+  const listed = (await t.api("GET", `/api/conversations?botId=${bot.id}`)).data[0].activeTurn.partialText as string;
+  expect(listed).toBe(`…${rest}`);
+  expect(listed.isWellFormed()).toBe(true);
+  sock.send({ type: "cancel", conversationId: conv.id });
+  await sock.next("message.end");
+});
+
 test("a pending permission is in the snapshot and its answer restores the phase", async () => {
   const { conv, sock } = await setup();
   sock.send({ type: "prompt", conversationId: conv.id, text: "perm" });
