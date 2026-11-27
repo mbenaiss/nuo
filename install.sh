@@ -107,17 +107,27 @@ nuo_install_main() {
 
   if [[ "$uninstall" == 1 ]]; then
     say "Uninstall Nuo"
-    [[ -f "$dir/scripts/install.sh" ]] || die "no Nuo checkout in $dir (pass --dir with the folder you installed into)"
     engine_args+=(--uninstall)
     [[ "$purge" == 1 ]] && engine_args+=(--purge)
-    bash "$dir/scripts/install.sh" "${engine_args[@]}" <"$engine_in"
-    if [[ -n "$(git -C "$dir" --no-optional-locks status --porcelain 2>/dev/null)" ]]; then
-      echo "  kept the checkout $dir: it has local changes"
-    elif [[ "$dry_run" == 1 ]]; then
-      echo "  would: remove the checkout $dir"
+    if [[ -f "$dir/scripts/install.sh" ]]; then
+      bash "$dir/scripts/install.sh" "${engine_args[@]}" <"$engine_in"
+      if [[ -n "$(git -C "$dir" --no-optional-locks status --porcelain 2>/dev/null)" ]]; then
+        echo "  kept the checkout $dir: it has local changes"
+      elif [[ "$dry_run" == 1 ]]; then
+        echo "  would: remove the checkout $dir"
+      else
+        echo "  remove the checkout $dir"
+        rm -rf "$dir"
+      fi
     else
-      echo "  remove the checkout $dir"
-      rm -rf "$dir"
+      # The checkout is gone (an earlier --uninstall, before a --purge): fetch the uninstaller into a temporary folder.
+      command -v git >/dev/null || die "no Nuo checkout in $dir and no git to fetch the uninstaller (pass --dir with the folder you installed into)"
+      NUO_INSTALL_TMP="$(mktemp -d)"
+      trap 'if [[ -n "${NUO_INSTALL_TMP:-}" ]]; then rm -rf "$NUO_INSTALL_TMP"; fi' EXIT
+      git -C "$NUO_INSTALL_TMP" init -q
+      git -C "$NUO_INSTALL_TMP" fetch -q --depth 1 "$repo" "$ref" </dev/null || die "no Nuo checkout in $dir, and cannot fetch $ref from $repo"
+      git -C "$NUO_INSTALL_TMP" -c advice.detachedHead=false checkout -q --detach FETCH_HEAD
+      bash "$NUO_INSTALL_TMP/scripts/install.sh" "${engine_args[@]}" <"$engine_in"
     fi
     return 0
   fi

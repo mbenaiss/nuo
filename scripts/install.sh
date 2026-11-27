@@ -425,9 +425,10 @@ EOF
   fi
 fi
 
-# Only non-secret keys are read from the env file.
+# Only non-secret keys are read from the env file. Under pipefail, grep's status (1 for no match, 2 for a file a
+# dry run never created) would become the caller's and stop the script.
 env_value() {
-  grep -E "^[[:space:]]*(export[[:space:]]+)?$1=" "$R/config/env" 2>/dev/null | tail -n 1 | sed -E 's/^[^=]*=//; s/["'\'' ]//g'
+  { grep -E "^[[:space:]]*(export[[:space:]]+)?$1=" "$R/config/env" 2>/dev/null || true; } | tail -n 1 | sed -E 's/^[^=]*=//; s/["'\'' ]//g'
 }
 gw_port() {
   local p
