@@ -25,7 +25,7 @@ You need a Mac for the apps.
 |---|---|
 | the apps | macOS with Xcode 26 or newer (the apps target iOS, watchOS and macOS 26), [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`) |
 | the gateway | [Bun](https://bun.sh) 1.4.2 or newer, `git`; at least one agent CLI logged in (Claude Code, Codex, Gemini or Grok, see [install.md](install.md#requirements)) |
-| a real iPhone, Mac app or Apple Watch | an Apple developer account (a free one is enough for your own devices, without push notifications) |
+| a real iPhone, Mac app or Apple Watch | a paid Apple Developer Program membership: the iPhone and Mac apps use push notifications and WeatherKit, which a free account cannot sign ([details](#what-a-free-apple-account-can-do)) |
 
 The apps' interface is in French for now.
 
@@ -47,8 +47,8 @@ In Xcode:
 2. Product, Scheme, Edit Scheme, Run, Arguments: add `-demo` under "Arguments Passed On Launch".
 3. Run.
 
-The simulator needs no Apple account. On a real device or for the Mac app, set up signing first
-([below](#building-with-your-own-apple-account)).
+The simulator needs no Apple account. On a real device or for the Mac app, set up signing first, with a paid
+Apple Developer Program membership ([below](#building-with-your-own-apple-account)).
 
 From the command line, once the app is installed on a booted simulator:
 
@@ -123,9 +123,33 @@ cp ios/Local.xcconfig.example ios/Local.xcconfig
 | `NUO_APP_GROUP` | an app group, e.g. `group.com.lumenstudio.nuo` |
 | `NUO_DEFAULT_GATEWAY` | optional: the gateway URL prefilled on the pairing screen |
 
-Then `cd ios && xcodegen generate` and build. Automatic signing creates the identifiers and profiles; with a paid
-account the app group and push capability are registered for you. For push notifications, create an APNs key in
+Then `cd ios && xcodegen generate` and build. Automatic signing creates the identifiers and profiles, and registers
+the app group, push and WeatherKit capabilities for you. For push notifications, create an APNs key in
 your developer account and set `APNS_*` on the gateway ([install.md](install.md#first-pairing)), with
 `APNS_TOPIC` equal to `NUO_BUNDLE_ID`.
 
 To hand builds to a few friends (Ad Hoc for iPhone, Developer ID for Mac), see [distribution.md](distribution.md).
+
+### What a free Apple account can do
+
+The iPhone and Watch apps run in the simulator, demo mode included, with no Apple account at all. A free Apple account
+(a "Personal Team" in Xcode) cannot sign the apps for a real device as they are, because Apple's
+[capability tables](https://developer.apple.com/help/account/reference/supported-capabilities-ios) (also
+[macOS](https://developer.apple.com/help/account/reference/supported-capabilities-macos) and
+[watchOS](https://developer.apple.com/help/account/reference/supported-capabilities-watchos)) reserve some of the
+capabilities Nuo declares for paid members.
+
+| Capability | Declared by | Free account |
+|---|---|---|
+| Push notifications (`aps-environment`) | iPhone app, Mac app | no |
+| WeatherKit | iPhone app, Mac app | no |
+| App groups | iPhone app, widgets, share extension, Watch app and complications | yes |
+| Keychain sharing (`keychain-access-groups`) | every target | yes |
+| HealthKit | iPhone app | yes |
+| Background modes, Live Activities (Info.plist keys) | iPhone app, Watch app | yes |
+| App Sandbox | Mac app | yes |
+
+Since the iPhone app embeds the widgets, the share extension and the Watch app, nothing installs on a real iPhone,
+Mac or Apple Watch without the paid membership. Even with those two capabilities removed, Apple
+[limits a free account](https://developer.apple.com/support/compare-memberships/) to profiles that expire after
+7 days, 3 devices and 3 apps per device, and gives it no Ad Hoc, TestFlight or notarization.
