@@ -42,4 +42,18 @@ struct BotWakeTests {
         #expect(WakeHookName.normalized(String(repeating: "x", count: 61)) == nil)
         #expect(WakeHookName.normalized("Suivi des tickets Atelier Lumen") == "Suivi des tickets Atelier Lumen")
     }
+
+    @Test func aFirstLoadThatFailsShowsItsErrorInsteadOfNothing() {
+        #expect(BotWakeDisplay.of(wake: nil, error: "The gateway is unreachable.") == .loadFailed("The gateway is unreachable."))
+    }
+
+    @Test func nothingLoadedAndNoErrorKeepsTheSectionHidden() {
+        #expect(BotWakeDisplay.of(wake: nil, error: nil) == .hidden)
+    }
+
+    @Test func aLaterErrorShowsUnderTheLoadedWakeUps() {
+        let wake = BotWake(email: "travel@bots.example.com", mailAlias: nil, hooksEnabled: true, hooks: [])
+        #expect(BotWakeDisplay.of(wake: wake, error: nil) == .loaded(wake, error: nil))
+        #expect(BotWakeDisplay.of(wake: wake, error: "Webhook limit reached.") == .loaded(wake, error: "Webhook limit reached."))
+    }
 }

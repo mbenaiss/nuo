@@ -40,3 +40,17 @@ enum WakeHookName {
         return name.isEmpty || name.count > maxLength ? nil : name
     }
 }
+
+/// What the bot settings show for wake-ups, from what the last load left behind.
+enum BotWakeDisplay: Equatable {
+    /// Not loaded yet, or a gateway that predates wake-ups.
+    case hidden
+    case loadFailed(String)
+    case loaded(BotWake, error: String?)
+
+    static func of(wake: BotWake?, error: String?) -> Self {
+        if let wake { return .loaded(wake, error: error) }
+        if let error { return .loadFailed(error) }
+        return .hidden
+    }
+}

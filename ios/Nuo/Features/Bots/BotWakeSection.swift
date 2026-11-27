@@ -17,7 +17,18 @@ struct BotWakeSection: View {
 
     var body: some View {
         Group {
-            if let wake {
+            switch BotWakeDisplay.of(wake: wake, error: error) {
+            case .hidden:
+                EmptyView()
+            case let .loadFailed(message):
+                EditorSection(title: "Wake-ups") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(message).font(.caption).foregroundStyle(Color.bad)
+                        Button("Retry") { Task { await load() } }.buttonStyle(.bordered)
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 11)
+                }
+            case let .loaded(wake, error):
                 EditorSection(title: "Wake-ups") {
                     mail(wake)
                     Divider().overlay(Color.line)
@@ -143,6 +154,7 @@ struct BotWakeSection: View {
         } catch NuoError.notFound {
             // A gateway that predates wake-ups: the section stays hidden.
             wake = nil
+            error = nil
         } catch {
             self.error = error.localizedDescription
         }
