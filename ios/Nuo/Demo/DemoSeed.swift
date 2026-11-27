@@ -191,6 +191,16 @@ enum DemoSeed {
             agent: .claude, model: "claude-opus-5-5", effort: "medium",
             instructions: String(localized: "You write faithful summaries from transcripts. You have no tools."),
             toolServers: [], workdir: nil, permissionPolicy: .readonly, voice: nil, commands: [])
+        let home = BotConfig(
+            name: String(localized: "demo.bot.home.name", defaultValue: "Home"), emoji: "🏠", color: "#E4EEFB",
+            description: String(localized: "Home Assistant: rooms, sensors, energy"), agent: .claude,
+            model: "claude-sonnet-5", effort: "low",
+            instructions: String(localized: "You're Alex's home assistant, connected to Home Assistant. Report the state of the house with cards and flag anything unusual."),
+            toolServers: ["home"], workdir: nil, permissionPolicy: .ask, voice: nil,
+            commands: [app("reset", String(localized: "New conversation"), .newConversation)])
+        let homeBot = Bot(id: "home", published: BotVersion(version: 2, config: home, publishedAt: ago(60 * 24 * 6)), draft: nil,
+                          createdAt: ago(60 * 24 * 15), updatedAt: ago(60 * 24 * 6), lastMessageAt: ago(50),
+                          lastMessagePreview: String(localized: "All good at home, except the bathroom window."))
         let bots = [
             Bot(id: "6ec7defa-21f1-4f73-ab4f-1231a3a02997", slug: "comptes-rendus",
                 published: BotVersion(version: 1, config: notes, publishedAt: ago(60 * 24)), draft: nil,
@@ -205,6 +215,7 @@ enum DemoSeed {
             Bot(id: "coach", published: BotVersion(version: 3, config: coach, publishedAt: ago(60 * 24 * 3)), draft: nil,
                 createdAt: ago(60 * 24 * 20), updatedAt: ago(60 * 24 * 3), lastMessageAt: ago(95),
                 lastMessagePreview: String(localized: "Today's workout: 6 × 800 m at 4:35/km")),
+            homeBot,
         ]
 
         let conversations = [
@@ -215,6 +226,7 @@ enum DemoSeed {
             Conversation(id: "c-cobot-email", botId: "cobot", title: String(localized: "Julie's kitchen quote"), useDraft: false, context: ContextUsage(usedTokens: 18_200, maxTokens: 1_000_000, compactions: 0, updatedAt: ago(30)), createdAt: ago(32), updatedAt: ago(30)),
             Conversation(id: "c-cobot-1", botId: "cobot", title: String(localized: "Gateway deployment"), useDraft: false, context: ContextUsage(usedTokens: 412_000, maxTokens: 1_000_000, compactions: 2, updatedAt: ago(240)), createdAt: ago(250), updatedAt: ago(240)),
             Conversation(id: "c-cobot-mail", botId: "cobot", title: String(localized: "Unverified emails"), useDraft: false, createdAt: ago(55), updatedAt: ago(54)),
+            Conversation(id: "c-home-1", botId: "home", title: String(localized: "House check"), useDraft: false, createdAt: ago(51), updatedAt: ago(50)),
             Conversation(id: "c-cobot-hook", botId: "cobot", title: String(localized: "Linear webhook"), useDraft: false, createdAt: ago(75), updatedAt: ago(74)),
         ]
 
@@ -235,6 +247,13 @@ enum DemoSeed {
                     text: String(localized: "The draft is ready in Gmail, nothing has been sent. Review it, edit it if needed and send it from the card.") + "\n" + email,
                     steps: [ToolStep(toolCallId: "t8", title: "gmail_draft", kind: "other", status: .completed, durationMs: 1300)],
                     durationMs: 9000, stopReason: .endTurn, createdAt: ago(30)),
+            ],
+            "c-home-1": [
+                Message(id: "m13", conversationId: "c-home-1", role: .user, text: String(localized: "How's the house?"), createdAt: ago(51)),
+                Message(
+                    id: "m14", conversationId: "c-home-1", role: .assistant, text: DemoCards.house,
+                    steps: [ToolStep(toolCallId: "t9", title: "home_assistant states --all", kind: "fetch", status: .completed, durationMs: 1100)],
+                    durationMs: 5000, stopReason: .endTurn, createdAt: ago(50)),
             ],
             "c-voyages-1": [
                 Message(id: "m1", conversationId: "c-voyages-1", role: .user, text: String(localized: "Is my Monday flight on time?"), createdAt: ago(13)),
@@ -290,7 +309,7 @@ enum DemoSeed {
             ],
         ]
 
-        return (bots, ["voyages": voyagesVersions, "cobot": [bots[0].published!], "coach": [bots[2].published!]], conversations, messages)
+        return (bots, ["voyages": voyagesVersions, "cobot": [bots[0].published!], "coach": [bots[2].published!], "home": [homeBot.published!]], conversations, messages)
     }
 }
 

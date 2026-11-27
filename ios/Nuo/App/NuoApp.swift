@@ -344,6 +344,9 @@ enum DemoDirector {
         case "conversations": router.path = [.conversations(botId: "voyages")]
         case "product": router.path = [.chat(ChatTarget(botId: "coach", conversationId: "c-coach-2"))]
         case "coachnew": router.path = [.chat(ChatTarget(botId: "coach"))]
+        case "cobotnew": router.path = [.chat(ChatTarget(botId: "cobot"))]
+        case "home": router.path = [.chat(ChatTarget(botId: "home", conversationId: "c-home-1"))]
+        case "homenew": router.path = [.chat(ChatTarget(botId: "home"))]
         case "editor": router.editor = EditorTarget(botId: "voyages")
         case "coacheditor": router.editor = EditorTarget(botId: "coach")
         case "settings": router.path = [.settings]

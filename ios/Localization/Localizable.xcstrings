@@ -5153,6 +5153,22 @@
         }
       }
     },
+    "After this morning's run, sparkling water with lemon would do better. Should I log the can anyway?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After this morning's run, sparkling water with lemon would do better. Should I log the can anyway?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après ta course de ce matin, une eau pétillante citronnée serait un meilleur choix. Je note quand même la canette ?"
+          }
+        }
+      }
+    },
     "Agenda" : {
       "localizations" : {
         "en" : {
@@ -5581,6 +5597,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tous les évènements suivants"
+          }
+        }
+      }
+    },
+    "All good at home, except the bathroom window." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All good at home, except the bathroom window."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout va bien à la maison, sauf la fenêtre de la salle de bain."
           }
         }
       }
@@ -6805,6 +6837,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arguments (aide affichée)"
+          }
+        }
+      }
+    },
+    "Arrived at the local depot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrived at the local depot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrivé au dépôt local"
           }
         }
       }
@@ -18897,6 +18945,22 @@
         }
       }
     },
+    "Home Assistant: rooms, sensors, energy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home Assistant: rooms, sensors, energy"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home Assistant : pièces, capteurs, énergie"
+          }
+        }
+      }
+    },
     "Hours (Paris time)" : {
       "localizations" : {
         "en" : {
@@ -18913,6 +18977,22 @@
         }
       }
     },
+    "House check" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "House check"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "État de la maison"
+          }
+        }
+      }
+    },
     "How much did you have? I'll log it in today's macros." : {
       "localizations" : {
         "en" : {
@@ -18925,6 +19005,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Combien en as-tu mangé ? Je l'enregistre dans tes macros du jour."
+          }
+        }
+      }
+    },
+    "How's the house?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How's the house?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment va la maison ?"
           }
         }
       }
@@ -19485,6 +19581,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En cours : %@"
+          }
+        }
+      }
+    },
+    "In transit between hubs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In transit between hubs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En transit entre deux plateformes"
           }
         }
       }
@@ -20173,6 +20285,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "C'est du **Mira Noir Extra**, un chocolat noir à 70 %."
+          }
+        }
+      }
+    },
+    "It's **Orchard Peach Iced Tea**: 25 g of sugar in the can, about 6 sugar cubes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's **Orchard Peach Iced Tea**: 25 g of sugar in the can, about 6 sugar cubes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C'est le **thé glacé pêche Orchard** : 25 g de sucre dans la canette, environ 6 morceaux de sucre."
           }
         }
       }
@@ -28985,6 +29113,22 @@
         }
       }
     },
+    "Orchard Peach Iced Tea" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orchard Peach Iced Tea"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thé glacé pêche Orchard"
+          }
+        }
+      }
+    },
     "Order the 2 m USB-C cable" : {
       "localizations" : {
         "en" : {
@@ -29157,6 +29301,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Autres"
+          }
+        }
+      }
+    },
+    "Out for delivery" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out for delivery"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En livraison"
+          }
+        }
+      }
+    },
+    "Out for delivery with the driver" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out for delivery with the driver"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En cours de livraison avec le livreur"
           }
         }
       }
@@ -30133,6 +30309,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Récupérer le colis chez la gardienne"
+          }
+        }
+      }
+    },
+    "Picked up by the carrier" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Picked up by the carrier"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pris en charge par le transporteur"
           }
         }
       }
@@ -34521,6 +34713,22 @@
         }
       }
     },
+    "Running shoes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running shoes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaussures de running"
+          }
+        }
+      }
+    },
     "Running…" : {
       "localizations" : {
         "en" : {
@@ -36573,6 +36781,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le partage utilise la connexion à ta passerelle. Associe l'app une première fois, puis reviens ici."
+          }
+        }
+      }
+    },
+    "Shipping label created" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shipping label created"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étiquette d'expédition créée"
           }
         }
       }
@@ -45873,6 +46097,22 @@
         }
       }
     },
+    "Water, sugar, peach juice from concentrate (2%), acidifier (citric acid), black tea extract (0.12%), natural peach flavoring, antioxidant (ascorbic acid)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Water, sugar, peach juice from concentrate (2%), acidifier (citric acid), black tea extract (0.12%), natural peach flavoring, antioxidant (ascorbic acid)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eau, sucre, jus de pêche à base de concentré (2 %), acidifiant (acide citrique), extrait de thé noir (0,12 %), arôme naturel de pêche, antioxydant (acide ascorbique)."
+          }
+        }
+      }
+    },
     "We like walking, museums in the morning and covered markets in the afternoon. " : {
       "localizations" : {
         "en" : {
@@ -47057,6 +47297,22 @@
         }
       }
     },
+    "You're Alex's home assistant, connected to Home Assistant. Report the state of the house with cards and flag anything unusual." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're Alex's home assistant, connected to Home Assistant. Report the state of the house with cards and flag anything unusual."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu es l'assistant maison d'Alex, connecté à Home Assistant. Rends compte de l'état de la maison avec des cartes et signale tout ce qui sort de l'ordinaire."
+          }
+        }
+      }
+    },
     "You're Alex's sports coach. Check WHOOP before giving any advice." : {
       "localizations" : {
         "en" : {
@@ -47133,6 +47389,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toi : "
+          }
+        }
+      }
+    },
+    "Your **running shoes** are out for delivery. The driver should come by **between 2 and 4 pm**." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your **running shoes** are out for delivery. The driver should come by **between 2 and 4 pm**."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tes **chaussures de running** sont en cours de livraison. Le livreur devrait passer **entre 14 h et 16 h**."
           }
         }
       }
@@ -47796,6 +48068,23 @@
         }
       }
     },
+    "demo.bot.home.name" : {
+      "comment" : "Demo bot name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maison"
+          }
+        }
+      }
+    },
     "demo.bot.notes.name" : {
       "comment" : "Demo bot name",
       "localizations" : {
@@ -48013,6 +48302,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sujet"
+          }
+        }
+      }
+    },
+    "demo.cards.house" : {
+      "comment" : "Demo answer centered on a card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All good at home, except one thing: the **bathroom window** has been open for 40 min with the heating on.\n::metrics {\"title\":\"Home right now\",\"symbol\":\"house.fill\",\"items\":[[\"Living room\",\"70.5 °F\"],[\"Bedroom\",\"66.6 °F\"],[\"Kitchen\",\"71.8 °F\"],[\"Bathroom\",\"63.1 °F\"],[\"Front door\",\"Locked\"],[\"Power now\",\"1.2 kW\"]]}\n::callout {\"style\":\"warning\",\"title\":\"Bathroom window open\",\"text\":\"Open for 40 min while the radiator heats. I can turn the radiator off until it's closed.\"}\n::chart {\"title\":\"Energy this week\",\"symbol\":\"bolt.fill\",\"type\":\"bar\",\"unit\":\"kWh\",\"average\":9,\"points\":[[\"Mon\",8.2],[\"Tue\",7.4],[\"Wed\",9.1],[\"Thu\",7.9],[\"Fri\",8.6],[\"Sat\",11.2],[\"Sun\",10.4]]}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout va bien à la maison, sauf une chose : la **fenêtre de la salle de bain** est ouverte depuis 40 min avec le chauffage allumé.\n::metrics {\"title\":\"La maison maintenant\",\"symbol\":\"house.fill\",\"items\":[[\"Salon\",\"21,4 °C\"],[\"Chambre\",\"19,2 °C\"],[\"Cuisine\",\"22,1 °C\"],[\"Salle de bain\",\"17,3 °C\"],[\"Porte d'entrée\",\"Verrouillée\"],[\"Consommation\",\"1,2 kW\"]]}\n::callout {\"style\":\"warning\",\"title\":\"Fenêtre de la salle de bain ouverte\",\"text\":\"Ouverte depuis 40 min pendant que le radiateur chauffe. Je peux couper le radiateur jusqu'à ce qu'elle soit fermée.\"}\n::chart {\"title\":\"Énergie cette semaine\",\"symbol\":\"bolt.fill\",\"type\":\"bar\",\"unit\":\"kWh\",\"average\":9,\"points\":[[\"Lun\",8.2],[\"Mar\",7.4],[\"Mer\",9.1],[\"Jeu\",7.9],[\"Ven\",8.6],[\"Sam\",11.2],[\"Dim\",10.4]]}"
+          }
+        }
+      }
+    },
+    "demo.cards.meal" : {
+      "comment" : "Demo answer centered on a card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logged: **salmon poke bowl** for lunch. Good protein after this morning's intervals.\n::facts {\"title\":\"Lunch · Salmon poke bowl\",\"items\":[[\"Calories\",\"640 kcal\"],[\"Protein\",\"38 g\"],[\"Carbs\",\"72 g\"],[\"Fat\",\"21 g\"],[\"Fiber\",\"8 g\"]]}\n::metrics {\"title\":\"Left for today\",\"symbol\":\"fork.knife\",\"items\":[[\"Calories\",\"610 kcal\"],[\"Protein\",\"33 g\"],[\"Carbs\",\"90 g\"],[\"Fat\",\"17 g\"]]}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C'est noté : **poke bowl au saumon** pour le déjeuner. De bonnes protéines après le fractionné de ce matin.\n::facts {\"title\":\"Déjeuner · Poke bowl au saumon\",\"items\":[[\"Calories\",\"640 kcal\"],[\"Protéines\",\"38 g\"],[\"Glucides\",\"72 g\"],[\"Lipides\",\"21 g\"],[\"Fibres\",\"8 g\"]]}\n::metrics {\"title\":\"Reste pour aujourd'hui\",\"symbol\":\"fork.knife\",\"items\":[[\"Calories\",\"610 kcal\"],[\"Protéines\",\"33 g\"],[\"Glucides\",\"90 g\"],[\"Lipides\",\"17 g\"]]}"
+          }
+        }
+      }
+    },
+    "demo.cards.session" : {
+      "comment" : "Demo answer centered on a card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strong session: all **6 × 800 m** done at **4:31/km** on average, 4 s faster than planned. Your heart rate climbed on the last two reps, so keep the full 2 min recovery next time.\n::metrics {\"title\":\"This morning's intervals\",\"symbol\":\"figure.run\",\"items\":[[\"Distance\",\"9.6 km\"],[\"Duration\",\"52 min\"],[\"Avg. pace\",\"4:31 /km\"],[\"Avg. heart rate\",\"148 bpm\"],[\"Strain\",\"14.2\"],[\"Calories\",\"690 kcal\"]]}\n::chart {\"title\":\"Heart rate\",\"symbol\":\"heart.fill\",\"type\":\"line\",\"unit\":\"bpm\",\"average\":148,\"points\":[[\"0'\",104],[\"5'\",124],[\"10'\",136],[\"15'\",168],[\"20'\",149],[\"25'\",172],[\"30'\",151],[\"35'\",176],[\"40'\",179],[\"45'\",146],[\"50'\",121]]}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belle séance : les **6 × 800 m** bouclés à **4:31/km** de moyenne, 4 s plus vite que prévu. Ton cœur est monté sur les deux dernières répétitions : garde bien les 2 min de récupération la prochaine fois.\n::metrics {\"title\":\"Fractionné de ce matin\",\"symbol\":\"figure.run\",\"items\":[[\"Distance\",\"9,6 km\"],[\"Durée\",\"52 min\"],[\"Allure moy.\",\"4:31 /km\"],[\"FC moyenne\",\"148 bpm\"],[\"Effort\",\"14,2\"],[\"Calories\",\"690 kcal\"]]}\n::chart {\"title\":\"Fréquence cardiaque\",\"symbol\":\"heart.fill\",\"type\":\"line\",\"unit\":\"bpm\",\"average\":148,\"points\":[[\"0'\",104],[\"5'\",124],[\"10'\",136],[\"15'\",168],[\"20'\",149],[\"25'\",172],[\"30'\",151],[\"35'\",176],[\"40'\",179],[\"45'\",146],[\"50'\",121]]}"
           }
         }
       }

@@ -155,6 +155,15 @@ final class DemoTransport: LiveTransport {
                 ::question {"question":"Which rooms should the vacuum clean meanwhile?","options":["Living room","Kitchen","Bedroom"],"multiple":true}
                 """))
         }
+        if mentions("how did", "comment s'est passé") {
+            return Script(steps: [("whoop_workout today", "fetch", 900)], text: DemoCards.session)
+        }
+        if mentions("parcel", "package", "colis") {
+            return Script(steps: [("parcel_track NLX48152026773", "fetch", 1000)], text: DemoCards.parcel())
+        }
+        if mentions("house", "maison") {
+            return Script(steps: [("home_assistant states --all", "fetch", 1100)], text: DemoCards.house)
+        }
         if lower.contains("#gog") {
             return Script(
                 steps: [("gog calendar events --from tomorrow --to tomorrow", "execute", 1100)],
@@ -169,10 +178,16 @@ final class DemoTransport: LiveTransport {
         }
         if lower.hasPrefix("code-barres scanné") || lower.hasPrefix("barcode scanned") {
             let code = prompt.filter(\.isNumber)
+            if code == DemoProducts.peachIcedTea {
+                return Script(steps: [("food_lookup \(code)", "fetch", 700)], text: DemoCards.drink(code))
+            }
             return Script(
                 steps: [("food_lookup \(code)", "fetch", 700)],
-                text: String(localized: "Here's the product sheet.") + "\n::product {\"barcode\":\"\(code)\",\"portion_g\":20}\n"
+                text: String(localized: "Here's the product sheet.") + "\n::product {\"barcode\":\"\(code)\",\"portion_g\":\(DemoProducts.portion(code))}\n"
                     + String(localized: "How much did you have? I'll log it in today's macros."))
+        }
+        if mentions("poke") {
+            return Script(steps: [("log_food", "execute", 600), ("macros", "fetch", 300)], text: DemoCards.meal)
         }
         if lower.hasPrefix("j'ai mangé") || lower.hasPrefix("i ate") || lower.hasPrefix("i had") {
             return Script(

@@ -9,12 +9,12 @@ and update.
 
 [![Nuo demo: chat with a bot on iPhone, then the Mac app](docs/media/nuo-demo.gif)](https://mbenaiss.github.io/nuo/media/nuo-demo.mp4)
 
-Watch the [full demo (56 s)](https://mbenaiss.github.io/nuo/media/nuo-demo.mp4).
+Watch the [full demo (70 s)](https://mbenaiss.github.io/nuo/media/nuo-demo.mp4).
 
 <p>
-  <img src="docs/media/iphone-chat.png" alt="A bot answering with a flight card on iPhone" width="220">
-  <img src="docs/media/iphone-agent-working.png" alt="A bot working through its steps on iPhone" width="220">
-  <img src="docs/media/iphone-coach.png" alt="A scanned product with its nutrition card on iPhone" width="220">
+  <img src="docs/media/iphone-session.png" alt="A workout recap with metrics and heart rate cards on iPhone" width="220">
+  <img src="docs/media/iphone-drink.png" alt="A scanned drink with its score card on iPhone" width="220">
+  <img src="docs/media/iphone-home.png" alt="Room temperatures, an alert and energy use from Home Assistant on iPhone" width="220">
 </p>
 <p>
   <img src="docs/media/mac-chat.png" alt="A conversation in the Mac app" width="670">
