@@ -1,9 +1,9 @@
 # Nuo
 
-Your coding agents, on your own server, in your pocket.
+Your personal assistant, on your own server, in your pocket.
 
-Nuo is a self-hosted gateway that runs coding agents (Claude Code, Codex, Grok, Gemini) on a machine you own, with
-native iPhone, Mac and Apple Watch apps to talk to them. Each agent becomes a bot with its own instructions, memory
+Nuo is a self-hosted personal assistant: a gateway that runs agents (Claude Code, Codex, Grok, Gemini) on a machine
+you own, with native iPhone, Mac and Apple Watch apps to talk to them. Each agent becomes a bot with its own instructions, memory
 and tools; around them, Nuo keeps your calendar, reminders, documents and data in one place that your bots can read
 and update.
 
