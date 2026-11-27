@@ -138,8 +138,8 @@ final class MacNavigator {
     var alert: String?
     var memoryBot: String?
 
-    var calendarMode: MacCalendarMode = MacCalendarMode(rawValue: UserDefaults.standard.string(forKey: "nuo.mac.calendar.mode") ?? "") ?? .week {
-        didSet { UserDefaults.standard.set(calendarMode.rawValue, forKey: "nuo.mac.calendar.mode") }
+    var calendarMode: MacCalendarMode = MacCalendarMode(rawValue: UserDefaults.standard.string(forKey: AppIdentity.local(.macCalendarMode)) ?? "") ?? .week {
+        didSet { UserDefaults.standard.set(calendarMode.rawValue, forKey: AppIdentity.local(.macCalendarMode)) }
     }
     var calendarDate = AgendaCalendar.current.startOfDay(for: Date())
     /// Agenda item shown in the inspector.

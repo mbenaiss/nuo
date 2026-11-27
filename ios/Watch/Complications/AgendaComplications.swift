@@ -35,7 +35,7 @@ struct WatchAgendaProvider: TimelineProvider {
 }
 
 struct AgendaComplication: Widget {
-    nonisolated static let kind = "nuo.watch.agenda"
+    nonisolated static let kind = AppIdentity.local(.watchAgendaKind)
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: Self.kind, provider: WatchAgendaProvider()) { entry in
@@ -157,7 +157,7 @@ struct WatchRemindersProvider: TimelineProvider {
 }
 
 struct RemindersComplication: Widget {
-    nonisolated static let kind = "nuo.watch.reminders"
+    nonisolated static let kind = AppIdentity.local(.watchRemindersKind)
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: Self.kind, provider: WatchRemindersProvider()) { entry in

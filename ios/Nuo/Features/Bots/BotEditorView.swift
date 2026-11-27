@@ -495,7 +495,7 @@ private struct AgentPicker: View {
 
 private struct InstructionsEditor: View {
     @Binding var text: String
-    @AppStorage("nuo.editor.monospace") private var monospace = false
+    @AppStorage(AppIdentity.local(.editorMonospace)) private var monospace = false
     @FocusState private var focused: Bool
 
     var body: some View {

@@ -46,6 +46,8 @@ targets:
         NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
         NuoAppGroup: "$(NUO_APP_GROUP)"
         NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NuoStoragePrefix: "$(NUO_STORAGE_PREFIX)"
+        NuoExtraURLScheme: "$(NUO_EXTRA_URL_SCHEME)"
         CFBundleName: Nuo
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
@@ -66,7 +68,7 @@ targets:
         BGTaskSchedulerPermittedIdentifiers: ["$(NUO_BUNDLE_ID).calendar-sync"]
         NSSupportsLiveActivities: true
         CFBundleURLTypes:
-          - CFBundleURLSchemes: [nuo]
+          - CFBundleURLSchemes: [nuo, "$(NUO_EXTRA_URL_SCHEME)"]
     entitlements:
       path: Nuo/Nuo.entitlements
       properties:
@@ -101,6 +103,7 @@ targets:
         NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
         NuoAppGroup: "$(NUO_APP_GROUP)"
         NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NuoStoragePrefix: "$(NUO_STORAGE_PREFIX)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
@@ -142,6 +145,7 @@ targets:
         NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
         NuoAppGroup: "$(NUO_APP_GROUP)"
         NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NuoStoragePrefix: "$(NUO_STORAGE_PREFIX)"
         CFBundleName: Nuo
         WKApplication: true
         WKCompanionAppBundleIdentifier: "$(NUO_BUNDLE_ID)"
@@ -179,6 +183,7 @@ targets:
         NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
         NuoAppGroup: "$(NUO_APP_GROUP)"
         NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NuoStoragePrefix: "$(NUO_STORAGE_PREFIX)"
         AppIdentifierPrefix: $(AppIdentifierPrefix)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
@@ -209,6 +214,7 @@ targets:
         NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
         NuoAppGroup: "$(NUO_APP_GROUP)"
         NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NuoStoragePrefix: "$(NUO_STORAGE_PREFIX)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
@@ -277,6 +283,8 @@ targets:
         NuoAppIdentifier: "$(NUO_BUNDLE_ID)"
         NuoAppGroup: "$(NUO_APP_GROUP)"
         NuoDefaultGateway: "$(NUO_DEFAULT_GATEWAY)"
+        NuoStoragePrefix: "$(NUO_STORAGE_PREFIX)"
+        NuoExtraURLScheme: "$(NUO_EXTRA_URL_SCHEME)"
         LSApplicationCategoryType: public.app-category.productivity
         NSMicrophoneUsageDescription: "Nuo listens to your voice so you can talk with your bots and, during a meeting you transcribe, records it to a temporary file on this Mac, deleted once transcribed, at the latest at the next meeting."
         NSSpeechRecognitionUsageDescription: "Your voice is transcribed on the Mac."
@@ -288,7 +296,7 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         CFBundleURLTypes:
-          - CFBundleURLSchemes: [nuo]
+          - CFBundleURLSchemes: [nuo, "$(NUO_EXTRA_URL_SCHEME)"]
     entitlements:
       path: Mac/NuoMac.entitlements
       properties:
@@ -345,6 +353,7 @@ targets:
       - path: Mac/Views/Bots/TranscriptEndMark.swift
       - path: Nuo/Stores/TranscriptMerge.swift
       - path: Nuo/Features/Files/DocFileKind.swift
+      - path: Nuo/Features/Reminders/ReminderPendingPlan.swift
       - path: Nuo/Features/Files/DocLink.swift
       - path: Nuo/Features/Files/DocShare.swift
       - path: Nuo/Features/Search/ConversationSearchText.swift

@@ -12,7 +12,7 @@ actor GatewayRouter {
     private var probing: Task<Bool, Never>?
     private let monitor = NWPathMonitor()
 
-    private static let choicesKey = "nuo.routeChoices"
+    private static let choicesKey = AppIdentity.local(.routeChoices)
     private static let lanProbeTimeout: TimeInterval = 1.5
 
     init(lan: URL, internet: URL?, internetHeaders: [String: String]) {

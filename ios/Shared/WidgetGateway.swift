@@ -145,7 +145,7 @@ enum NuoLink: Hashable, Sendable {
     case voice(botId: String)
 
     init?(url: URL) {
-        guard url.scheme == "nuo", let host = url.host() else { return nil }
+        guard AppIdentity.isAppScheme(url.scheme), let host = url.host() else { return nil }
         let parts = url.pathComponents.filter { $0 != "/" }
         switch (host, parts.count) {
         case ("conversation", 1):

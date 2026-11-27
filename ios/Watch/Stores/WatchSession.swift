@@ -20,7 +20,7 @@ final class WatchSession {
     @ObservationIgnored private(set) var runner: any WatchTurnRunner
     @ObservationIgnored private var phoneLink: PhoneLink?
 
-    private static let speakKey = "nuo.watch.speaksAnswers"
+    private static let speakKey = AppIdentity.local(.watchSpeaksAnswers)
 
     init(demo: Bool) {
         isDemo = demo

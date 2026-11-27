@@ -96,7 +96,7 @@ final class LiveDictationEnvironment: DictationEnvironment {
     func beginBackgroundWindow() -> @MainActor () -> Void {
         #if os(iOS)
         let window = BackgroundWindow()
-        window.id = UIApplication.shared.beginBackgroundTask(withName: "nuo.dictation.finish") {
+        window.id = UIApplication.shared.beginBackgroundTask(withName: AppIdentity.local(.dictationFinishTask)) {
             MainActor.assumeIsolated { window.end() }
         }
         return { window.end() }

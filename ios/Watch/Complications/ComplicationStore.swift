@@ -18,8 +18,8 @@ struct ComplicationReply: Codable, Hashable, Sendable {
 /// can read it; without the group entitlement the suite falls back to the app's own defaults.
 enum ComplicationStore {
     static let appGroup = AppIdentity.appGroup
-    private static let botsKey = "nuo.complication.bots"
-    private static let replyKey = "nuo.complication.lastReply"
+    private static let botsKey = AppIdentity.local(.complicationBots)
+    private static let replyKey = AppIdentity.local(.complicationLastReply)
 
     private static var defaults: UserDefaults { UserDefaults(suiteName: appGroup) ?? .standard }
 

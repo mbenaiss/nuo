@@ -7,7 +7,7 @@ enum MacLinkOverride: Equatable {
     case collections
 
     init?(url: URL) {
-        guard url.scheme == "nuo", let host = url.host() else { return nil }
+        guard AppIdentity.isAppScheme(url.scheme), let host = url.host() else { return nil }
         let parts = url.pathComponents.filter { $0 != "/" }
         switch host {
         case "data" where parts.isEmpty: self = .collections

@@ -4,7 +4,7 @@ import Foundation
 /// install compiles the dictation models again and the copies of earlier builds are never evicted.
 enum CompiledModelCache {
     static let folderName = "com.apple.e5rt.e5bundlecache"
-    static let buildKey = "nuo.dictation.compiledCacheBuild"
+    static let buildKey = AppIdentity.local(.dictationCompiledCacheBuild)
 
     /// Deletes the compiled copies once per build, before any model loads; the next load compiles again.
     @discardableResult

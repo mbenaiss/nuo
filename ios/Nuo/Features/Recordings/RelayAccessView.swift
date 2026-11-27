@@ -76,7 +76,7 @@ struct RelayAccessView: View {
     }
 
     private func register() async {
-        guard let client, let deviceId = UserDefaults.standard.string(forKey: "nuo.deviceId") else { return }
+        guard let client, let deviceId = UserDefaults.standard.string(forKey: AppIdentity.local(.deviceId)) else { return }
         working = true
         defer { working = false }
         do {

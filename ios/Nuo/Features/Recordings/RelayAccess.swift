@@ -152,7 +152,7 @@ actor RelayClient {
 /// « Sécurité › Accès de relais pour la montre » shows it, revokes it and makes a new one.
 @MainActor
 enum RelayEnrollment {
-    private static let declinedKey = "nuo.relay.declined"
+    private static let declinedKey = AppIdentity.local(.relayDeclined)
     private static var checked = false
 
     enum EnrollmentError: Error, Equatable, LocalizedError {

@@ -3,7 +3,7 @@ import Foundation
 /// Bots pinned at the top of the bot lists, kept on this device. Until the user pins or unpins a bot, the bot that sees
 /// every bot is the pinned one, so it leads the lists on every device without a setting to sync.
 struct BotPins {
-    static let key = "nuo.pinnedBots"
+    static let key = AppIdentity.local(.pinnedBots)
 
     private let defaults: UserDefaults
     private(set) var ids: [String]?

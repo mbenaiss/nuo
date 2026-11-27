@@ -53,8 +53,8 @@ final class CalendarStore {
     private static let pageDays = 90
 
     private enum Keys {
-        static let hidden = "nuo.calendar.hidden"
-        static let reminders = "nuo.calendar.showsReminders"
+        static let hidden = AppIdentity.local(.calendarHidden)
+        static let reminders = AppIdentity.local(.calendarShowsReminders)
         static let itemsCache = "calendar.agenda"
         static let calendarsCache = "calendar.calendars"
     }

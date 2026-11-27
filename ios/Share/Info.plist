@@ -53,5 +53,7 @@
 	<string>$(NUO_BUNDLE_ID)</string>
 	<key>NuoDefaultGateway</key>
 	<string>$(NUO_DEFAULT_GATEWAY)</string>
+	<key>NuoStoragePrefix</key>
+	<string>$(NUO_STORAGE_PREFIX)</string>
 </dict>
 </plist>

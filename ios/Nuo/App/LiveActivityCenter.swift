@@ -278,7 +278,7 @@ final class LiveActivityCenter {
 
     private func beginBackgroundWindow() {
         guard backgroundTask == .invalid else { return }
-        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "nuo.turn") { [weak self] in
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: AppIdentity.local(.turnTask)) { [weak self] in
             MainActor.assumeIsolated { self?.endBackgroundWindow() }
         }
     }

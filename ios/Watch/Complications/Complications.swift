@@ -47,7 +47,7 @@ struct LastReplyProvider: TimelineProvider {
 }
 
 struct LastReplyComplication: Widget {
-    nonisolated static let kind = "nuo.watch.lastReply"
+    nonisolated static let kind = AppIdentity.local(.watchLastReplyKind)
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: Self.kind, provider: LastReplyProvider()) { entry in

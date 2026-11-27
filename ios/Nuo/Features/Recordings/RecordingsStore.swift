@@ -35,14 +35,14 @@ final class RecordingsStore {
 
     private(set) var recordings: [PhoneRecording] = []
     /// Keep the audio after the transcription (off: deleted from the iPhone and the gateway once transcribed).
-    var keepsAudio: Bool = UserDefaults.standard.bool(forKey: "nuo.recordings.keepAudio") {
-        didSet { UserDefaults.standard.set(keepsAudio, forKey: "nuo.recordings.keepAudio") }
+    var keepsAudio: Bool = UserDefaults.standard.bool(forKey: AppIdentity.local(.recordingsKeepAudio)) {
+        didSet { UserDefaults.standard.set(keepsAudio, forKey: AppIdentity.local(.recordingsKeepAudio)) }
     }
-    var template: MeetingTemplate = MeetingTemplate(rawValue: UserDefaults.standard.string(forKey: "nuo.recordings.template") ?? "") ?? .general {
-        didSet { UserDefaults.standard.set(template.rawValue, forKey: "nuo.recordings.template") }
+    var template: MeetingTemplate = MeetingTemplate(rawValue: UserDefaults.standard.string(forKey: AppIdentity.local(.recordingsTemplate)) ?? "") ?? .general {
+        didSet { UserDefaults.standard.set(template.rawValue, forKey: AppIdentity.local(.recordingsTemplate)) }
     }
-    var noteBotId: String? = UserDefaults.standard.string(forKey: "nuo.recordings.botId") {
-        didSet { UserDefaults.standard.set(noteBotId, forKey: "nuo.recordings.botId") }
+    var noteBotId: String? = UserDefaults.standard.string(forKey: AppIdentity.local(.recordingsBotId)) {
+        didSet { UserDefaults.standard.set(noteBotId, forKey: AppIdentity.local(.recordingsBotId)) }
     }
 
     @ObservationIgnored private weak var session: SessionStore?
@@ -52,7 +52,7 @@ final class RecordingsStore {
     /// Recordings whose task only waits before trying again: « Réessayer » cuts that wait short.
     @ObservationIgnored private var waiting: Set<String> = []
     @ObservationIgnored private var isDemo = false
-    @ObservationIgnored private var deleted: [String] = UserDefaults.standard.stringArray(forKey: "nuo.recordings.deleted") ?? []
+    @ObservationIgnored private var deleted: [String] = UserDefaults.standard.stringArray(forKey: AppIdentity.local(.recordingsDeleted)) ?? []
     @ObservationIgnored private var lastIndex: Data?
     @ObservationIgnored private var lastTranscripts: [String: Int] = [:]
     private static var indexURL: URL { RecordingInbox.root.appending(path: "recordings.json") }
@@ -262,7 +262,7 @@ final class RecordingsStore {
 
     /// True when it should run again after a wait (silent gateway, provider busy).
     private func run(_ id: String) async -> Bool {
-        let window = AppAccess.backgroundWindow("nuo.recording")
+        let window = AppAccess.backgroundWindow(AppIdentity.local(.recordingTask))
         defer { window() }
         guard let recording = recording(id: id) else { return false }
         set(id) { $0.waitingUnlock = false }
@@ -408,8 +408,8 @@ final class RecordingsStore {
     }
 
     private static var pendingStops: PendingJobStops {
-        get { UserDefaults.standard.data(forKey: "nuo.recordings.pendingStops").flatMap { try? JSONDecoder().decode(PendingJobStops.self, from: $0) } ?? PendingJobStops() }
-        set { UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: "nuo.recordings.pendingStops") }
+        get { UserDefaults.standard.data(forKey: AppIdentity.local(.recordingsPendingStops)).flatMap { try? JSONDecoder().decode(PendingJobStops.self, from: $0) } ?? PendingJobStops() }
+        set { UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: AppIdentity.local(.recordingsPendingStops)) }
     }
 
     private func replayStops() {
@@ -588,7 +588,7 @@ final class RecordingsStore {
         recordings.removeAll { $0.id == id }
         deleted.append(id)
         deleted = Array(deleted.suffix(200))
-        UserDefaults.standard.set(deleted, forKey: "nuo.recordings.deleted")
+        UserDefaults.standard.set(deleted, forKey: AppIdentity.local(.recordingsDeleted))
         persist()
     }
 

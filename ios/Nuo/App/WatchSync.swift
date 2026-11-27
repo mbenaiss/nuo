@@ -41,7 +41,7 @@ final class WatchSync: NSObject, WCSessionDelegate, @unchecked Sendable {
     /// The watch only gets its scoped token (bots, conversations, reminders, prompts), never the app's.
     private func credentials() -> [String: String] {
         guard let token = SharedCredentials.extensionToken(.watch) else { return [:] }
-        let gateway = UserDefaults.standard.string(forKey: "nuo.gatewayURL") ?? AppIdentity.defaultGateway
+        let gateway = UserDefaults.standard.string(forKey: AppIdentity.local(.gatewayURL)) ?? AppIdentity.defaultGateway
         var payload = [WatchLink.gatewayURL: gateway, WatchLink.token: token]
         if let publicURL = SharedCredentials.publicURL, let cf = SharedCredentials.cfAccess {
             payload[WatchLink.publicURL] = publicURL.absoluteString

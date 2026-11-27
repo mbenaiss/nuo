@@ -87,7 +87,7 @@ actor WhisperEngine {
     /// The Neural Engine first, as it is the fastest; where Core ML cannot build a model for it (large-v3 turbo on
     /// an M1: "Error plan build", or a compile that never ends) the GPU instead, remembered for this system build.
     private static func build(_ model: WhisperModel, folder: URL, tokenizerBase: URL) async throws -> Box {
-        let key = "nuo.dictation.gpuOnly.\(model.rawValue)"
+        let key = AppIdentity.local(.dictationGPUOnly, model.rawValue)
         let osBuild = ProcessInfo.processInfo.operatingSystemVersionString
         let forced = ProcessInfo.processInfo.arguments.contains("-whisperGPU")
         if forced || UserDefaults.standard.string(forKey: key) == osBuild {

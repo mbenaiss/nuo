@@ -54,7 +54,7 @@ struct QuickActionProvider: TimelineProvider {
 }
 
 struct TalkComplication: Widget {
-    nonisolated static let kind = "nuo.watch.talk"
+    nonisolated static let kind = AppIdentity.local(.watchTalkKind)
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: Self.kind, provider: QuickActionProvider()) { _ in
@@ -70,7 +70,7 @@ struct TalkComplication: Widget {
 
 /// The Smart Stack card: the same microphone, with room to say what it does.
 struct QuickActionsCard: Widget {
-    nonisolated static let kind = "nuo.watch.quick"
+    nonisolated static let kind = AppIdentity.local(.watchQuickKind)
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: Self.kind, provider: QuickActionProvider()) { _ in
@@ -144,7 +144,7 @@ struct QuickActionsCardView: View {
 
 struct TalkControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
-        StaticControlConfiguration(kind: "nuo.watch.control.talk") {
+        StaticControlConfiguration(kind: AppIdentity.local(.watchTalkControlKind)) {
             ControlWidgetButton(action: TalkToNuoIntent()) {
                 Label("Talk to Nuo", systemImage: "mic.fill")
             }

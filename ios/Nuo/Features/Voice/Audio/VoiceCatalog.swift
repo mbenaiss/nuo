@@ -3,7 +3,7 @@ import Foundation
 
 /// Lists the installed system voices for the conversation language and remembers the user's pick.
 enum VoiceCatalog {
-    static let preferenceKey = "nuo.voice.voiceIdentifier"
+    static let preferenceKey = AppIdentity.local(.voiceIdentifier)
 
     struct Option: Identifiable, Hashable, Sendable {
         let id: String

@@ -75,7 +75,7 @@ enum WatchAskRelay {
     static var folder: URL { RecordingInbox.asksFolder }
 
     private static var inboxURL: URL { folder.appending(path: "inbox.json") }
-    private static let doneKey = "nuo.watchAsk.recent"
+    private static let doneKey = AppIdentity.local(.watchAskRecent)
     private static var running: Set<String> = []
     private static var retrying = false
     /// A request came during a pass: one more pass when it ends.
@@ -493,7 +493,7 @@ enum WatchAskRelay {
     }
 
     private static func backgroundWindow() -> () -> Void {
-        AppAccess.backgroundWindow("nuo.watch.ask")
+        AppAccess.backgroundWindow(AppIdentity.local(.watchAskTask))
     }
 }
 

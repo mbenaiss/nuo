@@ -64,7 +64,7 @@ extension AgendaWireItem {
     /// "Leave around 13:30": start minus travel time minus the app's "Leave now" margin.
     var departure: Date? {
         guard let travel = travelTimeSec, travel > 0, !allDay else { return nil }
-        let margin = UserDefaults(suiteName: AppIdentity.appGroup)?.object(forKey: "nuo.leave.marginMin") as? Int ?? 5
+        let margin = UserDefaults(suiteName: AppIdentity.appGroup)?.object(forKey: AppIdentity.local(.leaveMarginMinutes)) as? Int ?? 5
         return start.addingTimeInterval(-TimeInterval(travel + margin * 60))
     }
 }

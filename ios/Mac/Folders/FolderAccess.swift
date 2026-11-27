@@ -23,8 +23,8 @@ final class FolderAccess {
     @ObservationIgnored private var reachable: [String: URL] = [:]
     @ObservationIgnored private let defaults: UserDefaults
 
-    private static let foldersKey = "nuo.folders"
-    private static let conversationsKey = "nuo.folders.byConversation"
+    private static let foldersKey = AppIdentity.local(.folders)
+    private static let conversationsKey = AppIdentity.local(.foldersByConversation)
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

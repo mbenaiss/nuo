@@ -20,7 +20,7 @@ enum NotificationDestination: Equatable, Sendable {
     case link(URL)
     case home
 
-    static let meetingCategory = "nuo.meeting"
+    static let meetingCategory = AppIdentity.local(.meetingCategory)
     static let securityCategory = "nuo.security"
 
     init(userInfo: [AnyHashable: Any], category: String) {
@@ -73,7 +73,7 @@ enum NotificationDestination: Equatable, Sendable {
     }
 
     private static func nuoURL(_ link: String) -> URL? {
-        guard let url = URL(string: link), url.scheme == "nuo" else { return nil }
+        guard let url = URL(string: link), AppIdentity.isAppScheme(url.scheme) else { return nil }
         return url
     }
 }

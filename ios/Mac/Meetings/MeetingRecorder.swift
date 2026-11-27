@@ -79,19 +79,19 @@ final class MeetingRecorder {
     /// Asks the meeting window to confirm before the previous meeting is wiped.
     var confirmsStart = false
 
-    var template: MeetingTemplate = MeetingTemplate(rawValue: UserDefaults.standard.string(forKey: "nuo.meeting.template") ?? "") ?? .general {
-        didSet { UserDefaults.standard.set(template.rawValue, forKey: "nuo.meeting.template") }
+    var template: MeetingTemplate = MeetingTemplate(rawValue: UserDefaults.standard.string(forKey: AppIdentity.local(.meetingTemplate)) ?? "") ?? .general {
+        didSet { UserDefaults.standard.set(template.rawValue, forKey: AppIdentity.local(.meetingTemplate)) }
     }
-    var engine: MeetingEngine = MeetingEngine(rawValue: UserDefaults.standard.string(forKey: "nuo.meeting.engine") ?? "") ?? .whisper {
-        didSet { UserDefaults.standard.set(engine.rawValue, forKey: "nuo.meeting.engine") }
+    var engine: MeetingEngine = MeetingEngine(rawValue: UserDefaults.standard.string(forKey: AppIdentity.local(.meetingEngine)) ?? "") ?? .whisper {
+        didSet { UserDefaults.standard.set(engine.rawValue, forKey: AppIdentity.local(.meetingEngine)) }
     }
-    var language: MeetingLanguage = MeetingLanguage(rawValue: UserDefaults.standard.string(forKey: "nuo.meeting.language") ?? "") ?? .auto {
-        didSet { UserDefaults.standard.set(language.rawValue, forKey: "nuo.meeting.language") }
+    var language: MeetingLanguage = MeetingLanguage(rawValue: UserDefaults.standard.string(forKey: AppIdentity.local(.meetingLanguage)) ?? "") ?? .auto {
+        didSet { UserDefaults.standard.set(language.rawValue, forKey: AppIdentity.local(.meetingLanguage)) }
     }
     /// The gateway's service transcribes the meeting; off, the audio never leaves the Mac and `engine` does it.
-    var useCloud: Bool = UserDefaults.standard.object(forKey: "nuo.meeting.cloud") as? Bool ?? true {
+    var useCloud: Bool = UserDefaults.standard.object(forKey: AppIdentity.local(.meetingCloud)) as? Bool ?? true {
         didSet {
-            UserDefaults.standard.set(useCloud, forKey: "nuo.meeting.cloud")
+            UserDefaults.standard.set(useCloud, forKey: AppIdentity.local(.meetingCloud))
             // Off means off: the gateway is no longer asked, and its transcript will not replace the Mac's.
             if !useCloud, follower != nil {
                 follower?.cancel()
@@ -103,8 +103,8 @@ final class MeetingRecorder {
             }
         }
     }
-    var botId: String? = UserDefaults.standard.string(forKey: "nuo.meeting.botId") {
-        didSet { UserDefaults.standard.set(botId, forKey: "nuo.meeting.botId") }
+    var botId: String? = UserDefaults.standard.string(forKey: AppIdentity.local(.meetingBotId)) {
+        didSet { UserDefaults.standard.set(botId, forKey: AppIdentity.local(.meetingBotId)) }
     }
     private(set) var noteState: NoteState = .none
     private(set) var note = ""
@@ -117,8 +117,8 @@ final class MeetingRecorder {
     private(set) var windowRequest = 0
     /// Recording starts without any window unless the user opened the notepad during the last one.
     var opensWindowOnStart: Bool {
-        get { UserDefaults.standard.bool(forKey: "nuo.meeting.showWindow") }
-        set { UserDefaults.standard.set(newValue, forKey: "nuo.meeting.showWindow") }
+        get { UserDefaults.standard.bool(forKey: AppIdentity.local(.meetingShowWindow)) }
+        set { UserDefaults.standard.set(newValue, forKey: AppIdentity.local(.meetingShowWindow)) }
     }
 
     @ObservationIgnored private var mic: MeetingMicCapture?

@@ -8,10 +8,10 @@ import UserNotifications
 /// changes, on foreground, hourly while the app runs and in the iPhone's background refresh.
 @MainActor
 enum EventNotifications {
-    nonisolated static let category = "nuo.event"
+    nonisolated static let category = AppIdentity.local(.eventCategory)
     /// Same as `category`, with « Rejoindre » first: categories cannot hide an action per notification.
-    nonisolated static let joinCategory = "nuo.event.join"
-    nonisolated static let leaveCategory = "nuo.leave"
+    nonisolated static let joinCategory = AppIdentity.local(.eventJoinCategory)
+    nonisolated static let leaveCategory = AppIdentity.local(.leaveCategory)
     nonisolated static let joinAction = "nuo.event.action.join"
     nonisolated static let openAction = "nuo.event.action.open"
     nonisolated static let snoozeAction = "nuo.event.action.snooze"
@@ -367,7 +367,7 @@ struct NotificationPlan {
 
 /// When each “Leave now” was scheduled to fire, so a passed one is not sent again.
 private enum LeaveLog {
-    private static let key = "nuo.eventAlerts.leaveLog"
+    private static let key = AppIdentity.local(.eventAlertsLeaveLog)
 
     static func load(now: Date) -> [String: Date] {
         let raw = UserDefaults.standard.dictionary(forKey: key) as? [String: Double] ?? [:]

@@ -151,7 +151,7 @@ final class DeviceToolsCenter {
 
     // MARK: Settings
 
-    private static func key(_ g: DeviceToolGroup) -> String { "nuo.deviceTools.\(g.rawValue)" }
+    private static func key(_ g: DeviceToolGroup) -> String { AppIdentity.local(.deviceTools, g.rawValue) }
 
     func isEnabled(_ g: DeviceToolGroup) -> Bool { UserDefaults.standard.object(forKey: Self.key(g)) as? Bool ?? true }
 

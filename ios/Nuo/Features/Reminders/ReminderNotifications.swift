@@ -50,23 +50,14 @@ enum ReminderNotifications {
         let wanted = Array(due(reminders, now: now).prefix(shares.reminders))
         NotificationBudget.didScheduleReminders(shares)
         await LocationTriggers.sync(reminders)
-        let pending = await center.pendingNotificationRequests().filter {
-            $0.content.categoryIdentifier == category && !$0.identifier.hasPrefix(LocationTriggers.prefix)
+        let pending = await center.pendingNotificationRequests().map {
+            ReminderPendingPlan.Entry(identifier: $0.identifier, fire: ($0.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate(), title: $0.content.title)
         }
-        let wantedById = Dictionary(uniqueKeysWithValues: wanted.map { (identifier($0.id), $0) })
-        var stale: [String] = []
-        var current: Set<String> = []
-        for request in pending {
-            let fire = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate()
-            if let reminder = wantedById[request.identifier], let date = reminder.effectiveDate,
-               let fire, abs(fire.timeIntervalSince(date)) < 60, request.content.title == reminder.title {
-                current.insert(request.identifier)
-            } else {
-                stale.append(request.identifier)
-            }
-        }
-        if !stale.isEmpty { center.removePendingNotificationRequests(withIdentifiers: stale) }
-        for reminder in wanted where !current.contains(identifier(reminder.id)) {
+        let plan = ReminderPendingPlan.make(pending: pending, wanted: wanted.map {
+            ReminderPendingPlan.Entry(identifier: identifier($0.id), fire: $0.effectiveDate, title: $0.title)
+        })
+        if !plan.stale.isEmpty { center.removePendingNotificationRequests(withIdentifiers: plan.stale) }
+        for reminder in wanted where plan.toSchedule.contains(identifier(reminder.id)) {
             guard let date = reminder.effectiveDate else { continue }
             let content = UNMutableNotificationContent()
             content.title = reminder.title

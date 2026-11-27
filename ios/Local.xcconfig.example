@@ -14,3 +14,11 @@ NUO_APP_GROUP = group.com.lumenstudio.nuo
 
 // Optional: gateway prefilled on the pairing screen. `//` starts a comment in xcconfig files, hence `/$()/`.
 NUO_DEFAULT_GATEWAY = https:/$()/nuo.example.com
+
+// Optional: prefix of the settings keys, watch complications and notifications the apps keep on the device (nuo by
+// default). Changing it on a device where Nuo is installed resets its settings and empties its complications: set it
+// only to keep the identifiers of an install made under another prefix.
+// NUO_STORAGE_PREFIX = nuo
+
+// Optional: a second URL scheme the apps open like nuo://, for links written under an earlier name.
+// NUO_EXTRA_URL_SCHEME = nuo

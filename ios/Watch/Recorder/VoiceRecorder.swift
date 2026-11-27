@@ -53,7 +53,7 @@ final class VoiceRecorder {
     private static func samplesPerSegment(_ index: Int) -> Int { Int(RecordingJournal.seconds(ofSegment: index) * WatchMic.sampleRate) }
     /// No sample for this long while recording: the microphone stopped without saying so.
     private static let silenceLimit: TimeInterval = 4
-    private static let pausedReminder = "nuo.recording.paused"
+    private static let pausedReminder = AppIdentity.local(.recordingPausedNotification)
 
     private init() {
         history = WatchFiles.load([RecordingManifest].self, from: Self.historyURL) ?? []

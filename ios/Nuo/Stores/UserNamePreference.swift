@@ -2,7 +2,7 @@ import Foundation
 
 /// The first name Nuo greets with. A demo always shows Alex and never writes over the name saved on the device.
 struct UserNamePreference {
-    static let key = "nuo.userName"
+    static let key = AppIdentity.local(.userName)
     static let demoName = "Alex"
 
     let defaults: UserDefaults

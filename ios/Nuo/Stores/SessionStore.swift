@@ -46,8 +46,8 @@ final class SessionStore {
     @ObservationIgnored private var authSession: AuthSession?
 
     private enum Keys {
-        static let gateway = "nuo.gatewayURL"
-        static let appearance = "nuo.appearance"
+        static let gateway = AppIdentity.local(.gatewayURL)
+        static let appearance = AppIdentity.local(.appearance)
     }
 
     init(demo: Bool) {

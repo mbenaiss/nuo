@@ -393,7 +393,7 @@ private struct MarkdownDocPane: View {
     }
 
     private func handle(_ url: URL) -> OpenURLAction.Result {
-        if url.scheme == "nuo" {
+        if AppIdentity.isAppScheme(url.scheme) {
             return workspace.open(url: url) ? .handled : .systemAction
         }
         if let target = DocLink.target(url, from: folder) {

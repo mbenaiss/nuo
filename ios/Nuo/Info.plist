@@ -28,6 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>nuo</string>
+				<string>$(NUO_EXTRA_URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
@@ -66,6 +67,10 @@
 	<string>$(NUO_BUNDLE_ID)</string>
 	<key>NuoDefaultGateway</key>
 	<string>$(NUO_DEFAULT_GATEWAY)</string>
+	<key>NuoExtraURLScheme</key>
+	<string>$(NUO_EXTRA_URL_SCHEME)</string>
+	<key>NuoStoragePrefix</key>
+	<string>$(NUO_STORAGE_PREFIX)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

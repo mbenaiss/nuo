@@ -406,7 +406,7 @@ struct DocView: View {
     }
 
     private func handle(_ url: URL) -> OpenURLAction.Result {
-        if url.scheme == "nuo" {
+        if AppIdentity.isAppScheme(url.scheme) {
             if workspace.open(url: url) { return .handled }
             return .systemAction
         }

@@ -122,7 +122,7 @@ final class FilesHomeStore {
         var dirty: Bool
     }
 
-    private var pinsKey: String { "nuo.docs.pins." + WorkspaceCache.shared.namespace }
+    private var pinsKey: String { AppIdentity.local(.docsPins, WorkspaceCache.shared.namespace) }
 
     /// Pins whose file or folder is in the tree.
     var pinnedNodes: [DocNode] { pins.compactMap(node) }

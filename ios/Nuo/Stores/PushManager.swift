@@ -17,7 +17,7 @@ final class PushManager {
     @ObservationIgnored private var deviceToken: String?
 
     private init() {
-        enabled = UserDefaults.standard.bool(forKey: "nuo.pushEnabled")
+        enabled = UserDefaults.standard.bool(forKey: AppIdentity.local(.pushEnabled))
     }
 
     func setEnabled(_ value: Bool) async {
@@ -30,18 +30,18 @@ final class PushManager {
             enabled = false
             PlatformApp.unregisterForRemoteNotifications()
         }
-        UserDefaults.standard.set(enabled, forKey: "nuo.pushEnabled")
+        UserDefaults.standard.set(enabled, forKey: AppIdentity.local(.pushEnabled))
     }
 
     /// Re-registers on every launch: APNs tokens can change and the gateway may have been reset.
     /// Push follows the notification permission unless the user turned it off in settings.
     func refreshRegistration() {
         Task {
-            if UserDefaults.standard.object(forKey: "nuo.pushEnabled") == nil {
+            if UserDefaults.standard.object(forKey: AppIdentity.local(.pushEnabled)) == nil {
                 let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
                 guard status == .authorized || status == .provisional else { return }
                 enabled = true
-                UserDefaults.standard.set(true, forKey: "nuo.pushEnabled")
+                UserDefaults.standard.set(true, forKey: AppIdentity.local(.pushEnabled))
             }
             guard enabled else { return }
             PlatformApp.registerForRemoteNotifications()

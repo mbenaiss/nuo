@@ -36,14 +36,14 @@ struct CalendarView: View {
     @State private var bridge = CalendarBridge.shared
     @State private var bookings = BookingStore.shared
     @State private var selectedDay = AgendaCalendar.current.startOfDay(for: Date())
-    @State private var mode: CalendarMode = CalendarDemo.mode ?? CalendarMode(rawValue: UserDefaults.standard.string(forKey: "nuo.calendar.mode") ?? "") ?? .list
+    @State private var mode: CalendarMode = CalendarDemo.mode ?? CalendarMode(rawValue: UserDefaults.standard.string(forKey: AppIdentity.local(.calendarMode)) ?? "") ?? .list
     @State private var monthExpanded = false
     @State private var detail: AgendaItem?
     @State private var editor: EventEditorTarget?
     @State private var path: [CalendarRoute] = []
     /// Bumped to make the list scroll to `selectedDay` (a tap, not a scroll).
     @State private var jump = 0
-    @AppStorage("nuo.calendar.accessDismissed") private var accessDismissed = false
+    @AppStorage(AppIdentity.local(.calendarAccessDismissed)) private var accessDismissed = false
 
     enum CalendarRoute: Hashable { case bookings, settings }
 
@@ -85,7 +85,7 @@ struct CalendarView: View {
                 .presentationDragIndicator(.visible)
             }
             .sheet(item: $editor) { target in EventEditorView(target: target) }
-            .onChange(of: mode) { _, mode in UserDefaults.standard.set(mode.rawValue, forKey: "nuo.calendar.mode") }
+            .onChange(of: mode) { _, mode in UserDefaults.standard.set(mode.rawValue, forKey: AppIdentity.local(.calendarMode)) }
         }
         .task {
             store.attach(session.api)

@@ -100,10 +100,10 @@ final class DictationModelStore {
     @ObservationIgnored private let monitor = NWPathMonitor()
 
     private enum Keys {
-        static let model = "nuo.dictation.model"
-        static let language = "nuo.dictation.language"
-        static let cloud = "nuo.dictation.cloud"
-        static let ready = "nuo.dictation.ready"
+        static let model = AppIdentity.local(.dictationModel)
+        static let language = AppIdentity.local(.dictationLanguage)
+        static let cloud = AppIdentity.local(.dictationCloud)
+        static let ready = AppIdentity.local(.dictationReady)
     }
 
     nonisolated static var root: URL {
@@ -119,7 +119,7 @@ final class DictationModelStore {
             let expensive = path.isExpensive || path.isConstrained
             Task { @MainActor in self?.isExpensiveNetwork = expensive }
         }
-        monitor.start(queue: DispatchQueue(label: "nuo.dictation.network"))
+        monitor.start(queue: DispatchQueue(label: AppIdentity.local(.dictationNetworkQueue)))
         refresh()
     }
 

@@ -105,7 +105,7 @@ struct GoogleAccountsView: View {
         do {
             let start = try await api.connectGoogle(services: services, email: email)
             // The demo backend answers with the app's own callback: there is no Google page to open.
-            let callback = start.url.scheme == "nuo" ? start.url : try await webAuthenticationSession.authenticate(using: start.url, callbackURLScheme: "nuo")
+            let callback = AppIdentity.isAppScheme(start.url.scheme) ? start.url : try await webAuthenticationSession.authenticate(using: start.url, callbackURLScheme: "nuo")
             let result = GoogleConnectResult(url: callback)
             if result.error == nil {
                 Haptics.success()

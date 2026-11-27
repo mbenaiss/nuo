@@ -306,7 +306,7 @@ final class CalendarBridge {
 
     /// Default calendar for new events: the one picked in the settings, else EventKit's default.
     var defaultCalendarId: String? {
-        let saved = UserDefaults.standard.string(forKey: "nuo.calendar.default")
+        let saved = UserDefaults.standard.string(forKey: AppIdentity.local(.calendarDefault))
         let writable = CalendarStore.shared.writableCalendars
         if let saved, writable.contains(where: { $0.id == saved }) { return saved }
         if !isDemo, let identifier = store.defaultCalendarForNewEvents?.calendarIdentifier,
@@ -317,7 +317,7 @@ final class CalendarBridge {
     }
 
     func setDefaultCalendar(_ id: String) {
-        UserDefaults.standard.set(id, forKey: "nuo.calendar.default")
+        UserDefaults.standard.set(id, forKey: AppIdentity.local(.calendarDefault))
     }
 
     /// Creates the event (EventKit, or Google when it invites people) and mirrors it to the gateway at once.

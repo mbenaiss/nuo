@@ -71,7 +71,7 @@ final class EventAlertSettings {
     static let marginChoices = [0, 5, 10, 15, 20, 30]
     /// Widgets read the margin to show “Leave for”.
     static let appGroup = AppIdentity.appGroup
-    static let marginKey = "nuo.leave.marginMin"
+    static let marginKey = AppIdentity.local(.leaveMarginMinutes)
 
     var eventsEnabled: Bool { didSet { save() } }
     var leaveEnabled: Bool { didSet { save() } }
@@ -84,13 +84,13 @@ final class EventAlertSettings {
     private(set) var overrides: [String: LeaveOverride]
 
     private enum Keys {
-        static let events = "nuo.eventAlerts.events"
-        static let leave = "nuo.eventAlerts.leave"
-        static let defaultAlert = "nuo.eventAlerts.defaultAlert"
-        static let origin = "nuo.eventAlerts.origin"
-        static let mode = "nuo.eventAlerts.mode"
-        static let margin = "nuo.eventAlerts.margin"
-        static let overrides = "nuo.eventAlerts.overrides"
+        static let events = AppIdentity.local(.eventAlertsEvents)
+        static let leave = AppIdentity.local(.eventAlertsLeave)
+        static let defaultAlert = AppIdentity.local(.eventAlertsDefaultAlert)
+        static let origin = AppIdentity.local(.eventAlertsOrigin)
+        static let mode = AppIdentity.local(.eventAlertsMode)
+        static let margin = AppIdentity.local(.eventAlertsMargin)
+        static let overrides = AppIdentity.local(.eventAlertsOverrides)
     }
 
     private init() {

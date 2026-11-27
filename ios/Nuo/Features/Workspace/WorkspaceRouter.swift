@@ -42,7 +42,7 @@ final class WorkspaceRouter {
     /// are left to `AppRouter`.
     @discardableResult
     func open(url: URL) -> Bool {
-        guard url.scheme == "nuo", let host = url.host() else { return false }
+        guard AppIdentity.isAppScheme(url.scheme), let host = url.host() else { return false }
         let parts = url.pathComponents.filter { $0 != "/" }
         switch host {
         case "data":

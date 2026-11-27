@@ -5,5 +5,8 @@ DEVELOPMENT_TEAM =
 NUO_BUNDLE_ID = com.example.nuo
 NUO_APP_GROUP = group.com.example.nuo
 NUO_DEFAULT_GATEWAY =
+NUO_STORAGE_PREFIX = nuo
+// Same as the main scheme: no extra one. Never empty, it fills an entry of CFBundleURLSchemes.
+NUO_EXTRA_URL_SCHEME = nuo
 
 #include? "Local.xcconfig"

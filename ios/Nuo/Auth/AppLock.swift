@@ -45,8 +45,8 @@ final class AppLock {
     @ObservationIgnored private var prompting = false
 
     private enum Keys {
-        static let enabled = "nuo.lock.enabled"
-        static let delay = "nuo.lock.delay"
+        static let enabled = AppIdentity.local(.lockEnabled)
+        static let delay = AppIdentity.local(.lockDelay)
     }
 
     private init() {

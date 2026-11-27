@@ -108,7 +108,7 @@ struct RootView: View {
             await health
             await profile
             if !session.isDemo, let client = session.api as? NuoClient,
-               await RelayEnrollment.shouldOffer(client: client, deviceId: UserDefaults.standard.string(forKey: "nuo.deviceId"), profileId: session.profile?.id) {
+               await RelayEnrollment.shouldOffer(client: client, deviceId: UserDefaults.standard.string(forKey: AppIdentity.local(.deviceId)), profileId: session.profile?.id) {
                 offersRelay = true
             }
             router.resolvePendingLink(bots: bots.bots)
@@ -146,7 +146,7 @@ struct RootView: View {
 
     /// One Face ID, given for this action; cancelled, it is not asked again by itself.
     private func enableRelay() async {
-        guard let client = session.api as? NuoClient, let deviceId = UserDefaults.standard.string(forKey: "nuo.deviceId") else { return }
+        guard let client = session.api as? NuoClient, let deviceId = UserDefaults.standard.string(forKey: AppIdentity.local(.deviceId)) else { return }
         do {
             try await RelayEnrollment.register(client: client, deviceId: deviceId, profileId: session.profile?.id)
         } catch NuoError.stepUpCancelled {

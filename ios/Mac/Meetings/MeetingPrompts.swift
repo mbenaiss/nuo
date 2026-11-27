@@ -12,7 +12,7 @@ enum MeetingPrompts {
     nonisolated static let ignoreAction = "nuo.meeting.action.ignore"
     nonisolated static let micIdentifier = "meeting-mic"
     nonisolated static let eventPrefix = "meeting-event-"
-    static let settingKey = "nuo.meeting.suggest"
+    static let settingKey = AppIdentity.local(.meetingSuggest)
 
     static var enabled: Bool {
         get { UserDefaults.standard.object(forKey: settingKey) as? Bool ?? true }

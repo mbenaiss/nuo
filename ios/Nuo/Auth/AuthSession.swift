@@ -14,7 +14,7 @@ actor AuthSession {
     private var refreshing: Task<String, Error>?
     private var stepping: Task<Void, Error>?
 
-    private static let deviceIdKey = "nuo.deviceId"
+    private static let deviceIdKey = AppIdentity.local(.deviceId)
     /// Refresh this long before the gateway's 15 minutes run out, so a request never races the expiry.
     private static let refreshMargin: TimeInterval = 60
 
