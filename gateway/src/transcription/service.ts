@@ -1,4 +1,5 @@
 import { HttpError } from "../bots/service";
+import { t as i18n } from "../i18n/language";
 import { ElevenLabsSpeechToText, timeoutMs } from "./elevenlabs";
 import { JOB_ID, type JobRecord, JobStore } from "./jobs";
 import { appHeader } from "../compat/app-names";
@@ -119,10 +120,10 @@ export class TranscriptionService {
 
   /** Takes a place among the device's transcriptions under way; the returned function gives it back. */
   admit(deviceId: string): () => void {
-    if ((this.inFlight.get(deviceId) ?? 0) >= MAX_IN_FLIGHT) throw new HttpError(429, "trop de transcriptions en cours, attends la fin de la précédente");
+    if ((this.inFlight.get(deviceId) ?? 0) >= MAX_IN_FLIGHT) throw new HttpError(429, i18n("transcription.tooManyRunning"));
     const t = this.now();
     const times = (this.recent.get(deviceId) ?? []).filter((x) => t - x < RATE_WINDOW_MS);
-    if (times.length >= RATE_MAX) throw new HttpError(429, "trop de transcriptions en peu de temps, réessaie dans quelques minutes");
+    if (times.length >= RATE_MAX) throw new HttpError(429, i18n("transcription.tooManyRecent"));
     times.push(t);
     this.recent.set(deviceId, times);
     this.inFlight.set(deviceId, (this.inFlight.get(deviceId) ?? 0) + 1);
@@ -204,7 +205,7 @@ export class ProfileTranscriptions {
       for (let upload = this.uploads.get(named); upload && this.reserved.get(named) === deviceId; upload = this.uploads.get(named)) {
         const left = until - this.service.now();
         const settled = left > 0 && (await Promise.race([upload.then(() => true), Bun.sleep(left).then(() => false)]));
-        if (!settled) throw new HttpError(429, "l'envoi précédent de cette transcription est encore en cours, réessaie dans un moment");
+        if (!settled) throw new HttpError(429, i18n("transcription.uploadPending"));
       }
       // A job sent again after a lost answer: found before any limit, and before its upload is read.
       const sent = this.known(named, deviceId);
@@ -250,7 +251,7 @@ export class ProfileTranscriptions {
       } catch (e) {
         console.error(`[transcription] job ${id} not written: ${(e as Error)?.message ?? e}`);
         await this.store.remove(id).catch(() => {});
-        throw new HttpError(507, "la passerelle n'a pas pu garder l'enregistrement");
+        throw new HttpError(507, i18n("transcription.notKept"));
       }
       // Stopped while its upload was being written, or right after: removed, never started.
       if (this.wasStopped(id, deviceId) || this.store.get(id) !== record) {
@@ -279,7 +280,7 @@ export class ProfileTranscriptions {
       case "running":
         return { status: "running" };
       case "failed":
-        return { status: "failed", error: record.error ?? { status: 502, message: "la transcription a échoué" } };
+        return { status: "failed", error: record.error ?? { status: 502, message: i18n("transcription.failed") } };
       case "done":
         return { status: "done", ...(record.result as TranscriptReply) };
     }
@@ -329,7 +330,7 @@ export class ProfileTranscriptions {
   private known(id: string, deviceId: string): { id: string } | undefined {
     const owner = this.store.get(id)?.deviceId ?? this.reserved.get(id);
     if (owner === undefined) return undefined;
-    if (owner !== deviceId) throw new HttpError(409, "identifiant de transcription déjà pris");
+    if (owner !== deviceId) throw new HttpError(409, i18n("transcription.idTaken"));
     return { id };
   }
 
@@ -338,7 +339,7 @@ export class ProfileTranscriptions {
     const record = this.store.get(id);
     if (record?.deviceId === deviceId) return record;
     if (!record && this.reserved.get(id) === deviceId) return undefined;
-    throw new HttpError(404, "transcription inconnue ou expirée");
+    throw new HttpError(404, i18n("transcription.unknown"));
   }
 
   private launch(record: JobRecord, request: TranscriptionRequest, done: () => void = () => {}) {
@@ -359,7 +360,7 @@ export class ProfileTranscriptions {
       } catch (e) {
         const error = e instanceof HttpError ? e : new HttpError(502, String((e as Error)?.message ?? e));
         // The app shows this message: never an empty one.
-        const message = error.message.trim() || "la transcription a échoué chez le fournisseur";
+        const message = error.message.trim() || i18n("transcription.providerFailedPlain");
         next = { ...record, status: "failed", error: { status: error.status, message }, finishedAt: this.service.now() };
       } finally {
         done();
@@ -386,16 +387,16 @@ export class ProfileTranscriptions {
    */
   private async resume(record: JobRecord) {
     // The state this resume last saw: the record, then its counted attempt. A job the app deleted meanwhile stays
-    // deleted: no « failed » record comes back for it.
+    // deleted: no "failed" record comes back for it.
     let current = record;
     const fail = async (message: string) => {
       if (this.store.get(record.id) !== current) return;
       await this.persist({ ...current, status: "failed", error: { status: 502, message }, finishedAt: this.service.now() });
     };
     try {
-      if (this.service.now() - record.createdAt > STALE_MS) return await fail("la passerelle était arrêtée trop longtemps pendant la transcription : elle se refait sur l'appareil");
-      if (record.attempts >= 2) return await fail("la transcription a déjà été relancée après un redémarrage de la passerelle : elle se refait sur l'appareil");
-      if (!(await this.store.hasAudio(record.id))) return await fail("la passerelle a redémarré pendant la transcription et l'audio n'a pas été gardé : elle se refait sur l'appareil");
+      if (this.service.now() - record.createdAt > STALE_MS) return await fail(i18n("transcription.stoppedTooLong"));
+      if (record.attempts >= 2) return await fail(i18n("transcription.alreadyRetried"));
+      if (!(await this.store.hasAudio(record.id))) return await fail(i18n("transcription.audioLost"));
       const next = { ...record, attempts: record.attempts + 1 };
       if (this.store.get(record.id) !== record) return;
       // Counted before the provider is called again: a crash during this attempt cannot start a third one. In memory
@@ -409,12 +410,12 @@ export class ProfileTranscriptions {
       this.launch(next, { ...next.request, audio });
     } catch (e) {
       console.error(`[transcription] job ${record.id} not resumed: ${(e as Error)?.message ?? e}`);
-      await fail("la transcription n'a pas pu reprendre après un redémarrage de la passerelle : elle se refait sur l'appareil");
+      await fail(i18n("transcription.resumeFailed"));
     }
   }
 }
 
-/** A form flag, read the same way wherever it is checked: « true », « TRUE », « 1 », padded or not. */
+/** A form flag, read the same way wherever it is checked: "true", "TRUE", "1", padded or not. */
 export function isTrue(v: unknown): boolean {
   return typeof v === "string" && ["true", "1", "yes", "on"].includes(v.trim().toLowerCase());
 }
@@ -424,7 +425,7 @@ function namedJob(req: Request): string | undefined {
   const raw = appHeader(req.headers, JOB_ID_HEADER)?.value ?? new URL(req.url).searchParams.get("id");
   if (!raw) return undefined;
   const id = raw.trim().toLowerCase();
-  if (!JOB_ID.test(id)) throw new HttpError(400, "identifiant de transcription invalide");
+  if (!JOB_ID.test(id)) throw new HttpError(400, i18n("transcription.invalidId"));
   return id;
 }
 
@@ -442,7 +443,7 @@ async function parse(req: Request): Promise<{ request: TranscriptionRequest; job
     return typeof value === "string" ? value.trim() : undefined;
   };
   const language = field("language");
-  if (language && !LANGUAGE.test(language)) throw new HttpError(400, "langue invalide");
+  if (language && !LANGUAGE.test(language)) throw new HttpError(400, i18n("transcription.invalidLanguage"));
   const otherLanguages = (field("otherLanguages") ?? "").split(",").map((l) => l.trim()).filter((l) => LANGUAGE.test(l) && l !== language).slice(0, 4);
   let keyterms: string[] = [];
   const raw = field("keyterms");
@@ -481,7 +482,7 @@ async function parse(req: Request): Promise<{ request: TranscriptionRequest; job
     ...(breaks?.length ? { breaks } : {}),
   };
   const jobId = field("id")?.toLowerCase();
-  if (jobId && !JOB_ID.test(jobId)) throw new HttpError(400, "identifiant de transcription invalide");
+  if (jobId && !JOB_ID.test(jobId)) throw new HttpError(400, i18n("transcription.invalidId"));
   return { request, jobId: jobId || undefined };
 }
 

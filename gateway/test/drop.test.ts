@@ -46,7 +46,7 @@ describe("public links on drop", () => {
     expect(publisher.publish("plan-2026.md", new Blob(["# Plan"]), "1440")).rejects.toMatchObject({ status: 400 });
     expect(publisher.publish("visite-chantier.mov", new Blob([new Uint8Array(25 * 1024 * 1024 + 1)]), 60)).rejects.toMatchObject({ status: 413 });
     const revoked = new DropPublisher("https://drop.example.com", "revoked", drop([], 401));
-    expect(revoked.publish("plan-2026.md", new Blob(["# Plan"]), 60)).rejects.toMatchObject({ status: 502, message: "clé drop (NUO_DROP_API_KEY) refusée" });
+    expect(revoked.publish("plan-2026.md", new Blob(["# Plan"]), 60)).rejects.toMatchObject({ status: 502, message: "drop key (NUO_DROP_API_KEY) refused" });
   });
 
   test("configured only with both the URL and the key", () => {

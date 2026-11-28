@@ -18,7 +18,7 @@ class SlowStt implements SpeechToText {
   constructor(private lateTimes: number) {}
   async transcribe(_r: TranscriptionRequest) {
     this.calls++;
-    if (this.calls <= this.lateTimes) throw new HttpError(504, "ElevenLabs ne répond pas à temps");
+    if (this.calls <= this.lateTimes) throw new HttpError(504, "ElevenLabs did not answer in time");
     return { text: "Point client Julie Martin : on valide 12 000 € avant vendredi.", segments: [{ start: 754, end: 757, text: "On valide 12 000 € avant vendredi.", speaker: "1" }] };
   }
   async warm() {}
@@ -63,6 +63,6 @@ describe("long recordings", () => {
     const stt = new SlowStt(5);
     const failed = await meeting(stt);
     expect(stt.calls).toBe(2);
-    expect(failed).toMatchObject({ status: "failed", error: { status: 504, message: "ElevenLabs ne répond pas à temps" } });
+    expect(failed).toMatchObject({ status: "failed", error: { status: 504, message: "ElevenLabs did not answer in time" } });
   });
 });

@@ -1,6 +1,8 @@
+import { t, type UiLanguage } from "../i18n/language";
 import { safeCut } from "../text";
 
-export const MASKED = "[secret masqué]";
+/** The mark that replaces a value, in English; a mask given the user's language writes it in theirs. */
+export const MASKED = t("secrets.masked", {}, "en");
 
 const REFRESH_MS = 30_000;
 
@@ -25,6 +27,7 @@ export class SecretMask {
   constructor(
     private readonly source: () => string[],
     private readonly now: () => number = Date.now,
+    private readonly language?: () => UiLanguage,
   ) {}
 
   private current(): string[] {
@@ -46,7 +49,7 @@ export class SecretMask {
 
   mask(text: string): string {
     let out = text;
-    for (const v of this.current()) if (out.includes(v)) out = out.split(v).join(MASKED);
+    for (const v of this.current()) if (out.includes(v)) out = out.split(v).join(this.language ? t("secrets.masked", {}, this.language()) : MASKED);
     return out;
   }
 

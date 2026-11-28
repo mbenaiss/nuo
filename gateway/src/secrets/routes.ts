@@ -4,6 +4,8 @@ import type { AuthContext, AuthEventType, AuthService } from "../auth/service";
 import type { Device } from "../store/store";
 import type { SecretStore } from "./store";
 import { appHeader } from "../compat/app-names";
+import { t as i18n } from "../i18n/language";
+import type { MessageKey } from "../i18n/messages";
 
 type Ctx = { req: Request; params: string[]; url: URL; device: Device; ip: string; auth: AuthContext; zone: Zone };
 export type SecretsRoute = [string, RegExp, (ctx: Ctx) => unknown];
@@ -12,12 +14,12 @@ export type SecretsRoute = [string, RegExp, (ctx: Ctx) => unknown];
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const RATE_MAX = 20;
 
-const ACTION_LABEL: Record<string, string> = {
-  secret_reveal: "affiché",
-  secret_create: "ajouté",
-  secret_update: "modifié",
-  secret_delete: "supprimé",
-};
+const ALERT_TITLE = {
+  secret_reveal: "secrets.alert.secret_reveal",
+  secret_create: "secrets.alert.secret_create",
+  secret_update: "secrets.alert.secret_update",
+  secret_delete: "secrets.alert.secret_delete",
+} satisfies Record<string, MessageKey>;
 
 function parse(text: string): Record<string, unknown> {
   try {
@@ -30,7 +32,7 @@ function parse(text: string): Record<string, unknown> {
 /**
  * Paired app only (the gate refuses extension and local tokens). Listing is open to the app anywhere; every
  * reveal and change works from home or the VPN only, and carries a signature of that exact call by the
- * device's Face ID–bound action key. Each one goes to the security log and is pushed to every device, with
+ * device's Face ID bound action key. Each one goes to the security log and is pushed to every device, with
  * the file and the name, never the value.
  */
 export function secretsRoutes(s: SecretStore, auth: AuthService, now: () => number = Date.now): SecretsRoute[] {
@@ -61,7 +63,8 @@ export function secretsRoutes(s: SecretStore, auth: AuthService, now: () => numb
     try {
       const out = run(body);
       auth.event(type, true, info);
-      auth.alert(`Secret ${ACTION_LABEL[type]}`, `${info.detail.replace(" · ", " › ")} depuis ${ctx.device.name}`);
+      const title = ALERT_TITLE[type as keyof typeof ALERT_TITLE];
+      auth.alert(title ? i18n(title) : type, i18n("secrets.alertBody", { detail: info.detail.replace(" · ", " › "), device: ctx.device.name }));
       return out;
     } catch (e) {
       auth.event(type, false, { ...info, detail: `${info.detail}: ${e instanceof HttpError ? e.message : "error"}` });

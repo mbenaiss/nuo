@@ -4,6 +4,13 @@
   var app = document.getElementById("app");
   if (!dataEl || !app) return;
   var D = JSON.parse(dataEl.textContent);
+  var LOCALE = D.locale || "en-US";
+  var T = D.text || {};
+  function tr(name, params) {
+    return (T[name] || name).replace(/\{(\w+)\}/g, function (m, k) {
+      return params && k in params ? String(params[k]) : m;
+    });
+  }
   var PARIS = "Europe/Paris";
   var TZ = (function () {
     try {
@@ -44,7 +51,7 @@
   }
 
   function fmt(iso, opts, tz) {
-    return new Intl.DateTimeFormat("fr-FR", Object.assign({ timeZone: tz || TZ }, opts)).format(new Date(iso));
+    return new Intl.DateTimeFormat(LOCALE, Object.assign({ timeZone: tz || TZ }, opts)).format(new Date(iso));
   }
   var time = function (iso, tz) {
     return fmt(iso, { hour: "2-digit", minute: "2-digit" }, tz);
@@ -68,14 +75,14 @@
 
   function whenLine(start, end) {
     var line = longDate(start) + ", " + time(start) + " – " + time(end);
-    if (TZ !== PARIS) line += " (" + time(start, PARIS) + " à Paris)";
+    if (TZ !== PARIS) line += " (" + tr("inParis", { time: time(start, PARIS) }) + ")";
     return line;
   }
 
   function locationLabel(loc, meetUrl) {
     if (!loc) return "";
-    if (loc.kind === "google_meet") return meetUrl ? "Google Meet : " + meetUrl : "Visioconférence Google Meet (lien dans l'invitation)";
-    if (loc.kind === "phone") return "Téléphone : " + loc.value;
+    if (loc.kind === "google_meet") return meetUrl ? tr("meet", { url: meetUrl }) : tr("meetPending");
+    if (loc.kind === "phone") return tr("phone", { number: loc.value });
     return loc.value || "";
   }
 
@@ -136,11 +143,11 @@
   function drawCalendar(focusDay) {
     var y = state.month.y;
     var m = state.month.m;
-    var title = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
+    var title = new Intl.DateTimeFormat(LOCALE, { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
     var now = todayKey().split("-").map(Number);
     var isFirstMonth = y < now[0] || (y === now[0] && m <= now[1]);
     var grid = h("div", { class: "grid", role: "grid", "aria-label": title });
-    ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"].forEach(function (d) {
+    tr("weekdays").split(",").forEach(function (d) {
       grid.appendChild(h("div", { class: "dow", "aria-hidden": "true", text: d }));
     });
     var first = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7;
@@ -150,13 +157,13 @@
     for (var d = 1; d <= last; d++) {
       var key = y + "-" + pad(m) + "-" + pad(d);
       var has = !!state.byDay[key];
-      var label = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, d)));
+      var label = new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, d)));
       grid.appendChild(
         h("button", {
           type: "button",
           class: "day" + (has ? " available" : "") + (key === today ? " today" : ""),
           "aria-pressed": has ? String(key === state.day) : null,
-          "aria-label": label + (has ? ", " + state.byDay[key].length + " créneaux" : ", aucun créneau"),
+          "aria-label": label + ", " + (has ? tr("daySlots", { count: state.byDay[key].length }) : tr("dayNoSlot")),
           "data-day": key,
           disabled: !has,
           text: String(d),
@@ -177,16 +184,16 @@
       h(
         "div",
         { class: "month-head" },
-        h("button", { type: "button", class: "icon-btn", "aria-label": "Mois précédent", disabled: isFirstMonth, onclick: function () { shiftMonth(-1); }, text: "‹" }),
+        h("button", { type: "button", class: "icon-btn", "aria-label": tr("prevMonth"), disabled: isFirstMonth, onclick: function () { shiftMonth(-1); }, text: "‹" }),
         h("h2", { "aria-live": "polite", text: title }),
-        h("button", { type: "button", class: "icon-btn", "aria-label": "Mois suivant", onclick: function () { shiftMonth(1); }, text: "›" }),
+        h("button", { type: "button", class: "icon-btn", "aria-label": tr("nextMonth"), onclick: function () { shiftMonth(1); }, text: "›" }),
       ),
       grid,
-      h("p", { class: "tz", text: "Heures affichées dans votre fuseau : " + TZ + (TZ !== PARIS ? " · heure de Paris indiquée sous chaque créneau" : "") }),
+      h("p", { class: "tz", text: tr("timezone", { tz: TZ }) + (TZ !== PARIS ? " · " + tr("timezoneParis") : "") }),
     );
     var side;
-    if (state.loading) side = h("p", { class: "muted", role: "status", text: "Chargement des disponibilités…" });
-    else if (!state.day) side = h("p", { class: "muted", role: "status", text: "Aucun créneau disponible ce mois-ci." });
+    if (state.loading) side = h("p", { class: "muted", role: "status", text: tr("loadingSlots") });
+    else if (!state.day) side = h("p", { class: "muted", role: "status", text: tr("noSlotMonth") });
     else
       side = h(
         "div",
@@ -200,14 +207,14 @@
               "button",
               { type: "button", class: "slot", "aria-label": whenLine(s.start, s.end), onclick: function () { pickSlot(s); } },
               time(s.start),
-              TZ !== PARIS ? h("small", { text: time(s.start, PARIS) + " à Paris" }) : null,
+              TZ !== PARIS ? h("small", { text: tr("inParis", { time: time(s.start, PARIS) }) }) : null,
             );
           }),
         ),
       );
     var heading =
       D.mode === "manage"
-        ? h("div", { class: "actions" }, h("p", { class: "muted", text: "Choisissez un nouveau créneau." }), h("button", { type: "button", class: "link", text: "Retour", onclick: function () { drawManage(); } }))
+        ? h("div", { class: "actions" }, h("p", { class: "muted", text: tr("pickNew") }), h("button", { type: "button", class: "link", text: tr("back"), onclick: function () { drawManage(); } }))
         : null;
     app.replaceChildren(heading || document.createTextNode(""), h("div", { class: "picker" }, cal, side));
     if (focusDay) {
@@ -226,7 +233,7 @@
       if (window.turnstile && window.turnstile.render) {
         state.widget = window.turnstile.render(container, {
           sitekey: D.siteKey,
-          language: "fr",
+          language: D.lang || "auto",
           callback: function (t) { state.token = t; },
           "expired-callback": function () { state.token = null; },
           "error-callback": function () { state.token = null; },
@@ -245,7 +252,7 @@
   function field(labelText, input, optional) {
     var id = "f" + ++fieldSeq;
     input.id = id;
-    return h("label", { for: id }, h("span", {}, labelText, optional ? h("span", { class: "opt", text: " (facultatif)" }) : null), input);
+    return h("label", { for: id }, h("span", {}, labelText, optional ? h("span", { class: "opt", text: " " + tr("optional") }) : null), input);
   }
 
   function pickSlot(s) {
@@ -262,27 +269,27 @@
       return field(q.label, input, !q.required);
     });
     var ts = h("div", { class: "ts" });
-    var submit = h("button", { type: "submit", class: "primary", text: "Confirmer le rendez-vous" });
+    var submit = h("button", { type: "submit", class: "primary", text: tr("confirmBooking") });
     var form = h(
       "form",
       { novalidate: true, onsubmit: onSubmit },
-      field("Nom", h("input", { name: "name", autocomplete: "name", required: true, maxlength: "120" })),
-      field("E-mail", h("input", { name: "email", type: "email", autocomplete: "email", required: true, maxlength: "254", inputmode: "email" })),
+      field(tr("name"), h("input", { name: "name", autocomplete: "name", required: true, maxlength: "120" })),
+      field(tr("email"), h("input", { name: "email", type: "email", autocomplete: "email", required: true, maxlength: "254", inputmode: "email" })),
       qs,
-      field("Message", h("textarea", { name: "notes", maxlength: "2000", placeholder: "Contexte, sujet…" }), true),
-      h("div", { class: "hp", "aria-hidden": "true" }, h("label", {}, "Ne pas remplir", h("input", { name: "website", tabindex: "-1", autocomplete: "off" }))),
+      field(tr("message"), h("textarea", { name: "notes", maxlength: "2000", placeholder: tr("messagePlaceholder") }), true),
+      h("div", { class: "hp", "aria-hidden": "true" }, h("label", {}, tr("honeypot"), h("input", { name: "website", tabindex: "-1", autocomplete: "off" }))),
       ts,
       err,
-      h("div", { class: "actions" }, submit, h("button", { type: "button", class: "secondary", text: "Changer de créneau", onclick: function () { drawCalendar(); } })),
+      h("div", { class: "actions" }, submit, h("button", { type: "button", class: "secondary", text: tr("changeSlot"), onclick: function () { drawCalendar(); } })),
     );
-    render([h("h2", { text: "Vos informations" }), h("div", { class: "summary" }, h("strong", { text: D.title }), h("span", { text: whenLine(s.start, s.end) })), h("p"), form], 'input[name="name"]');
+    render([h("h2", { text: tr("yourDetails") }), h("div", { class: "summary" }, h("strong", { text: D.title }), h("span", { text: whenLine(s.start, s.end) })), h("p"), form], 'input[name="name"]');
     mountTurnstile(ts);
 
     async function onSubmit(ev) {
       ev.preventDefault();
       err.hidden = true;
       if (!form.reportValidity()) return;
-      if (D.siteKey && !state.token) return showErr("Merci de valider la vérification anti-spam.");
+      if (D.siteKey && !state.token) return showErr(tr("spamPending"));
       var fd = new FormData(form);
       var answers = {};
       (D.questions || []).forEach(function (q) {
@@ -290,7 +297,7 @@
         if (v) answers[q.id] = v;
       });
       submit.disabled = true;
-      submit.textContent = "Réservation…";
+      submit.textContent = tr("booking");
       var r = await api("POST", "/api/public/booking/" + encodeURIComponent(D.slug), {
         start: s.start,
         name: String(fd.get("name") || ""),
@@ -302,17 +309,17 @@
         turnstileToken: state.token || "",
       });
       submit.disabled = false;
-      submit.textContent = "Confirmer le rendez-vous";
+      submit.textContent = tr("confirmBooking");
       if (r.status === 201) return drawDone(r.data, String(fd.get("email") || ""));
       resetTurnstile();
       if (r.status === 409) {
         state.day = null;
         await loadMonth(state.month.y, state.month.m, 0);
-        var n = h("div", { class: "notice error", role: "alert", text: (r.data && r.data.error) || "Ce créneau n'est plus disponible." });
+        var n = h("div", { class: "notice error", role: "alert", text: (r.data && r.data.error) || tr("slotTaken") });
         app.prepend(n);
         return;
       }
-      showErr(r.status === 403 ? "La vérification anti-spam a échoué. Réessayez." : (r.data && r.data.error) || "Une erreur est survenue. Réessayez.");
+      showErr(r.status === 403 ? tr("spamFailedRetry") : (r.data && r.data.error) || tr("errorRetry"));
     }
     function showErr(msg) {
       err.textContent = msg;
@@ -326,16 +333,16 @@
     var b = out.booking;
     render([
       h("div", { class: "done-mark", "aria-hidden": "true", text: "✓" }),
-      h("h2", { text: "C'est confirmé" }),
+      h("h2", { text: tr("confirmed") }),
       h("div", { class: "summary" }, h("strong", { text: b.title }), h("span", { text: whenLine(b.start, b.end) }), h("span", { class: "muted", text: locationLabel(b.location, b.meetUrl) })),
-      h("p", { class: "muted", text: email ? "Une invitation est envoyée à " + email + "." : "" }),
+      h("p", { class: "muted", text: email ? tr("invitationSent", { email: email }) : "" }),
       h(
         "div",
         { class: "actions" },
-        h("a", { class: "primary", href: out.icsUrl, download: "rendez-vous.ics", text: "Ajouter à mon calendrier" }),
-        h("a", { class: "secondary", href: out.manageUrl, text: "Annuler ou déplacer" }),
+        h("a", { class: "primary", href: out.icsUrl, download: tr("icsFile"), text: tr("addToCalendar") }),
+        h("a", { class: "secondary", href: out.manageUrl, text: tr("cancelOrMove") }),
       ),
-      h("p", { class: "muted", text: "Gardez le lien « Annuler ou déplacer » : il permet de modifier ce rendez-vous." }),
+      h("p", { class: "muted", text: tr("keepLink") }),
     ]);
   }
 
@@ -346,7 +353,7 @@
     var active = b.status === "confirmed" || b.status === "pending";
     var nodes = [
       notice || null,
-      h("h2", { text: active ? "Votre rendez-vous" : b.status === "cancelled" ? "Rendez-vous annulé" : "Rendez-vous" }),
+      h("h2", { text: active ? tr("yourAppointment") : b.status === "cancelled" ? tr("cancelledAppointment") : tr("appointment") }),
       h("div", { class: "summary" }, h("strong", { text: b.title }), h("span", { text: whenLine(b.start, b.end) }), active ? h("span", { class: "muted", text: locationLabel(b.location, b.meetUrl) }) : null),
       h("p"),
     ];
@@ -355,9 +362,9 @@
         h(
           "div",
           { class: "actions" },
-          h("button", { type: "button", class: "primary", text: "Déplacer", onclick: function () { var t = todayKey().split("-").map(Number); loadMonth(t[0], t[1], 2); } }),
-          h("button", { type: "button", class: "danger", text: "Annuler le rendez-vous", onclick: drawCancel }),
-          h("a", { class: "secondary", href: "/m/" + encodeURIComponent(D.token) + "/event.ics", download: "rendez-vous.ics", text: "Fichier .ics" }),
+          h("button", { type: "button", class: "primary", text: tr("move"), onclick: function () { var t = todayKey().split("-").map(Number); loadMonth(t[0], t[1], 2); } }),
+          h("button", { type: "button", class: "danger", text: tr("cancelAppointment"), onclick: drawCancel }),
+          h("a", { class: "secondary", href: "/m/" + encodeURIComponent(D.token) + "/event.ics", download: tr("icsFile"), text: tr("icsLink") }),
         ),
       );
     render(nodes.filter(Boolean));
@@ -366,9 +373,9 @@
   function drawCancel() {
     var reason = h("textarea", { name: "reason", maxlength: "500" });
     var err = h("div", { class: "notice error", role: "alert", hidden: true });
-    var btn = h("button", { type: "submit", class: "danger", text: "Confirmer l'annulation" });
+    var btn = h("button", { type: "submit", class: "danger", text: tr("confirmCancel") });
     render([
-      h("h2", { text: "Annuler le rendez-vous ?" }),
+      h("h2", { text: tr("cancelQuestion") }),
       h("div", { class: "summary" }, h("strong", { text: D.booking.title }), h("span", { text: whenLine(D.booking.start, D.booking.end) })),
       h("p"),
       h(
@@ -381,15 +388,15 @@
             btn.disabled = false;
             if (r.status === 200) {
               D.booking = r.data.booking;
-              return drawManage(h("div", { class: "notice ok", role: "status", text: "Le rendez-vous est annulé." }));
+              return drawManage(h("div", { class: "notice ok", role: "status", text: tr("cancelled") }));
             }
-            err.textContent = (r.data && r.data.error) || "Une erreur est survenue.";
+            err.textContent = (r.data && r.data.error) || tr("error");
             err.hidden = false;
           },
         },
-        field("Motif", reason, true),
+        field(tr("reason"), reason, true),
         err,
-        h("div", { class: "actions" }, btn, h("button", { type: "button", class: "secondary", text: "Retour", onclick: function () { drawManage(); } })),
+        h("div", { class: "actions" }, btn, h("button", { type: "button", class: "secondary", text: tr("back"), onclick: function () { drawManage(); } })),
       ),
     ]);
   }
@@ -398,10 +405,10 @@
     var s = state.slot;
     var ts = h("div", { class: "ts" });
     var err = h("div", { class: "notice error", role: "alert", hidden: true });
-    var btn = h("button", { type: "submit", class: "primary", text: "Déplacer le rendez-vous" });
+    var btn = h("button", { type: "submit", class: "primary", text: tr("moveAppointment") });
     render([
-      h("h2", { text: "Confirmer le nouveau créneau" }),
-      h("div", { class: "summary" }, h("span", { class: "muted", text: "Avant : " + whenLine(D.booking.start, D.booking.end) }), h("strong", { text: "Après : " + whenLine(s.start, s.end) })),
+      h("h2", { text: tr("confirmNewSlot") }),
+      h("div", { class: "summary" }, h("span", { class: "muted", text: tr("before", { when: whenLine(D.booking.start, D.booking.end) }) }), h("strong", { text: tr("after", { when: whenLine(s.start, s.end) }) })),
       h("p"),
       h(
         "form",
@@ -409,7 +416,7 @@
           onsubmit: async function (ev) {
             ev.preventDefault();
             if (D.siteKey && !state.token) {
-              err.textContent = "Merci de valider la vérification anti-spam.";
+              err.textContent = tr("spamPending");
               err.hidden = false;
               return;
             }
@@ -418,16 +425,16 @@
             btn.disabled = false;
             if (r.status === 200) {
               D.booking = r.data.booking;
-              return drawManage(h("div", { class: "notice ok", role: "status", text: "Le rendez-vous est déplacé." }));
+              return drawManage(h("div", { class: "notice ok", role: "status", text: tr("moved") }));
             }
             resetTurnstile();
-            err.textContent = r.status === 403 ? "La vérification anti-spam a échoué." : (r.data && r.data.error) || "Une erreur est survenue.";
+            err.textContent = r.status === 403 ? tr("spamFailed") : (r.data && r.data.error) || tr("error");
             err.hidden = false;
           },
         },
         ts,
         err,
-        h("div", { class: "actions" }, btn, h("button", { type: "button", class: "secondary", text: "Choisir un autre créneau", onclick: function () { drawCalendar(); } })),
+        h("div", { class: "actions" }, btn, h("button", { type: "button", class: "secondary", text: tr("otherSlot"), onclick: function () { drawCalendar(); } })),
       ),
     ]);
     mountTurnstile(ts);

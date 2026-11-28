@@ -1,4 +1,5 @@
 import { HttpError } from "../bots/service";
+import { t } from "../i18n/language";
 import { MuscuInputError, PHOTO_PREFIX, type Muscu } from "./service";
 
 type Ctx = { req: Request; params: string[]; url: URL };
@@ -15,7 +16,7 @@ export function muscuRoutes(m: Muscu): MuscuRoute[] {
       PHOTO_ROUTE,
       ({ params }) => {
         const file = m.photo(params[0]!);
-        if (!file) throw new HttpError(404, "photo introuvable");
+        if (!file) throw new HttpError(404, t("muscu.photoNotFound"));
         // The photos change only with the fitness repo: a day in the app's URL cache spares the gym's network.
         return new Response(Bun.file(file), { headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=86400" } });
       },

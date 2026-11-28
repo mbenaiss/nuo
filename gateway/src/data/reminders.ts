@@ -1,5 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { HttpError } from "../bots/service";
+import { t } from "../i18n/language";
 import type { Pusher } from "../push/apns";
 import { CronError, nextRun, parseCron, wallTime, zonedToUtc } from "../scheduler/cron";
 import type { Device } from "../store/store";
@@ -109,7 +110,7 @@ function endOfParisDay(now: number): number {
 
 const IN_SOMEDAY_PROJECT = "coalesce((SELECT p.someday FROM projects p WHERE p.id = reminders.project_id), 0) = 1";
 
-export const listLabel = (id: string) => (id === "inbox" ? "Boîte de réception" : id.charAt(0).toUpperCase() + id.slice(1));
+export const listLabel = (id: string) => (id === "inbox" ? t("data.inbox") : id.charAt(0).toUpperCase() + id.slice(1));
 
 export class Reminders {
   constructor(

@@ -469,7 +469,7 @@ describe("reminders", () => {
     expect((await t.api("GET", "/api/reminders?scope=upcoming&list=Lumen%20Studio")).data).toHaveLength(1);
     await t.api("POST", "/api/reminders", { title: "Sans liste" });
     expect((await t.api("GET", "/api/reminders/lists")).data).toEqual([
-      { id: "inbox", label: "Boîte de réception", count: 1 },
+      { id: "inbox", label: "Inbox", count: 1 },
       { id: "Lumen Studio", label: "Lumen Studio", count: 1 },
     ]);
     expect((await t.api("POST", `/api/reminders/${c.data.id}/snooze`, { until: "2030-01-03T08:00:00Z" })).data.snoozedUntil).toBe("2030-01-03T08:00:00.000Z");

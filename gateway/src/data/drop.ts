@@ -1,4 +1,5 @@
 import { HttpError } from "../bots/service";
+import { t } from "../i18n/language";
 import type { Fetch } from "../scan/products";
 
 const TIMEOUT_MS = 60_000;
@@ -30,7 +31,7 @@ export class DropPublisher {
 
   async publish(name: string, file: Blob, ttlMinutes: unknown): Promise<DropLink> {
     if (typeof ttlMinutes !== "number" || !DROP_TTLS.includes(ttlMinutes)) throw new HttpError(400, `ttl must be one of ${DROP_TTLS.join(", ")}`);
-    if (file.size > DROP_MAX_BYTES) throw new HttpError(413, "drop n'accepte pas les fichiers de plus de 25 Mo");
+    if (file.size > DROP_MAX_BYTES) throw new HttpError(413, t("data.dropTooLarge"));
     const form = new FormData();
     form.set("access", "public");
     form.set("ttl", String(ttlMinutes));
@@ -47,9 +48,9 @@ export class DropPublisher {
       throw new HttpError(502, `drop injoignable : ${(e as Error)?.message ?? e}`);
     }
     const body = (await res.json().catch(() => undefined)) as { url?: string; expiresAt?: number | null } | undefined;
-    if (res.status === 401 || res.status === 403) throw new HttpError(502, "clé drop (NUO_DROP_API_KEY) refusée");
-    if (res.status === 413) throw new HttpError(413, "drop n'accepte pas les fichiers de plus de 25 Mo");
-    if (!res.ok || !body?.url) throw new HttpError(502, `drop a répondu ${res.status}`);
+    if (res.status === 401 || res.status === 403) throw new HttpError(502, t("data.dropKeyRefused"));
+    if (res.status === 413) throw new HttpError(413, t("data.dropTooLarge"));
+    if (!res.ok || !body?.url) throw new HttpError(502, t("data.dropFailed", { status: res.status }));
     return { url: body.url, expiresAt: typeof body.expiresAt === "number" ? new Date(body.expiresAt).toISOString() : null };
   }
 }

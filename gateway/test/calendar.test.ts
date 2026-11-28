@@ -387,8 +387,8 @@ describe("public booking host", () => {
     expect(create).toContain("--attendees=jean@example.com");
     expect(create).toContain("--with-meet");
     expect(create).toContain("--send-updates=all");
-    expect(create.find((a) => a.startsWith("--description="))).toContain("Téléphone : +33 6 12 34 56 78");
-    const push = t.pusher.sent.find((p) => p.payload.title === "📅 Nouveau rendez-vous")!;
+    expect(create.find((a) => a.startsWith("--description="))).toContain("Téléphone: +33 6 12 34 56 78");
+    const push = t.pusher.sent.find((p) => p.payload.title === "📅 New appointment")!;
     expect(push.payload).toMatchObject({ category: "nuo.booking" });
     expect(push.payload.bookingId).toBeString();
     expect(push.payload.destination).toEqual({ kind: "booking", id: push.payload.bookingId! });
@@ -497,7 +497,7 @@ describe("public booking host", () => {
     const privacy = await pub(t, "GET", "/privacy");
     expect(privacy.status).toBe(200);
     expect(privacy.headers.get("content-type")).toContain("text/html");
-    expect(privacy.data).toContain("Politique de confidentialité");
+    expect(privacy.data).toContain("Privacy policy");
     expect(privacy.data).toContain("Alex Morgan");
     expect(privacy.data).toContain("mailto:alex@example.com");
     expect(privacy.data).toContain("api-services-user-data-policy");
@@ -505,8 +505,15 @@ describe("public booking host", () => {
 
     const terms = await pub(t, "GET", "/terms");
     expect(terms.status).toBe(200);
-    expect(terms.data).toContain("Conditions d&#39;utilisation");
+    expect(terms.data).toContain("Terms of use");
     expect(terms.data).toContain('href="/privacy"');
+
+    const french = await pub(t, "GET", "/privacy", undefined, { "accept-language": "fr-FR,fr;q=0.9,en;q=0.8" });
+    expect(french.data).toContain('<html lang="fr">');
+    expect(french.data).toContain("<title>Politique de confidentialité · Nuo</title>");
+    expect(french.data).toContain("Dernière mise à jour : 20 novembre 2026");
+    expect(french.data).toContain("Conditions d&#39;utilisation");
+    expect(privacy.data).toContain("Last updated: November 20, 2026");
   });
 
   test("a booking type named privacy does not shadow the legal page", async () => {
@@ -514,8 +521,35 @@ describe("public booking host", () => {
     t = app;
     expect((await t.api("POST", "/api/booking/types", { ...bookingType, slug: "privacy", title: "Point confidentialité" })).status).toBe(201);
     const res = await pub(t, "GET", "/privacy");
-    expect(res.data).toContain("Politique de confidentialité");
+    expect(res.data).toContain("Privacy policy");
     expect(res.data).not.toContain("Point confidentialité");
+  });
+
+  test("the booking page speaks the visitor's language, English by default, and the owner is notified in theirs", async () => {
+    const { app } = await bookingApp();
+    t = app;
+    const english = await pub(t, "GET", "/rdv-30");
+    expect(english.data).toContain('<html lang="en">');
+    expect(english.data).toContain("<title>Rendez-vous 30 min · Book a time</title>");
+    expect(english.data).toContain('"locale":"en-US"');
+    expect(english.data).toContain('"confirmBooking":"Confirm the appointment"');
+    const french = await pub(t, "GET", "/rdv-30", undefined, { "accept-language": "fr-FR" });
+    expect(french.data).toContain('<html lang="fr">');
+    expect(french.data).toContain("<title>Rendez-vous 30 min · Prendre rendez-vous</title>");
+    expect(french.data).toContain('"locale":"fr-FR"');
+    expect(french.data).toContain('"confirmBooking":"Confirmer le rendez-vous"');
+    expect(french.data).toContain("Heure de Paris");
+
+    const unnamed = invitee("2026-10-20T08:00:00Z", { name: "" });
+    expect((await pub(t, "POST", "/api/public/booking/rdv-30", unnamed)).data.error).toBe("Enter your name.");
+    expect((await pub(t, "POST", "/api/public/booking/rdv-30", unnamed, { "accept-language": "fr-FR" })).data.error).toBe("Indiquez votre nom.");
+
+    t.app.store.setDeviceLanguages(t.device.id, ["fr-FR"]);
+    const booked = await pub(t, "POST", "/api/public/booking/rdv-30", invitee("2026-10-20T08:00:00Z"), { "accept-language": "en-GB" });
+    expect(booked.status).toBe(201);
+    const push = t.pusher.sent.find((p) => p.payload.bookingId === booked.data.booking.id || p.payload.title === "📅 Nouveau rendez-vous")!;
+    expect(push.payload.title).toBe("📅 Nouveau rendez-vous");
+    expect(push.payload.body).toBe("Jean Dupont · mardi 20 octobre à 10:00 · Rendez-vous 30 min");
   });
 
   test("without a contact address the legal pages carry no mailto", async () => {

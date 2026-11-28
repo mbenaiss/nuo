@@ -1,9 +1,11 @@
 import { HttpError } from "../bots/service";
+import { t as i18n } from "../i18n/language";
 import type { Fetch } from "../scan/products";
 import type { SpeechToText, Transcript, TranscriptionRequest, TranscriptSegment } from "./service";
 
 const API = "https://api.elevenlabs.io/v1";
 const DEFAULT_MODEL = "scribe_v3";
+const PROVIDER = "ElevenLabs";
 /** Past 100 keyterms, every request is billed at least 20 s. */
 const MAX_KEYTERMS = 100;
 /** A new segment after this much silence, even within one speaker's turn. */
@@ -23,7 +25,7 @@ interface Word {
 
 /**
  * ElevenLabs Scribe over a whole recording, from the gateway: the key never reaches the apps. `no_verbatim` leaves out
- * fillers (« euh », « hum »), false starts and non-speech sounds.
+ * fillers ("um", "uh"), false starts and non-speech sounds.
  */
 export class ElevenLabsSpeechToText implements SpeechToText {
   readonly provider = "elevenlabs";
@@ -83,14 +85,15 @@ export class ElevenLabsSpeechToText implements SpeechToText {
         signal: AbortSignal.any([budget, ...(signal ? [signal] : [])]),
       });
     } catch (e) {
-      if (signal?.aborted) throw new HttpError(499, "transcription abandonnée par l'app");
+      if (signal?.aborted) throw new HttpError(499, i18n("transcription.cancelled"));
       const timedOut = (e as Error)?.name === "TimeoutError";
-      throw new HttpError(timedOut ? 504 : 502, timedOut ? "ElevenLabs ne répond pas à temps" : `ElevenLabs injoignable : ${(e as Error)?.message ?? e}`);
+      throw new HttpError(timedOut ? 504 : 502, timedOut ? i18n("transcription.providerTimeout", { provider: PROVIDER }) : i18n("transcription.providerUnreachable", { provider: PROVIDER, detail: String((e as Error)?.message ?? e) }));
     }
     const body = (await res.json().catch(() => undefined)) as { text?: string; language_code?: string; words?: Word[]; detail?: unknown } | undefined;
-    if (res.status === 401 || res.status === 403) throw new HttpError(502, "clé ElevenLabs (NUO_ELEVENLABS_API_KEY) refusée");
-    if (res.status === 429) throw new HttpError(429, "ElevenLabs limite les transcriptions pour l'instant, réessaie dans un moment");
-    const failure = new HttpError(502, `ElevenLabs a répondu ${res.status}${detail(body?.detail)}`);
+    if (res.status === 401 || res.status === 403) throw new HttpError(502, i18n("transcription.providerKeyRefused", { provider: PROVIDER, variable: "NUO_ELEVENLABS_API_KEY" }));
+    if (res.status === 429) throw new HttpError(429, i18n("transcription.providerRateLimited", { provider: PROVIDER }));
+    const text = detail(body?.detail);
+    const failure = new HttpError(502, text ? i18n("transcription.providerFailedDetail", { provider: PROVIDER, status: res.status, detail: text }) : i18n("transcription.providerFailed", { provider: PROVIDER, status: res.status }));
     if (res.status === 422) throw new RejectedRequest(failure);
     if (!res.ok || typeof body?.text !== "string") throw failure;
     const transcript: Transcript = { text: body.text.trim(), language: iso1(body.language_code) };
@@ -139,7 +142,7 @@ export function keyterms(terms: string[]): string[] {
   return kept;
 }
 
-/** Scribe gives three-letter codes (« fra »); the apps speak ISO 639-1. */
+/** Scribe gives three-letter codes ("fra"); the apps speak ISO 639-1. */
 function iso1(code: string | undefined): string | undefined {
   if (!code) return undefined;
   const map: Record<string, string> = { fra: "fr", eng: "en", deu: "de", spa: "es", ita: "it", por: "pt", nld: "nl", ara: "ar" };
@@ -148,8 +151,7 @@ function iso1(code: string | undefined): string | undefined {
 
 function detail(value: unknown): string {
   if (!value) return "";
-  const text = typeof value === "string" ? value : JSON.stringify(value);
-  return ` : ${text.slice(0, 200)}`;
+  return (typeof value === "string" ? value : JSON.stringify(value)).slice(0, 200);
 }
 
 /**

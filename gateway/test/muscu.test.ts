@@ -128,10 +128,10 @@ describe("muscu service", () => {
     expect(out.title).toBe("Muscu — Haut du corps");
     expect(out.detail).toBe(
       [
-        "Séance « Haut du corps » (écran Muscu) : 32:14, 3/6 séries.",
-        "Ordre réel : A → B · 2 reps en réserve visées",
-        "A · Chest Press 1×10 · 30 kg ; ⇄ Pec Fly (à la place de Chest Press) 1×12 · 32,5 kg ; Seated Row 2×10 · 45 kg",
-        "B · Lat Pulldown 1×10 · 47,5 kg ; Lateral Raise 1×15",
+        'Session "Haut du corps" (Muscu screen): 32:14, 3/6 sets.',
+        "Actual order: A → B · 2 reps in reserve targeted",
+        "A · Chest Press 1×10 · 30 kg; ⇄ Pec Fly (instead of Chest Press) 1×12 · 32.5 kg; Seated Row 2×10 · 45 kg",
+        "B · Lat Pulldown 1×10 · 47.5 kg; Lateral Raise 1×15",
       ].join("\n"),
     );
     expect(db.query("SELECT day, title, detail FROM workouts").all()).toEqual([{ day: "2026-09-08", title: out.title, detail: out.detail }]);
@@ -148,19 +148,19 @@ describe("muscu service", () => {
     expect(again.workoutId).toBe(first.workoutId);
     const rows = db.query("SELECT detail FROM workouts").all() as { detail: string }[];
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.detail).toContain("35:00, 4/6 séries");
+    expect(rows[0]!.detail).toContain("35:00, 4/6 sets");
   });
 
   test("blocks never started are listed as not done", () => {
     const upper = parseSession({ id: 101, name: "Haut du corps", config_json: JSON.stringify(UPPER_BODY), note: null })!;
     const text = recap(upper, { ...tuesday, sets: [tuesday.sets[0]!] });
-    expect(text.split("\n").at(-1)).toBe("Non fait : B");
+    expect(text.split("\n").at(-1)).toBe("Not done: B");
   });
 
   test("refuses unknown sessions, blocks and malformed sends", () => {
     const { m } = service();
-    expect(() => m.finish({ ...tuesday, sessionId: 99 })).toThrow("séance introuvable");
-    expect(() => m.finish({ ...tuesday, sets: [{ block: 5, exercises: tuesday.sets[0]!.exercises }] })).toThrow("bloc inconnu");
+    expect(() => m.finish({ ...tuesday, sessionId: 99 })).toThrow("session not found");
+    expect(() => m.finish({ ...tuesday, sets: [{ block: 5, exercises: tuesday.sets[0]!.exercises }] })).toThrow("unknown block");
     expect(() => m.finish({ ...tuesday, day: "24/11/2026" })).toThrow("YYYY-MM-DD");
     expect(() => m.finish({ ...tuesday, runId: "x" })).toThrow("runId");
   });

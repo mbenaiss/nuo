@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { head } from "../text";
+import { t } from "../i18n/language";
 import { existsSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
 import { loadCatalog, type ExerciseCatalog } from "./catalog";
@@ -133,7 +134,7 @@ export function parseSession(row: { id: number; name: string; config_json: strin
 }
 
 const letter = (i: number) => String.fromCharCode(65 + i);
-const fmtKg = (kg: number) => String(Math.round(kg * 100) / 100).replace(".", ",");
+const fmtKg = (kg: number) => String(Math.round(kg * 100) / 100);
 const fmtClock = (sec: number) => {
   const s = Math.max(0, Math.round(sec));
   const h = Math.floor(s / 3600);
@@ -150,13 +151,13 @@ const kgText = (kgs: (number | null)[]) => {
   return `${first === last ? fmtKg(last) : `${fmtKg(first)} → ${fmtKg(last)}`} kg`;
 };
 
-/** The recap the coach reads in its summaries, as the chrono's « Partager au coach » text. */
+/** The recap the coach reads in its summaries, as the chrono's "Share with the coach" text; English, as the coach reads it. */
 export function recap(session: MuscuSession, done: FinishedSession): string {
   const order: number[] = [];
   for (const s of done.sets) if (!order.includes(s.block)) order.push(s.block);
   const lines = [
-    `Séance « ${session.name} » (écran Muscu) : ${fmtClock(done.seconds)}, ${done.sets.length}/${session.sets * session.blocks.length} séries.`,
-    `Ordre réel : ${order.map(letter).join(" → ") || "—"}${session.rir != null ? ` · ${session.rir} reps en réserve visées` : ""}`,
+    `Session "${session.name}" (Muscu screen): ${fmtClock(done.seconds)}, ${done.sets.length}/${session.sets * session.blocks.length} sets.`,
+    `Actual order: ${order.map(letter).join(" → ") || "none"}${session.rir != null ? ` · ${session.rir} reps in reserve targeted` : ""}`,
   ];
   for (const bi of order) {
     const rows: { ei: number; name: string; base: string; reps: number[]; kgs: (number | null)[] }[] = [];
@@ -171,12 +172,12 @@ export function recap(session: MuscuSession, done: FinishedSession): string {
     rows.sort((a, b) => a.ei - b.ei);
     const parts = rows.map((r) => {
       const kg = kgText(r.kgs);
-      return `${r.name !== r.base ? `⇄ ${r.name} (à la place de ${r.base})` : r.name} ${repsText(r.reps)}${kg ? ` · ${kg}` : ""}`;
+      return `${r.name !== r.base ? `⇄ ${r.name} (instead of ${r.base})` : r.name} ${repsText(r.reps)}${kg ? ` · ${kg}` : ""}`;
     });
-    lines.push(`${letter(bi)} · ${parts.join(" ; ")}`);
+    lines.push(`${letter(bi)} · ${parts.join("; ")}`);
   }
   const missed = session.blocks.map((_, i) => i).filter((i) => !order.includes(i));
-  if (missed.length) lines.push(`Non fait : ${missed.map(letter).join(", ")}`);
+  if (missed.length) lines.push(`Not done: ${missed.map(letter).join(", ")}`);
   return lines.join("\n");
 }
 
@@ -255,8 +256,8 @@ export class Muscu {
     const db = this.open();
     const row = db.query("SELECT id, name, config_json, note FROM wods WHERE id = ?").get(done.sessionId) as Parameters<typeof parseSession>[0] | null;
     const session = row && parseSession(row);
-    if (!session) throw new MuscuInputError("séance introuvable");
-    for (const s of done.sets) if (s.block >= session.blocks.length) throw new MuscuInputError("bloc inconnu");
+    if (!session) throw new MuscuInputError(t("muscu.sessionNotFound"));
+    for (const s of done.sets) if (s.block >= session.blocks.length) throw new MuscuInputError(t("muscu.unknownBlock"));
     const title = `Muscu — ${session.name}`;
     const detail = recap(session, done);
     return db.transaction(() => {

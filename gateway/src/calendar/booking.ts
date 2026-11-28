@@ -1,6 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { createHash, randomBytes } from "node:crypto";
 import { HttpError } from "../bots/service";
+import { DEFAULT_UI_LANGUAGE, t as i18n, type UiLanguage } from "../i18n/language";
 import { isValidTimeZone } from "../scheduler/cron";
 import { BOOKING_TZ, computeSlots, parseHm, WEEKDAYS, type Interval, type WorkingHours } from "./availability";
 import { formatTarget, GoogleError, parseTarget, type GoogleCalendar, type GoogleTarget } from "./google";
@@ -83,6 +84,7 @@ export interface BookingDeps {
   baseUrl?: string;
   notify?: (title: string, body: string, bookingId: string) => void;
   clock?: () => number;
+  ownerLanguage?: () => UiLanguage;
 }
 
 const MIN = 60_000;
@@ -105,8 +107,8 @@ const parse = <T>(s: unknown, fallback: T): T => {
   }
 };
 
-const parisLabel = (iso: string) =>
-  new Intl.DateTimeFormat("fr-FR", { timeZone: BOOKING_TZ, weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+const parisLabel = (iso: string, lang: UiLanguage) =>
+  new Intl.DateTimeFormat(i18n("locale", {}, lang), { timeZone: BOOKING_TZ, weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 function workingHours(v: unknown): WorkingHours {
   const o = obj(v ?? {}, "workingHours");
@@ -398,6 +400,10 @@ export class BookingService {
     };
   }
 
+  private ownerLanguage(): UiLanguage {
+    return this.d.ownerLanguage?.() ?? DEFAULT_UI_LANGUAGE;
+  }
+
   manageUrl(token: string): string {
     return `${this.d.baseUrl ?? ""}/m/${token}`;
   }
@@ -412,15 +418,15 @@ export class BookingService {
     for (const q of t.questions) {
       const max = q.type === "longtext" ? 2000 : q.type === "phone" ? 40 : 300;
       const raw = answersIn[q.id];
-      if (raw !== undefined && raw !== null && typeof raw !== "string") throw bad(`answers: « ${q.label} » invalide`);
+      if (raw !== undefined && raw !== null && typeof raw !== "string") throw bad(`answers: ${i18n("booking.answerInvalid", { label: q.label })}`);
       const v = typeof raw === "string" ? raw.trim() : "";
       if (!v) {
-        if (q.required) throw bad(`answers: « ${q.label} » est requis.`);
+        if (q.required) throw bad(`answers: ${i18n("booking.answerRequired", { label: q.label })}`);
         continue;
       }
-      if (v.length > max) throw bad(`answers: « ${q.label} » est trop long.`);
-      if (q.type === "phone" && !/^[+0-9 ().-]{4,40}$/.test(v)) throw bad(`answers: « ${q.label} » n'est pas un numéro de téléphone valide.`);
-      if (q.type === "select" && !q.options?.includes(v)) throw bad(`answers: « ${q.label} » : choix invalide.`);
+      if (v.length > max) throw bad(`answers: ${i18n("booking.answerTooLong", { label: q.label })}`);
+      if (q.type === "phone" && !/^[+0-9 ().-]{4,40}$/.test(v)) throw bad(`answers: ${i18n("booking.answerPhone", { label: q.label })}`);
+      if (q.type === "select" && !q.options?.includes(v)) throw bad(`answers: ${i18n("booking.answerChoice", { label: q.label })}`);
       answers[q.id] = v;
     }
     for (const k of Object.keys(answersIn)) if (!t.questions.some((q) => q.id === k)) throw bad(`unknown answer "${k}"`);
@@ -435,16 +441,16 @@ export class BookingService {
   }
 
   private description(t: BookingType, inv: { name: string; email: string; notes: string | null; answers: Record<string, string> }, token: string): string {
-    const lines = [`Réservé par ${inv.name} <${inv.email}>.`];
+    const lines = [i18n("booking.bookedBy", { name: inv.name, email: inv.email })];
     if (inv.notes) lines.push("", inv.notes);
-    for (const q of t.questions) if (inv.answers[q.id]) lines.push(`${q.label} : ${inv.answers[q.id]}`);
-    lines.push("", `Annuler ou déplacer : ${this.manageUrl(token)}`);
+    for (const q of t.questions) if (inv.answers[q.id]) lines.push(i18n("booking.answerLine", { label: q.label, value: inv.answers[q.id]! }));
+    lines.push("", i18n("booking.manageLine", { url: this.manageUrl(token) }));
     return lines.join("\n");
   }
 
   private googleLocation(t: BookingType): string | undefined {
     if (t.location.kind === "google_meet") return undefined;
-    return t.location.kind === "phone" ? `Téléphone : ${t.location.value}` : t.location.value;
+    return t.location.kind === "phone" ? i18n("booking.phone", { number: t.location.value ?? "" }) : t.location.value;
   }
 
   private isOffered(t: BookingType, start: number, excludeId?: string): Interval | undefined {
@@ -479,7 +485,7 @@ export class BookingService {
     const target = this.target(t);
     const reserve = this.db.transaction(() => {
       const slot = this.isOffered(t, start);
-      if (!slot) throw new HttpError(409, "Ce créneau n'est plus disponible.");
+      if (!slot) throw new HttpError(409, i18n("booking.slotTaken"));
       this.db
         .query(
           `INSERT INTO bookings (id, type_id, start_at, end_at, status, invitee_name, invitee_email, invitee_timezone, invitee_notes, answers, google_target, manage_token_hash, ip, created_at, updated_at)
@@ -493,7 +499,7 @@ export class BookingService {
     if (target && this.d.google) {
       if (await this.googleBusy(target, t, slot)) {
         this.failBooking(id, t);
-        throw new HttpError(409, "Ce créneau n'est plus disponible.");
+        throw new HttpError(409, i18n("booking.slotTaken"));
       }
       try {
         const ev = await this.d.google.createEvent(target, {
@@ -510,7 +516,7 @@ export class BookingService {
       } catch (e) {
         console.error(`[booking] Google event creation failed for booking ${id}: ${(e as Error)?.message ?? e}`);
         this.failBooking(id, t);
-        throw new HttpError(502, "Le rendez-vous n'a pas pu être enregistré. Réessayez dans un instant.");
+        throw new HttpError(502, i18n("booking.saveFailed"));
       }
     } else {
       if (!this.warnedNoGoogle) console.warn("[booking] no Google calendar configured (NUO_GOOGLE_CALENDAR or the type's googleCalendar): bookings are stored without a Google event");
@@ -518,7 +524,8 @@ export class BookingService {
       this.setStatus(id, "confirmed");
     }
     const booking = this.booking(id);
-    this.d.notify?.("📅 Nouveau rendez-vous", `${inv.name} · ${parisLabel(booking.start)} · ${t.title}`, id);
+    const lang = this.ownerLanguage();
+    this.d.notify?.(i18n("booking.notifyNew", {}, lang), `${inv.name} · ${parisLabel(booking.start, lang)} · ${t.title}`, id);
     return { booking, token };
   }
 
@@ -531,7 +538,7 @@ export class BookingService {
 
   async cancel(id: string, o: { reason?: unknown; byInvitee: boolean }): Promise<Booking> {
     const b = this.booking(id);
-    if (b.status !== "confirmed" && b.status !== "pending") throw new HttpError(409, "Ce rendez-vous n'est plus actif.");
+    if (b.status !== "confirmed" && b.status !== "pending") throw new HttpError(409, i18n("booking.notActive"));
     const reason = str(o.reason, "reason", 500) ?? null;
     const t = this.type(b.typeId);
     this.db.transaction(() => {
@@ -542,7 +549,11 @@ export class BookingService {
     if (b.googleEventId && target && this.d.google) {
       await this.d.google.deleteEvent(target, b.googleEventId).catch((e) => console.error(`[booking] Google event of cancelled booking ${id} not deleted: ${(e as Error)?.message ?? e}`));
     }
-    if (o.byInvitee) this.d.notify?.("📅 Rendez-vous annulé", `${b.invitee.name} · ${parisLabel(b.start)} · ${t.title}${reason ? ` — ${reason}` : ""}`, id);
+    if (o.byInvitee) {
+      const lang = this.ownerLanguage();
+      const text = `${b.invitee.name} · ${parisLabel(b.start, lang)} · ${t.title}`;
+      this.d.notify?.(i18n("booking.notifyCancelled", {}, lang), reason ? i18n("booking.withReason", { text, reason }, lang) : text, id);
+    }
     return this.booking(id);
   }
 
@@ -550,14 +561,14 @@ export class BookingService {
     const old = this.byToken(token);
     if (!old || old.status !== "confirmed") throw new HttpError(404, "not found");
     const t = this.type(old.typeId);
-    if (t.archived) throw new HttpError(409, "Ce type de rendez-vous n'existe plus.");
+    if (t.archived) throw new HttpError(409, i18n("booking.typeGone"));
     const start = Date.parse(iso(startRaw, "start"));
     const id = randomBytes(16).toString("hex");
     const hash = hashToken(token);
     const slot = this.db
       .transaction(() => {
         const s = this.isOffered(t, start, old.id);
-        if (!s) throw new HttpError(409, "Ce créneau n'est plus disponible.");
+        if (!s) throw new HttpError(409, i18n("booking.slotTaken"));
         this.setStatus(old.id, "rescheduled", { manage_token_hash: null });
         this.db
           .query(
@@ -580,12 +591,14 @@ export class BookingService {
           this.setStatus(id, "failed", { manage_token_hash: null });
           this.setStatus(old.id, "confirmed", { manage_token_hash: hash });
         })();
-        throw new HttpError(502, e instanceof GoogleError ? "Le rendez-vous n'a pas pu être déplacé. Réessayez dans un instant." : "internal error");
+        throw new HttpError(502, e instanceof GoogleError ? i18n("booking.moveFailed") : "internal error");
       }
     }
     this.setStatus(id, "confirmed");
     const moved = this.booking(id);
-    this.d.notify?.("📅 Rendez-vous déplacé", `${moved.invitee.name} · ${parisLabel(moved.start)} (au lieu de ${parisLabel(old.start)}) · ${t.title}`, id);
+    const lang = this.ownerLanguage();
+    const when = i18n("booking.movedFrom", { when: parisLabel(moved.start, lang), before: parisLabel(old.start, lang) }, lang);
+    this.d.notify?.(i18n("booking.notifyMoved", {}, lang), `${moved.invitee.name} · ${when} · ${t.title}`, id);
     return moved;
   }
 }

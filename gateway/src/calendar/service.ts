@@ -3,6 +3,7 @@ import { BookingService } from "./booking";
 import { GoogleCalendar, parseTarget, spawnRunner, type CommandRunner, type GoogleTarget } from "./google";
 import { bookingHostsFromEnv, PublicSite } from "./public";
 import { CalendarStore } from "./store";
+import type { UiLanguage } from "../i18n/language";
 import { createTurnstile, type Turnstile } from "./turnstile";
 
 export interface CalendarOptions {
@@ -25,6 +26,8 @@ export interface CalendarOptions {
   /** Replaces the gog process (tests); null disables Google entirely. */
   gogRunner?: CommandRunner | null;
   clock?: () => number;
+  /** The owner's language, for the notifications of a booking a visitor made in theirs. */
+  ownerLanguage?: () => UiLanguage;
 }
 
 export interface CalendarServices {
@@ -79,7 +82,7 @@ export function createCalendarServices(db: Database, notify: (title: string, bod
   const googleAccounts = o.googleAccounts?.length ? o.googleAccounts : defaultTarget ? [defaultTarget.account] : [];
   const google = googleFrom(o);
   const store = new CalendarStore(db, o.clock);
-  const bookings = new BookingService({ db, calendars: store, google, defaultTarget, baseUrl, notify, clock: o.clock });
+  const bookings = new BookingService({ db, calendars: store, google, defaultTarget, baseUrl, notify, clock: o.clock, ownerLanguage: o.ownerLanguage });
   const turnstile = createTurnstile({ siteKey: o.turnstileSiteKey, secret: o.turnstileSecret, fetch: o.fetch });
   if (bookingHosts.size) {
     if (!turnstile.enabled) console.warn("[booking] NUO_TURNSTILE_SITEKEY/NUO_TURNSTILE_SECRET are not set: the public booking form has NO bot protection (dev only)");

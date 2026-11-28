@@ -103,11 +103,11 @@ describe("ElevenLabs Scribe behind the gateway", () => {
 
   test("a refused key, a rate limit and a dead network become gateway errors", async () => {
     const refused = new ElevenLabsSpeechToText("revoked", { fetcher: scribe({ detail: { status: "invalid_api_key" } }, 401).fetcher });
-    expect(refused.transcribe(request())).rejects.toMatchObject({ status: 502, message: "clé ElevenLabs (NUO_ELEVENLABS_API_KEY) refusée" });
+    expect(refused.transcribe(request())).rejects.toMatchObject({ status: 502, message: "ElevenLabs key (NUO_ELEVENLABS_API_KEY) refused" });
     const limited = new ElevenLabsSpeechToText("el-key-3f9a1c", { fetcher: scribe({ detail: "too_many_concurrent_requests" }, 429).fetcher });
     expect(limited.transcribe(request())).rejects.toMatchObject({ status: 429 });
     const invalid = new ElevenLabsSpeechToText("el-key-3f9a1c", { fetcher: scribe({ detail: [{ msg: "file too short" }] }, 422).fetcher });
-    expect(invalid.transcribe(request())).rejects.toMatchObject({ status: 502, message: 'ElevenLabs a répondu 422 : [{"msg":"file too short"}]' });
+    expect(invalid.transcribe(request())).rejects.toMatchObject({ status: 502, message: 'ElevenLabs answered 422: [{"msg":"file too short"}]' });
     const slow = new ElevenLabsSpeechToText("el-key-3f9a1c", {
       fetcher: async () => {
         throw Object.assign(new Error("The operation timed out."), { name: "TimeoutError" });
@@ -148,7 +148,7 @@ describe("ElevenLabs Scribe behind the gateway", () => {
     const failure = await stt.transcribe(request({ keyterms: ["Julie Martin"] })).catch((e) => e);
     expect(calls).toBe(2);
     expect(failure).toBeInstanceOf(HttpError);
-    expect(failure).toMatchObject({ status: 502, message: "ElevenLabs a répondu 422 : invalid language_code" });
+    expect(failure).toMatchObject({ status: 502, message: "ElevenLabs answered 422: invalid language_code" });
   });
 
   test("a request Scribe refuses is tried once more without keyterms", async () => {
@@ -314,7 +314,7 @@ describe("POST /api/transcriptions", () => {
   test("a failed job answers 200 with its error, so no proxy can pass for it", async () => {
     const stt = new FakeStt();
     stt.transcribe = async () => {
-      throw new HttpError(429, "ElevenLabs limite les transcriptions pour l'instant, réessaie dans un moment");
+      throw new HttpError(429, "ElevenLabs is limiting transcriptions for now, try again in a moment");
     };
     t = await startTestApp({ transcription: new TranscriptionService(stt) });
     const meeting = dictation();
@@ -323,7 +323,7 @@ describe("POST /api/transcriptions", () => {
     for (let i = 0; i < 400 && (await fetch(`${t.base}/api/transcriptions/${id}`, { headers: { authorization: `Bearer ${t.token}` } })).status === 202; i++) await Bun.sleep(5);
     const res = await fetch(`${t.base}/api/transcriptions/${id}`, { headers: { authorization: `Bearer ${t.token}` } });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: "failed", error: { status: 429, message: "ElevenLabs limite les transcriptions pour l'instant, réessaie dans un moment" } });
+    expect(await res.json()).toEqual({ status: "failed", error: { status: 429, message: "ElevenLabs is limiting transcriptions for now, try again in a moment" } });
   });
 
   test("warming opens the provider's connection at most every 20 s", async () => {
@@ -360,13 +360,13 @@ describe("POST /api/transcriptions", () => {
   test("a failed background job reports the provider's error", async () => {
     const stt = new FakeStt();
     stt.transcribe = async () => {
-      throw new HttpError(502, "clé ElevenLabs (NUO_ELEVENLABS_API_KEY) refusée");
+      throw new HttpError(502, "ElevenLabs key (NUO_ELEVENLABS_API_KEY) refused");
     };
     const profile = new TranscriptionService(stt).at(jobsDir())!;
     const { id } = (await post(profile, "mac", true)) as { id: string };
     await until(() => profile.job(id, "mac").status !== "running");
-    expect(profile.job(id, "mac")).toEqual({ status: "failed", error: { status: 502, message: "clé ElevenLabs (NUO_ELEVENLABS_API_KEY) refusée" } });
-    expect(() => profile.job(id, "iphone")).toThrow("transcription inconnue ou expirée");
+    expect(profile.job(id, "mac")).toEqual({ status: "failed", error: { status: 502, message: "ElevenLabs key (NUO_ELEVENLABS_API_KEY) refused" } });
+    expect(() => profile.job(id, "iphone")).toThrow("unknown or expired transcription");
   });
 
   test("a device may have three transcriptions under way, not more", async () => {
@@ -452,7 +452,7 @@ describe("POST /api/transcriptions", () => {
     await until(() => restarted.job(id, "mac").status === "failed");
     const view = restarted.job(id, "mac");
     expect(view.status).toBe("failed");
-    expect(view.status === "failed" && view.error.message).toContain("la passerelle a redémarré pendant la transcription");
+    expect(view.status === "failed" && view.error.message).toContain("the gateway restarted during the transcription");
   });
 
   test("a result can be read again until it expires after 24 hours, with its files", async () => {
@@ -468,7 +468,7 @@ describe("POST /api/transcriptions", () => {
     expect(profile.job(id, "mac")?.text).toContain("kiné");
     now += 2 * 3600_000;
     profile.prune();
-    expect(() => profile.job(id, "mac")).toThrow("transcription inconnue ou expirée");
+    expect(() => profile.job(id, "mac")).toThrow("unknown or expired transcription");
     await until(() => !existsSync(join(dir, `${id}.json`)));
     expect(existsSync(join(dir, `${id}.json`))).toBe(false);
   });
@@ -545,7 +545,7 @@ describe("POST /api/transcriptions", () => {
     await Bun.sleep(5);
     expect(readdirSync(dir)).toEqual([]);
     expect(stt.seen).toHaveLength(0);
-    expect(() => profile.job(shapeless, "mac")).toThrow("transcription inconnue ou expirée");
+    expect(() => profile.job(shapeless, "mac")).toThrow("unknown or expired transcription");
   });
 
   const leftRunning = (dir: string, over: Record<string, unknown> = {}) => {
@@ -591,7 +591,7 @@ describe("POST /api/transcriptions", () => {
     const profile = new TranscriptionService(stt).at(dir)!;
     await until(() => profile.job(id, "mac").status === "failed");
     const view = profile.job(id, "mac");
-    expect(view.status === "failed" && view.error.message).toContain("la passerelle était arrêtée trop longtemps");
+    expect(view.status === "failed" && view.error.message).toContain("the gateway was stopped too long");
     expect(stt.seen).toHaveLength(0);
   });
 
@@ -646,7 +646,7 @@ describe("POST /api/transcriptions", () => {
     await until(() => aborted && readdirSync(dir).length === 0);
     expect(aborted).toBe(true);
     expect(readdirSync(dir)).toEqual([]);
-    expect(() => profile.job(id, "mac")).toThrow("transcription inconnue ou expirée");
+    expect(() => profile.job(id, "mac")).toThrow("unknown or expired transcription");
   });
 
   test("a result written while the job is stopped never comes back on disk", async () => {
@@ -696,7 +696,7 @@ describe("POST /api/transcriptions", () => {
     }
     await Bun.sleep(20);
     expect(stt.seen).toHaveLength(0);
-    expect(() => profile.job(id, "mac")).toThrow("transcription inconnue ou expirée");
+    expect(() => profile.job(id, "mac")).toThrow("unknown or expired transcription");
   });
 
   test("a folder named like a job file does not stop the gateway from starting", () => {
@@ -740,7 +740,7 @@ describe("POST /api/transcriptions", () => {
     }
     await Bun.sleep(40);
     expect(stt.seen).toHaveLength(0);
-    expect(() => profile.job(id, "mac")).toThrow("transcription inconnue ou expirée");
+    expect(() => profile.job(id, "mac")).toThrow("unknown or expired transcription");
   });
 
   test("an upload arriving after its own DELETE does not start, for a few minutes", async () => {
@@ -962,7 +962,7 @@ describe("POST /api/transcriptions", () => {
     await Bun.sleep(50);
     expect(stt.seen).toHaveLength(0);
     expect(readdirSync(dir)).toEqual([]);
-    expect(() => profile.job(id, "mac")).toThrow("transcription inconnue ou expirée");
+    expect(() => profile.job(id, "mac")).toThrow("unknown or expired transcription");
   });
 
   test("a provider error without words still tells the app something", async () => {
@@ -973,7 +973,7 @@ describe("POST /api/transcriptions", () => {
     const profile = new TranscriptionService(stt).at(jobsDir())!;
     const { id } = (await post(profile, "mac", true)) as { id: string };
     await until(() => profile.job(id, "mac").status === "failed");
-    expect(profile.job(id, "mac")).toEqual({ status: "failed", error: { status: 502, message: "la transcription a échoué chez le fournisseur" } });
+    expect(profile.job(id, "mac")).toEqual({ status: "failed", error: { status: 502, message: "the transcription failed at the provider" } });
   });
 
   test("audio left beside a finished job by a crash goes at startup", async () => {
