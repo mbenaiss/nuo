@@ -25,7 +25,8 @@ struct MealCard: View {
             if !macros.isEmpty {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     MacroSplit(macros: macros)
-                    TileGrid(minimum: 70) {
+                    // Wide enough for "Protéines" on one line: four macros go 2 × 2 on iPhone and stay in a row on a Mac.
+                    TileGrid(minimum: 92) {
                         ForEach(macros, id: \.label) { macro in
                             StatTile(label: macro.label, quantity: macro.quantity, dot: macro.color)
                         }
