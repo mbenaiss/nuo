@@ -180,6 +180,7 @@ Every other setting in `~/.secrets/nuo.env` is optional; restart the gateway aft
 | `NUO_PROXY_SOURCES` | your reverse proxy's address, when it is not on the gateway host |
 | `NUO_BOOKING_*`, `NUO_GOOGLE_*`, `GOOGLE_OAUTH_*` | calendar and public booking pages ([calendar.md](calendar.md)) |
 | `NUO_ELEVENLABS_API_KEY` | server-side speech to text (the apps transcribe on the device without it) |
+| `NUO_LANGUAGE`, `NUO_LANGUAGE_<PROFILE>` | the user's language for every profile, or for one (`NUO_LANGUAGE_OWNER=fr`), instead of the one the apps send: what the gateway writes itself and the language bots use when the user wrote nothing ([protocol.md](protocol.md#language)) |
 
 ## Network
 
