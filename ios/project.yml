@@ -172,6 +172,7 @@ targets:
       - path: Shared/WidgetGateway.swift
       - path: Shared/AppIdentity.swift
       - path: Shared/WidgetCredentials.swift
+      - path: Shared/GatewayLanguage.swift
       - path: Shared/WidgetAgenda.swift
       - path: Shared/WidgetReminders.swift
       - path: Shared/WidgetReminderText.swift
@@ -207,6 +208,7 @@ targets:
       - path: Nuo/Network/Protocol.swift
       - path: Shared/AppIdentity.swift
       - path: Shared/WidgetCredentials.swift
+      - path: Shared/GatewayLanguage.swift
     info:
       path: Share/Info.plist
       properties:
@@ -265,6 +267,7 @@ targets:
           - "Features/Muscu/**"
       - path: Shared/AppIdentity.swift
       - path: Shared/WidgetCredentials.swift
+      - path: Shared/GatewayLanguage.swift
       - path: Shared/WidgetGateway.swift
       - path: Shared/ISO8601Wire.swift
       - path: Shared/WidgetSnapshot.swift
@@ -415,6 +418,7 @@ targets:
       - path: Nuo/Features/Tools/ToolTag.swift
       - path: Nuo/Auth/PairingRestore.swift
       - path: Shared/AppIdentity.swift
+      - path: Shared/GatewayLanguage.swift
       - path: Nuo/Resources/Pele/pele.js
         buildPhase: resources
       # Xcode Cloud runs the tests on a machine without the repository: fixtures ship in the bundle.

@@ -77,6 +77,7 @@ struct WatchClient: WatchAPI {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(GatewayLanguage.acceptLanguage(), forHTTPHeaderField: GatewayLanguage.header)
         if let body {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = body

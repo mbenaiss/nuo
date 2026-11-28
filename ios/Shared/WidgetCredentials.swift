@@ -172,9 +172,19 @@ enum SharedCredentials {
     }
 }
 
-/// One way to reach the gateway: its base URL and the headers that address needs.
+/// One way to reach the gateway: its base URL and the headers that address needs, the user's languages included.
 struct GatewayRoute: Sendable, Equatable {
     let baseURL: URL
     let headers: [String: String]
     let isInternet: Bool
+
+    init(baseURL: URL, headers: [String: String], isInternet: Bool) {
+        self.baseURL = baseURL
+        var headers = headers
+        if headers[GatewayLanguage.header] == nil, let languages = GatewayLanguage.acceptLanguage() {
+            headers[GatewayLanguage.header] = languages
+        }
+        self.headers = headers
+        self.isInternet = isInternet
+    }
 }

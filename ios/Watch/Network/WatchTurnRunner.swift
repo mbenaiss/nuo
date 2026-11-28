@@ -122,6 +122,7 @@ final class LiveTurnRunner: WatchTurnRunner {
         guard let url = socketURL else { return nil }
         var request = URLRequest(url: url, timeoutInterval: 8)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(GatewayLanguage.acceptLanguage(), forHTTPHeaderField: GatewayLanguage.header)
         let task = session.webSocketTask(with: request)
         task.resume()
         let opened = await withTaskGroup(of: Bool.self) { group in
