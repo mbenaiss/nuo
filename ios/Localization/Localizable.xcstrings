@@ -2457,6 +2457,46 @@
         }
       }
     },
+    "%lld reps" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reps"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rép."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rép."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld reps in reserve" : {
       "localizations" : {
         "en" : {
@@ -7561,6 +7601,22 @@
         }
       }
     },
+    "Avg. heart rate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avg. heart rate"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FC moyenne"
+          }
+        }
+      }
+    },
     "Awaiting reply" : {
       "localizations" : {
         "en" : {
@@ -11609,6 +11665,22 @@
         }
       }
     },
+    "Cost" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cost"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coût"
+          }
+        }
+      }
+    },
     "Could not create" : {
       "localizations" : {
         "en" : {
@@ -14257,6 +14329,22 @@
         }
       }
     },
+    "Distance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance"
+          }
+        }
+      }
+    },
     "Docs" : {
       "localizations" : {
         "en" : {
@@ -15041,6 +15129,22 @@
         }
       }
     },
+    "Elevation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elevation"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dénivelé"
+          }
+        }
+      }
+    },
     "Email address" : {
       "localizations" : {
         "en" : {
@@ -15453,6 +15557,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fin"
+          }
+        }
+      }
+    },
+    "Energy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energy"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Énergie"
           }
         }
       }
@@ -16093,6 +16213,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Excellente quantité de protéines"
+          }
+        }
+      }
+    },
+    "Exercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercises"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercices"
           }
         }
       }
@@ -17069,6 +17205,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aliment"
+          }
+        }
+      }
+    },
+    "Foods" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foods"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aliments"
           }
         }
       }
@@ -18465,6 +18617,22 @@
         }
       }
     },
+    "HOME" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HOME"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MAISON"
+          }
+        }
+      }
+    },
     "Half marathon" : {
       "localizations" : {
         "en" : {
@@ -18621,6 +18789,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Santé pas encore autorisé : tu choisis chaque donnée partagée."
+          }
+        }
+      }
+    },
+    "Heart rate zones" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heart rate zones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zones cardiaques"
+          }
+        }
+      }
+    },
+    "Heating" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heating"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chauffe en cours"
           }
         }
       }
@@ -19021,6 +19221,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comment va la maison ?"
+          }
+        }
+      }
+    },
+    "Humidity %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Humidity %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Humidité %@"
           }
         }
       }
@@ -20937,6 +21153,22 @@
         }
       }
     },
+    "Laps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tours"
+          }
+        }
+      }
+    },
     "Last" : {
       "localizations" : {
         "en" : {
@@ -22217,6 +22449,22 @@
         }
       }
     },
+    "MEAL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MEAL"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "REPAS"
+          }
+        }
+      }
+    },
     "MUSIC" : {
       "localizations" : {
         "en" : {
@@ -22505,6 +22753,22 @@
         }
       }
     },
+    "Max heart rate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max heart rate"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FC max"
+          }
+        }
+      }
+    },
     "May contain 4-MEI, a possible carcinogen." : {
       "localizations" : {
         "en" : {
@@ -22549,6 +22813,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moi"
+          }
+        }
+      }
+    },
+    "Meal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repas"
           }
         }
       }
@@ -29465,6 +29745,22 @@
         }
       }
     },
+    "Pace" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pace"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allure"
+          }
+        }
+      }
+    },
     "Packaged agent know-how, called by name." : {
       "localizations" : {
         "en" : {
@@ -31493,6 +31789,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protéines"
+          }
+        }
+      }
+    },
+    "Protein %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protein %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protéines %@"
           }
         }
       }
@@ -34489,6 +34801,22 @@
         }
       }
     },
+    "Right now" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En ce moment"
+          }
+        }
+      }
+    },
     "Right-click to archive the selection." : {
       "localizations" : {
         "en" : {
@@ -36689,6 +37017,22 @@
         }
       }
     },
+    "Share of daily goal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share of daily goal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Part de l'objectif du jour"
+          }
+        }
+      }
+    },
     "Share or save “%@”" : {
       "localizations" : {
         "en" : {
@@ -37909,6 +38253,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La reconnaissance vocale n'est pas disponible sur cet appareil."
+          }
+        }
+      }
+    },
+    "Speed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vitesse"
           }
         }
       }
@@ -39493,6 +39853,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Touche pour parler à %@"
+          }
+        }
+      }
+    },
+    "Target %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consigne %@"
           }
         }
       }
@@ -45913,6 +46289,22 @@
         }
       }
     },
+    "WORKOUT" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WORKOUT"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SÉANCE"
+          }
+        }
+      }
+    },
     "Waiting" : {
       "localizations" : {
         "en" : {
@@ -46877,6 +47269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Travaille…"
+          }
+        }
+      }
+    },
+    "Workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance"
           }
         }
       }
@@ -47949,6 +48357,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Calendrier"
+          }
+        }
+      }
+    },
+    "card.home.off" : {
+      "comment" : "State of a device in the home card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éteint"
+          }
+        }
+      }
+    },
+    "card.home.on" : {
+      "comment" : "State of a device in the home card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allumé"
           }
         }
       }

@@ -373,6 +373,9 @@ indirect enum ResponseBlock: Hashable {
     case artifact(ArtifactPayload)
     case conversation(ConversationLinkPayload)
     case email(EmailDraftPayload)
+    case workout(WorkoutPayload)
+    case meal(MealPayload)
+    case home(HomePayload)
     /// Consecutive `::question` markers, asked one after the other in a single card.
     case questions([QuestionPayload])
 

@@ -213,3 +213,170 @@ struct CardActionButton: View {
         .buttonStyle(.plain)
     }
 }
+
+extension CardQuantity {
+    /// The bot's text, or the number in the user's locale.
+    func value(maxFraction: Int = 1) -> String {
+        if let text { return text }
+        guard let number else { return "" }
+        return number.formatted(.number.precision(.fractionLength(0...maxFraction)))
+    }
+
+    /// Value and unit as one string, for a line of text.
+    func line(maxFraction: Int = 1) -> String {
+        guard let unit else { return value(maxFraction: maxFraction) }
+        return unit.hasPrefix("°") || unit == "%" ? value(maxFraction: maxFraction) + unit : "\(value(maxFraction: maxFraction)) \(unit)"
+    }
+}
+
+/// Icon tile, title and subtitle at the top of a card, with an optional trailing badge or figure.
+struct CardHeader<Trailing: View>: View {
+    let symbol: String
+    let tint: Color
+    let title: String
+    var subtitle: String?
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack(alignment: .center, spacing: Spacing.sm) {
+            Image(systemName: symbol)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(tint)
+                .frame(width: 44, height: 44)
+                .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.headline).foregroundStyle(Color.ink).lineLimit(2)
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle).font(.caption).foregroundStyle(Color.text2).lineLimit(2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            trailing
+        }
+    }
+}
+
+extension CardHeader where Trailing == EmptyView {
+    init(symbol: String, tint: Color, title: String, subtitle: String?) {
+        self.init(symbol: symbol, tint: tint, title: title, subtitle: subtitle) { EmptyView() }
+    }
+}
+
+/// A figure inside a card: label, value and a smaller unit, on the canvas color.
+struct StatTile: View {
+    let label: String
+    let value: String
+    var unit: String?
+    var dot: Color?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: Spacing.xxs) {
+                if let dot { Circle().fill(dot).frame(width: 6, height: 6) }
+                Text(label).font(.caption2).foregroundStyle(Color.text2).lineLimit(1)
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value).font(.headline.monospacedDigit()).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.7)
+                if let unit { Text(unit).font(.caption2.weight(.medium)).foregroundStyle(Color.text2).lineLimit(1).fixedSize() }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(Color.canvas, in: RoundedRectangle(cornerRadius: CardMetrics.tileRadius, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+extension StatTile {
+    init(label: String, quantity: CardQuantity, maxFraction: Int = 1, dot: Color? = nil) {
+        self.init(label: label, value: quantity.value(maxFraction: maxFraction), unit: quantity.text == nil ? quantity.unit : nil, dot: dot)
+    }
+}
+
+/// The bot's short comment at the bottom of a card.
+struct CardNote: View {
+    let text: String
+    var symbol = "text.bubble.fill"
+    var tint: Color = .accent
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+            Image(systemName: symbol).font(.footnote).foregroundStyle(tint)
+            Text(inlineMarkdown(text)).font(.subheadline).foregroundStyle(Color.ink)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(Color.canvas, in: RoundedRectangle(cornerRadius: CardMetrics.tileRadius, style: .continuous))
+    }
+}
+
+enum CardDate {
+    private static let dayParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    /// "Today", "Sat, Nov 28" or "Sat, Nov 28, 7:12 AM" from an ISO date; any other text as written.
+    static func label(_ value: String?) -> String? {
+        guard let value, !value.isEmpty else { return nil }
+        if value.count > 10, let date = NuoJSON.parseDate(value) {
+            let time = date.formatted(date: .omitted, time: .shortened)
+            return Calendar.current.isDateInToday(date) ? "\(String(localized: "Today")), \(time)" : "\(day(date)), \(time)"
+        }
+        guard value.count == 10, let date = dayParser.date(from: value) else { return value }
+        return Calendar.current.isDateInToday(date) ? String(localized: "Today") : day(date)
+    }
+
+    private static func day(_ date: Date) -> String {
+        date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).locale(.current))
+    }
+}
+
+/// Tiles of a card in as many columns of at least `minimum` as fit, spread over balanced rows (7 tiles in 4 + 3,
+/// not 6 + 1), left aligned, each row as tall as its tallest tile.
+struct TileGrid: Layout {
+    var minimum: CGFloat
+    var spacing: CGFloat = Spacing.xs
+
+    private func columns(width: CGFloat, count: Int) -> Int {
+        let fit = max(1, Int(((width + spacing) / (minimum + spacing)).rounded(.down)))
+        let rows = Int((Double(count) / Double(min(fit, count))).rounded(.up))
+        return max(1, Int((Double(count) / Double(rows)).rounded(.up)))
+    }
+
+    private func rows(width: CGFloat, subviews: Subviews) -> (itemWidth: CGFloat, columns: Int, heights: [CGFloat]) {
+        let columns = columns(width: width, count: subviews.count)
+        let itemWidth = max(0, (width - spacing * CGFloat(columns - 1)) / CGFloat(columns))
+        let heights = stride(from: 0, to: subviews.count, by: columns).map { start in
+            subviews[start..<min(start + columns, subviews.count)]
+                .map { $0.sizeThatFits(ProposedViewSize(width: itemWidth, height: nil)).height }.max() ?? 0
+        }
+        return (itemWidth, columns, heights)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard !subviews.isEmpty else { return .zero }
+        let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? minimum
+        let layout = rows(width: width, subviews: subviews)
+        return CGSize(width: width, height: layout.heights.reduce(0, +) + spacing * CGFloat(max(layout.heights.count - 1, 0)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let layout = rows(width: bounds.width, subviews: subviews)
+        var y = bounds.minY
+        for (row, height) in layout.heights.enumerated() {
+            for column in 0..<layout.columns {
+                let index = row * layout.columns + column
+                guard index < subviews.count else { break }
+                let x = bounds.minX + CGFloat(column) * (layout.itemWidth + spacing)
+                subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(width: layout.itemWidth, height: height))
+            }
+            y += height + spacing
+        }
+    }
+}

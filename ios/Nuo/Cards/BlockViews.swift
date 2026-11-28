@@ -82,6 +82,12 @@ struct BlockView: View {
             ConversationLinkCard(payload: payload)
         case let .email(payload):
             EmailDraftCard(payload: payload)
+        case let .workout(payload):
+            WorkoutCard(payload: payload)
+        case let .meal(payload):
+            MealCard(payload: payload)
+        case let .home(payload):
+            HomeCard(payload: payload)
         case let .questions(questions):
             QuestionCard(questions: questions)
         }
