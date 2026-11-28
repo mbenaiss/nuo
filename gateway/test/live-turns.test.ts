@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { rfdState } from "../src/agents/acp";
@@ -178,8 +178,8 @@ describe("instructions", () => {
   test("bots publish files as artifacts, draw diagrams in mermaid and link the documents they write", () => {
     const paths = { home: "/home/julie/nuo", db: "/home/julie/nuo/data/data.db", docs: "/home/julie/nuo/docs", dashboards: "/home/julie/nuo/dashboards" };
     const text = effectiveInstructions({ name: "Cobot", instructions: "Assistant de Julie.", permissionPolicy: "auto" } as never, undefined, "", paths);
-    expect(text).toContain('::artifact {"path":"artifacts/rapport.html","title":"Rapport"}');
-    expect(text).toContain("nuo://docs/Famille/Association/Contr%C3%B4le%20des%20charges.html");
+    expect(text).toContain('::artifact {"path":"artifacts/report.html","title":"Report"}');
+    expect(text).toContain("nuo://docs/Family/Association/Service%20charge%20review.html");
     expect(text).toContain("```mermaid");
   });
 
@@ -187,26 +187,50 @@ describe("instructions", () => {
     const paths = { home: "/home/julie/nuo", db: "/home/julie/nuo/data/data.db", docs: "/home/julie/nuo/docs", dashboards: "/home/julie/nuo/dashboards" };
     const schema = "colis : id, numero, transporteur, statut\nv_colis = colis + jours_restants";
     const text = effectiveInstructions({ name: "Cobot", instructions: "Assistant de Julie.", permissionPolicy: "auto" } as never, undefined, "", paths, undefined, schema);
-    expect(text.indexOf("## Rapidité")).toBeLessThan(text.indexOf("## Mémoire"));
-    expect(text).toContain("lance-la en arrière-plan");
-    expect(text).toContain("relance-le directement la\n  fois suivante");
-    expect(text).toContain('::question {"question":"On commence par laquelle ?"');
-    expect(text).toContain("## Propositions");
-    expect(text).toContain("après avoir écrit ta réponse");
+    expect(text.indexOf("## Speed")).toBeLessThan(text.indexOf("## Memory"));
+    expect(text).toContain("run it in the background");
+    expect(text).toContain("run it directly the next time");
+    expect(text).toContain('::question {"question":"Which one do we start with?"');
+    expect(text).toContain("## Proposals");
+    expect(text).toContain("after writing your answer");
     expect(text).toContain(schema);
-    expect(text.indexOf("## Langue")).toBeLessThan(text.indexOf("## Rapidité"));
-    expect(text).toContain("Écris en français tout ce que l'utilisateur peut lire");
-    expect(text).toContain("les messages courts entre deux actions");
-    const tutor = effectiveInstructions({ name: "Tutor", instructions: "Professeur d'anglais de Julie.", permissionPolicy: "auto", language: "anglais" } as never, undefined, "", paths);
-    expect(tutor).toContain("Écris en anglais tout ce que l'utilisateur peut lire");
+    expect(text.indexOf("## Language")).toBeLessThan(text.indexOf("## Speed"));
+    expect(text).toContain("Write everything the user can read in the user's language");
+    expect(text).toContain("the short messages between two\nactions");
+    expect(text).toContain("which the gateway gives at the top of that turn");
+    const french = effectiveInstructions({ name: "Cobot", instructions: "Assistant de Julie.", permissionPolicy: "auto" } as never, undefined, "", paths, undefined, "", "French");
+    expect(french).toContain("is in their preferred language, French.");
+    const tutor = effectiveInstructions({ name: "Tutor", instructions: "Professeur d'anglais de Julie.", permissionPolicy: "auto", language: "English" } as never, undefined, "", paths, undefined, "", "French");
+    expect(tutor).toContain("Write everything the user can read in English");
+    expect(tutor).not.toContain("French");
     const ask = effectiveInstructions({ name: "Coach", instructions: "Coach de Julie.", permissionPolicy: "ask" } as never, undefined, "", paths, undefined, schema);
-    expect(ask).toContain("## Rapidité");
+    expect(ask).toContain("## Speed");
     expect(ask).not.toContain(schema);
   });
 });
 
 describe("language of a bot", () => {
-  test("a bot writes in French unless its config names another language", async () => {
+  test("a bot follows the language the apps send, and is told it on a turn the user did not write", async () => {
+    const { bot, conv, sock } = await setup();
+    sock.send({ type: "prompt", conversationId: conv.id, text: "Où en est la candidature chez KPMG ?" });
+    await sock.next("message.end");
+    expect(t!.runtime.starts[0]!.language).toBeUndefined();
+
+    await fetch(`${t!.base}/api/bots`, { headers: { authorization: `Bearer ${t!.token}`, "accept-language": "fr-FR, en-US;q=0.9" } });
+    expect(t!.app.store.userLanguages()).toEqual(["fr-FR", "en-US"]);
+    const next = (await t!.api("POST", "/api/conversations", { botId: bot.id })).data;
+    sock.send({ type: "prompt", conversationId: next.id, text: "Et chez Deloitte ?" });
+    await sock.next("message.end");
+    expect(t!.runtime.starts.at(-1)!.language).toBe("French");
+    expect(readFileSync(join(t!.profileHome, "instructions", `${bot.slug}.md`), "utf8")).toContain("is in their preferred language, French.");
+    expect(t!.runtime.prompts.at(-1)!.text).toBe("Et chez Deloitte ?");
+
+    const { done } = await t!.app.runner.prompt({ conversationId: next.id, text: "Point du matin sur les candidatures" }, { scheduled: true });
+    await done;
+    expect(t!.runtime.prompts.at(-1)!.text).toStartWith("[Nuo: no message from the user in this turn. Write in French, their preferred language.]\n\n");
+  });
+
+  test("a bot writes in the user's language unless its config names another language", async () => {
     const { conv, sock } = await setup();
     sock.send({ type: "prompt", conversationId: conv.id, text: "Où en est la candidature chez KPMG ?" });
     await sock.next("message.end");

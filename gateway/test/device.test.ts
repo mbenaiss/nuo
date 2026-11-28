@@ -262,7 +262,7 @@ describe("nuo MCP server", () => {
   test("bot instructions tell Apple calendars apart from Google ones", () => {
     const text = effectiveInstructions({ name: "Cobot", instructions: "Assistant personnel de Julie.", permissionPolicy: "ask" } as any);
     expect(text).toContain("`apple_events`");
-    expect(text).toContain("les outils `calendar_*` ne concernent que les comptes Google");
+    expect(text).toContain("the `calendar_*` tools only cover the connected Google accounts");
   });
 });
 

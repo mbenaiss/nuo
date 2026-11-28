@@ -403,7 +403,7 @@ describe("helpers", () => {
     expect(spec.command).toBe("/home/linuxbrew/.linuxbrew/bin/claude-agent-acp");
     const options = (claude.meta() as { claudeCode: { options: { tools: string[]; env: Record<string, string>; settings: Record<string, string>; promptSuggestions: boolean; extraArgs: Record<string, null> } } }).claudeCode.options;
     expect(options.env).toEqual({ ENABLE_TOOL_SEARCH: "true", ENABLE_CLAUDEAI_MCP_SERVERS: "false" });
-    expect(options.settings).toEqual({ language: "French" });
+    expect(options.settings).toEqual({});
     const tutor = (claude as unknown as { sessionMeta(o: unknown): { claudeCode: { options: { settings: Record<string, string> } } } }).sessionMeta({ workdir: "/home/julie/nuo/bots/tutor", model: "claude-opus-5-5", mcpServers: [], permissionPolicy: "auto", language: "English" });
     expect(tutor.claudeCode.options.settings).toEqual({ language: "English" });
     expect(options.tools).toContain("ToolSearch");

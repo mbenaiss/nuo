@@ -8,6 +8,7 @@ import type { ToolCatalog } from "./catalog";
 import { validateCommands } from "./commands";
 import { prepareWorkspace, type BrowserAccess, type Workspace } from "./instructions";
 import { MemoryStore } from "./memory";
+import { languageName } from "../i18n/language";
 import { isToolRuleKey, TOOL_RULES_MAX, toolRuleError, validateToolRules } from "./tool-rules";
 
 export class HttpError extends Error {
@@ -120,7 +121,7 @@ export class BotService {
       const config = bot.published?.config;
       if (!config) continue;
       try {
-        await prepareWorkspace(this.workspace(bot.id), config, this.readMemory(bot.id).content);
+        await prepareWorkspace(this.workspace(bot.id), config, this.readMemory(bot.id).content, languageName(this.store.userLanguages()[0]));
       } catch (e) {
         console.warn(`[bots] instructions of ${bot.id}: ${(e as Error)?.message ?? e}`);
       }

@@ -338,20 +338,20 @@ describe("bot instructions", () => {
     const paths = { home: "/r", db: "/r/data/data.db", docs: "/r/docs", dashboards: "/r/dashboards" };
     const browser = { cli: "bun run /r/app/src/cli.ts", endpoint: "http://127.0.0.1:9222", profileDir: "/r/browser/profile" };
     const auto = effectiveInstructions(botConfig({ permissionPolicy: "auto" }) as any, undefined, "", paths, browser);
-    expect(auto).toContain("## Navigateur partagé");
+    expect(auto).toContain("## Shared browser");
     expect(auto).toContain("bun run /r/app/src/cli.ts browser-login-needed");
     expect(auto).toContain("playwright-cli attach --cdp=http://127.0.0.1:9222");
-    expect(auto).toContain("ne résous jamais de captcha");
-    expect(auto).toContain("préfère WebFetch");
+    expect(auto).toContain("never solve a captcha");
+    expect(auto).toContain("prefer WebFetch");
     const ask = effectiveInstructions(botConfig({ permissionPolicy: "ask" }) as any, undefined, "", paths, browser);
-    expect(ask).not.toContain("Navigateur partagé");
+    expect(ask).not.toContain("Shared browser");
   });
 
   test("with lightpanda on the host, shell bots read public pages with its tools instead of Chrome", () => {
     const browser = { cli: "bun run /r/app/src/cli.ts", endpoint: "http://127.0.0.1:9222", profileDir: "/r/browser/profile", lightpanda: true };
     const text = effectiveInstructions(botConfig({ permissionPolicy: "auto" }) as any, undefined, "", undefined, browser);
-    expect(text).toContain("utilise les outils lightpanda (`goto` puis `markdown`");
-    expect(text).not.toContain("préfère WebFetch");
+    expect(text).toContain("use the lightpanda tools (`goto` then `markdown`");
+    expect(text).not.toContain("prefer WebFetch");
   });
 });
 

@@ -21,8 +21,6 @@ export const BOT_BUILTIN_TOOLS = ["Bash", "Read", "Edit", "Write", "WebFetch", "
  * The claude.ai connectors of the logged-in account (Notion, Claude Docs…) are not bot tools.
  */
 export const BOT_CLAUDE_ENV = { ENABLE_TOOL_SEARCH: "true", ENABLE_CLAUDEAI_MCP_SERVERS: "false" };
-/** Claude Code's own system prompt is in English: without a language, the short updates between two tool calls drift to it. */
-export const DEFAULT_BOT_LANGUAGE = "French";
 
 /** Claude Code keeps sessions per cwd, in projects/<cwd with every non-alphanumeric char as "-">. */
 export function claudeProjectDir(cwd: string, configDir = process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude")): string {
@@ -57,7 +55,7 @@ export class ClaudeRuntime extends AcpRuntime {
   protected sessionMeta(opts: SessionOptions): Record<string, unknown> {
     const tools = opts.noTools ? [] : opts.relay ? RELAY_BUILTIN_TOOLS : BOT_BUILTIN_TOOLS;
     return {
-      claudeCode: { options: { tools, env: BOT_CLAUDE_ENV, settings: { language: opts.language ?? DEFAULT_BOT_LANGUAGE }, promptSuggestions: false, extraArgs: { "strict-mcp-config": null } } },
+      claudeCode: { options: { tools, env: BOT_CLAUDE_ENV, settings: opts.language ? { language: opts.language } : {}, promptSuggestions: false, extraArgs: { "strict-mcp-config": null } } },
       ...(opts.relay && opts.instructions ? { systemPrompt: { append: opts.instructions } } : {}),
     };
   }

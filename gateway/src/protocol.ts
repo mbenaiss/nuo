@@ -81,7 +81,7 @@ export interface BotConfig {
    * no file attached by an `@path` mention. For a bot that reads other people's words (the meeting notes).
    */
   noTools?: boolean;
-  /** The language the bot writes everything in, as a person would name it ("English"); French when absent. */
+  /** The language the bot writes everything in, as a person would name it ("English"); the user's language when absent. */
   language?: string;
   /**
    * What the user decided for good about a tool, from a permission card or the bot's settings, keyed by

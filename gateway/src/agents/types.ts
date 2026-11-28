@@ -42,7 +42,10 @@ export interface SessionOptions {
   attachmentsDir?: string;
   /** No tool at all (BotConfig.noTools), and no file attached by an `@path` mention: only runtimes with `toolless`. */
   noTools?: boolean;
-  /** BotConfig.language; French when absent. */
+  /**
+   * BotConfig.language, else the user's preferred language: Claude Code's own system prompt is in English, and without
+   * it the short updates between two tool calls drift to English.
+   */
   language?: string;
   /**
    * Started for a turn the relay passed on: no built-in tool but the loader of the `nuo` server's schemas, and

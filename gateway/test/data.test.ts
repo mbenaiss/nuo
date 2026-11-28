@@ -773,12 +773,12 @@ describe("bot instructions", () => {
   const paths = { home: "/r", db: "/r/data/data.db", docs: "/r/docs", dashboards: "/r/dashboards" };
   test("only shell bots get the data rules", () => {
     const auto = effectiveInstructions(botConfig({ permissionPolicy: "auto" }) as any, undefined, "", paths);
-    expect(auto).toContain("## Données et documents");
+    expect(auto).toContain("## Data and documents");
     expect(auto).toContain("/r/data/data.db");
-    expect(auto).toContain("Ne fais jamais de `DELETE`");
-    expect(auto).toContain("Ne crée, ne déplace et ne supprime jamais de lieu");
+    expect(auto).toContain("Never run a `DELETE`");
+    expect(auto).toContain("Never create, move or delete a place");
     const ro = effectiveInstructions(botConfig({ permissionPolicy: "readonly" }) as any, undefined, "", paths);
-    expect(ro).toContain("gérées par Cobot");
+    expect(ro).toContain("handled by Cobot");
     expect(ro).not.toContain("data.db");
   });
 });

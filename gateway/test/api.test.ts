@@ -196,7 +196,7 @@ describe("bots", () => {
     for (const b of bots) {
       const path = join(t.profileHome, "instructions", `${b.slug}.md`);
       for (let i = 0; i < 50 && !existsSync(path); i++) await Bun.sleep(20);
-      expect(readFileSync(path, "utf8")).toContain("## Rapidité");
+      expect(readFileSync(path, "utf8")).toContain("## Speed");
     }
     expect(t.runtime.starts).toHaveLength(0);
   });
@@ -237,12 +237,12 @@ describe("conversations", () => {
       expect(readFileSync(join(dir, f), "utf8")).toBe(readFileSync(instructionsPath, "utf8"));
     }
     const text = readFileSync(join(dir, "AGENTS.md"), "utf8");
-    expect(text).toContain("## Mémoire");
+    expect(text).toContain("## Memory");
     expect(text).toContain("Préfère les vols du matin");
     expect(text).toStartWith("Tu es l'assistant voyages.");
     expect(text).toContain("::flight");
     expect(text).toContain("/srv/repo");
-    expect(text).toContain("1 à 3 phrases");
+    expect(text).toContain("1 to 3 short sentences");
   });
 });
 

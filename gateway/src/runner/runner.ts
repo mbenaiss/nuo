@@ -19,7 +19,8 @@ import type { ToolCatalog } from "../bots/catalog";
 import { BUILTIN_TOOL_SERVER, expandTemplate, parseCommand, toolArguments } from "../bots/commands";
 import { NuoTools } from "../mcp/nuo-server";
 import { relayConfirmationTitle, relayRefusal, type RelayToolCall } from "../relay/whitelist";
-import { prepareWorkspace, relayInstructions, VOICE_PREFIX } from "../bots/instructions";
+import { prepareWorkspace, relayInstructions, unattendedLanguageHint, VOICE_PREFIX } from "../bots/instructions";
+import { languageName } from "../i18n/language";
 import { GOAL_CONFIRMATION_TIMEOUT_MS, GOAL_PREFIX, goalConfirmation } from "./goal";
 import type { MachineToolSource } from "../machine/discovery";
 import { taggedTools, toolHint } from "../machine/tags";
@@ -750,7 +751,7 @@ export class Runner {
     const resumed = ids.filter((id): id is string => typeof id === "string" && !!this.store.conversation(id));
     for (const id of resumed) {
       this.recordNotice(id, { kind: "resumed", text: RESUMED_TEXT });
-      void this.prompt({ conversationId: id, text: RESUME_PROMPT }, { silent: true }).catch((e) => console.warn(`[runner] resume ${id}: ${(e as Error)?.message ?? e}`));
+      void this.prompt({ conversationId: id, text: this.languageHint(this.configFor(this.store.conversation(id)!)) + RESUME_PROMPT }, { silent: true }).catch((e) => console.warn(`[runner] resume ${id}: ${(e as Error)?.message ?? e}`));
     }
     return resumed;
   }
@@ -935,8 +936,8 @@ export class Runner {
     }
     const compact = COMPACT_RE.exec(text);
     if (compact) return void (await this.compact(conv, compact[1]?.trim() ?? "", start));
-    const prefix = (voice ? VOICE_PREFIX : "") + (this.goals.has(conversationId) ? GOAL_PREFIX : "");
     const config = this.configFor(conv);
+    const prefix = (voice ? VOICE_PREFIX : "") + (this.goals.has(conversationId) ? GOAL_PREFIX : "") + (this.scheduled.has(conversationId) ? this.languageHint(config) : "");
     const parsed = parseCommand(text, config);
     const action = parsed?.command.action;
     let pending: TurnStart | undefined = start;
@@ -959,6 +960,16 @@ export class Runner {
       default:
         return this.reply(conv, "Cette commande est gérée par l'app Nuo : choisis-la dans le menu / pour l'utiliser.", pending);
     }
+  }
+
+  /** The user's preferred language in English ("French"); undefined until an app has said it. */
+  private userLanguage(): string | undefined {
+    return languageName(this.store.userLanguages()[0]);
+  }
+
+  private languageHint(config: BotConfig | undefined): string {
+    const language = config?.language ?? this.userLanguage();
+    return language ? unattendedLanguageHint(language) : "";
   }
 
   /** The hint goes to the agent only; the persisted user message keeps the typed text. */
@@ -1711,7 +1722,8 @@ export class Runner {
     const ws = this.bots.workspace(botId);
     // A relay session works in its own folder, with instructions that leave out the memory and the database schema;
     // the bot's shared CLAUDE.md is neither read nor rewritten for it.
-    if (!relay) await prepareWorkspace(ws, config, this.bots.readMemory(botId).content);
+    const userLanguage = this.userLanguage();
+    if (!relay) await prepareWorkspace(ws, config, this.bots.readMemory(botId).content, userLanguage);
     const extraEnv = this.mcpEnv(config);
     // A relay session gets the `nuo` server alone (its add tools), and asks for each of them, whatever the policy.
     const servers = config.noTools
@@ -1726,10 +1738,10 @@ export class Runner {
       mcpServers: servers.map((sp) => this.agentEnv.seal(sp)),
       permissionPolicy: relay ? "ask" : config.permissionPolicy,
       ...(relay
-        ? { relay: true, instructions: relayInstructions(config), onRelayRefusal: (tool: string) => this.relayRefusedTool(conv.id, tool) }
+        ? { relay: true, instructions: relayInstructions(config, userLanguage), onRelayRefusal: (tool: string) => this.relayRefusedTool(conv.id, tool) }
         : { toolRule: (tool: RelayToolCall) => this.toolRule(conv.id, tool) }),
       ...(config.noTools ? { noTools: true } : {}),
-      ...(config.language ? { language: config.language } : {}),
+      ...(config.language || userLanguage ? { language: config.language ?? userLanguage } : {}),
       // Conversations from before per-agent sessions only have the last agent's session.
       resumeId: relay ? conv.agentSessions?.[relayNativeKey(agent)]?.sessionId : (conv.agentSessions?.[agent]?.sessionId ?? (conv.agentId === agent ? conv.agentSessionId : undefined)),
       ...(ws.shared ? { attachmentsDir: join(this.bots.attachmentsRoot(botId), ".nuo", "attachments") } : {}),
