@@ -88,7 +88,7 @@ export class DeviceBridge {
     if (!candidates.length) {
       throw new HttpError(
         503,
-        "Aucun iPhone ni Mac n'a activé cet accès : demande à l'utilisateur d'ouvrir Nuo, puis Réglages › Accès des bots, et d'autoriser l'accès demandé.",
+        "No iPhone or Mac has turned this access on: ask the user to open Nuo, then Settings › Bot access, and to allow the access needed.",
       );
     }
     const id = randomUUID();
@@ -110,7 +110,7 @@ export class DeviceBridge {
     };
     if (!dispatch()) {
       this.pending.delete(id);
-      throw new HttpError(503, "Nuo n'est ouvert sur aucun appareil et les notifications sont désactivées : demande à l'utilisateur d'ouvrir Nuo sur son iPhone ou son Mac, puis réessaie.");
+      throw new HttpError(503, "Nuo is open on no device and notifications are turned off: ask the user to open Nuo on their iPhone or Mac, then try again.");
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
     const fallback = () => {
@@ -123,9 +123,9 @@ export class DeviceBridge {
       const a = await answer;
       if (a.ok) return a.result ?? null;
       if (a.error === "timeout") {
-        throw new HttpError(504, "L'iPhone et le Mac n'ont pas répondu à temps : Nuo est peut-être fermé, ou l'appareil hors ligne. Propose à l'utilisateur d'ouvrir Nuo puis de réessayer.");
+        throw new HttpError(504, "The iPhone and the Mac did not answer in time: Nuo may be closed, or the device offline. Suggest that the user opens Nuo and tries again.");
       }
-      throw new HttpError(422, a.error || "l'appareil a refusé la demande");
+      throw new HttpError(422, a.error || "the device refused the request");
     } finally {
       for (const t of timers) clearTimeout(t);
       this.pending.delete(id);
@@ -160,6 +160,6 @@ export class DeviceBridge {
   }
 
   close() {
-    for (const id of [...this.pending.keys()]) this.settle(id, { ok: false, error: "la passerelle redémarre" });
+    for (const id of [...this.pending.keys()]) this.settle(id, { ok: false, error: "the gateway is restarting" });
   }
 }

@@ -3,6 +3,7 @@ import { hkdfSync } from "node:crypto";
 import { open, seal } from "../auth/keys";
 import type { AuthEventType } from "../auth/service";
 import { HttpError } from "../bots/service";
+import { t } from "../i18n/language";
 import { GoogleAuthError, SERVICE_SCOPES, servicesOf, type GoogleOAuth, type GoogleService } from "./oauth";
 
 export interface GoogleAccountInfo {
@@ -15,7 +16,10 @@ export interface GoogleAccountInfo {
   lastUsedAt?: string;
 }
 
-export const SERVICE_LABELS: Record<GoogleService, string> = { gmail: "Gmail", drive: "Drive", calendar: "Agenda" };
+export const SERVICE_LABELS: Record<GoogleService, string> = { gmail: "Gmail", drive: "Drive", calendar: "Calendar" };
+
+/** Kept in `last_error` when Google refused the refresh token; rows written before the gateway was in English hold the French one. */
+const ACCESS_REVOKED = ["Access revoked or expired: connect this account again.", "Accès révoqué ou expiré : reconnecte ce compte."];
 
 export type GoogleAudit = (type: AuthEventType, ok: boolean, info: { deviceId?: string; deviceName?: string; detail?: string }) => void;
 
@@ -84,7 +88,7 @@ export class GoogleAccounts {
       email: r.email,
       services: servicesOf(r.scopes.split(" ")),
       status: r.status === "error" ? "error" : "ok",
-      ...(r.last_error ? { lastError: r.last_error } : {}),
+      ...(r.last_error ? { lastError: ACCESS_REVOKED.includes(r.last_error) ? t("google.accessRevoked") : r.last_error } : {}),
       connectedAt: r.connected_at,
       updatedAt: r.updated_at,
       ...(r.last_used_at ? { lastUsedAt: r.last_used_at } : {}),
@@ -148,23 +152,23 @@ export class GoogleAccounts {
   resolve(service: GoogleService, email?: string): string {
     const all = this.list();
     const label = SERVICE_LABELS[service];
-    if (!all.length) throw new HttpError(404, "Aucun compte Google n'est connecté à ce profil : l'utilisateur peut en ajouter un dans l'app Nuo, Réglages › Comptes Google.");
+    if (!all.length) throw new HttpError(404, "No Google account is connected to this profile: the user can add one in the Nuo app, Settings › Google Accounts.");
     if (email) {
       const a = all.find((x) => x.email === email.trim().toLowerCase());
-      if (!a) throw new HttpError(404, `Le compte ${email} n'est pas connecté. Comptes connectés : ${all.map((x) => x.email).join(", ")}.`);
-      if (!a.services.includes(service)) throw new HttpError(403, `Le compte ${a.email} n'a pas autorisé ${label} : l'utilisateur doit le reconnecter avec ${label} dans Réglages › Comptes Google.`);
+      if (!a) throw new HttpError(404, `The account ${email} is not connected. Connected accounts: ${all.map((x) => x.email).join(", ")}.`);
+      if (!a.services.includes(service)) throw new HttpError(403, `The account ${a.email} has not authorized ${label}: the user must connect it again with ${label} in Settings › Google Accounts.`);
       return a.email;
     }
     const withService = all.filter((x) => x.services.includes(service));
     if (withService.length === 1) return withService[0]!.email;
-    if (!withService.length) throw new HttpError(403, `Aucun compte connecté n'a autorisé ${label} : l'utilisateur peut l'ajouter dans Réglages › Comptes Google.`);
-    throw new HttpError(400, `Plusieurs comptes ont ${label} : précise account parmi ${withService.map((x) => x.email).join(", ")}.`);
+    if (!withService.length) throw new HttpError(403, `No connected account has authorized ${label}: the user can add it in Settings › Google Accounts.`);
+    throw new HttpError(400, `Several accounts have ${label}: set account to one of ${withService.map((x) => x.email).join(", ")}.`);
   }
 
   async accessToken(email: string, service: GoogleService): Promise<string> {
     const r = this.row(email);
-    if (!r) throw new HttpError(404, `Le compte ${email} n'est pas connecté.`);
-    if (!r.scopes.split(" ").includes(SERVICE_SCOPES[service])) throw new HttpError(403, `Le compte ${email} n'a pas autorisé ${SERVICE_LABELS[service]}.`);
+    if (!r) throw new HttpError(404, `The account ${email} is not connected.`);
+    if (!r.scopes.split(" ").includes(SERVICE_SCOPES[service])) throw new HttpError(403, `The account ${email} has not authorized ${SERVICE_LABELS[service]}.`);
     const cached = this.cache.get(r.email);
     if (cached && cached.expiresAt - EARLY_REFRESH_MS > this.now()) return cached.token;
     let p = this.refreshing.get(r.email);
@@ -191,10 +195,10 @@ export class GoogleAccounts {
       return t.accessToken;
     } catch (e) {
       if (e instanceof GoogleAuthError && e.invalidGrant) {
-        const msg = "Accès révoqué ou expiré : reconnecte ce compte.";
+        const msg = ACCESS_REVOKED[0]!;
         if (r.status !== "error") this.audit("google_error", false, { detail: `${r.email}: invalid_grant` });
         this.db.query("UPDATE google_accounts SET status = 'error', last_error = ?, updated_at = ? WHERE email = ?").run(msg, this.iso(), r.email);
-        throw new HttpError(409, `Le compte ${r.email} doit être reconnecté par l'utilisateur (Réglages › Comptes Google) : ${msg}`);
+        throw new HttpError(409, `The account ${r.email} must be connected again by the user (Settings › Google Accounts): ${msg}`);
       }
       throw new HttpError(502, (e as Error)?.message ?? String(e));
     }

@@ -77,7 +77,7 @@ describe("bot calls to the iPhone and the Mac", () => {
     await t.api("PUT", "/api/device/capabilities", { platform: "ios", tools: ["weather"] });
     const r = await local("apple_events", { start: "2026-10-24" });
     expect(r.status).toBe(503);
-    expect(r.data.error).toContain("Réglages › Accès des bots");
+    expect(r.data.error).toContain("Settings › Bot access");
     expect((await local("contacts_search")).status).toBe(404);
   });
 
@@ -231,7 +231,7 @@ describe("bot calls to the iPhone and the Mac", () => {
     const out = await call;
     expect(macSocket.events.some((e) => e.type === "device.request")).toBe(false);
     expect(out.status).toBe(504);
-    expect(out.data.error).toContain("n'ont pas répondu");
+    expect(out.data.error).toContain("did not answer in time");
   });
 
   test("with no socket and no push token the bot is told at once", async () => {
@@ -239,7 +239,7 @@ describe("bot calls to the iPhone and the Mac", () => {
     await t.api("PUT", "/api/device/capabilities", { platform: "ios", tools: IPHONE_TOOLS });
     const r = await local("weather", { place: "Annecy" });
     expect(r.status).toBe(503);
-    expect(r.data.error).toContain("ouvrir Nuo");
+    expect(r.data.error).toContain("open Nuo");
   });
 });
 
@@ -256,7 +256,7 @@ describe("nuo MCP server", () => {
     await t.api("POST", `/api/device/requests/${req.requestId}/claim`);
     await t.api("POST", `/api/device/requests/${req.requestId}/result`, { ok: true, result: { calendars: [{ id: "CAL-1", title: "Famille", account: "iCloud" }] } });
     expect(JSON.parse(await call)).toEqual({ calendars: [{ id: "CAL-1", title: "Famille", account: "iCloud" }] });
-    await expect(tools.call("maps_route", { to: "Lyon Part-Dieu" })).rejects.toThrow("Accès des bots");
+    await expect(tools.call("maps_route", { to: "Lyon Part-Dieu" })).rejects.toThrow("Bot access");
   });
 
   test("bot instructions tell Apple calendars apart from Google ones", () => {
@@ -290,7 +290,7 @@ describe("folders of the Mac", () => {
     mac.send({ type: "prompt", conversationId: conv.id, text: "Compare les deux devis", folder: { name: "Devis", path: "/Users/julie/Documents/Devis" } });
     await mac.next("message.end");
     const sent = t.runtime.prompts[0]!;
-    expect(sent.text).toStartWith("Compare les deux devis\n\n[Nuo] Dossier de travail choisi par l'utilisateur sur son Mac : « Devis » (/Users/julie/Documents/Devis).");
+    expect(sent.text).toStartWith('Compare les deux devis\n\n[Nuo] Working folder the user chose on their Mac: "Devis" (/Users/julie/Documents/Devis).');
     expect(sent.text).toContain("mac_file_read");
     const msgs = (await t.api("GET", `/api/conversations/${conv.id}/messages`)).data;
     expect(msgs[0].text).toBe("Compare les deux devis");
@@ -311,8 +311,8 @@ describe("folders of the Mac", () => {
     await t.api("POST", `/api/device/requests/${req.requestId}/claim`);
     await t.api("POST", `/api/device/requests/${req.requestId}/result`, { ok: true, result: { path: req.args.path, bytes: pdf.length, created: true } });
     expect(JSON.parse(await call)).toMatchObject({ bytes: pdf.length, created: true });
-    await expect(tools.call("mac_file_write", { path: "/Users/alex/Documents/cv.pdf", from: join(dir, "absent.pdf") })).rejects.toThrow("n'est pas un fichier");
-    await expect(tools.call("mac_file_write", { path: "/Users/alex/Documents/Nouveau CV/CV.pdf", content: "%PDF-1.4 3c3c2f54797065", mode: "append" })).rejects.toThrow("passe le fichier de ton espace de travail dans `from`");
+    await expect(tools.call("mac_file_write", { path: "/Users/alex/Documents/cv.pdf", from: join(dir, "absent.pdf") })).rejects.toThrow("is not a file of your workspace");
+    await expect(tools.call("mac_file_write", { path: "/Users/alex/Documents/Nouveau CV/CV.pdf", content: "%PDF-1.4 3c3c2f54797065", mode: "append" })).rejects.toThrow("pass the file of your workspace in `from`");
     rmSync(dir, { recursive: true, force: true });
   });
 

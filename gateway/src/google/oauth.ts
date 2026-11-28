@@ -40,7 +40,7 @@ export const GOOGLE_ENDPOINTS: GoogleEndpoints = {
 export interface GoogleOAuthOptions {
   clientId?: string;
   clientSecret?: string;
-  /** Must be listed as an authorized redirect URI of the Google « Web application » client. */
+  /** Must be listed as an authorized redirect URI of the Google "Web application" client. */
   redirectUri?: string;
   endpoints?: Partial<GoogleEndpoints>;
   fetch?: typeof fetch;
