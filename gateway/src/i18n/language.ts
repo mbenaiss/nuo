@@ -5,7 +5,7 @@ import { CATALOGS, type MessageKey } from "./messages";
  * Two languages, two uses. The user's languages (BCP 47 tags, most preferred first) come from the apps'
  * `Accept-Language`: bots write in the first one, whatever it is. What the gateway writes itself (errors, push
  * notifications, notices in a conversation, public pages) is in the first of them it has a catalog for, English
- * otherwise (docs/protocol.md, « Language »).
+ * otherwise (docs/protocol.md, "Language").
  */
 export type UiLanguage = keyof typeof CATALOGS;
 export const DEFAULT_UI_LANGUAGE: UiLanguage = "en";
