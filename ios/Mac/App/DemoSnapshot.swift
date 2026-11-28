@@ -62,7 +62,7 @@ enum DemoSnapshot {
         extraWindow = panel
     }
 
-    /// A chat pane in a plain window (`-demoWindow chat`, with `-demoBot`/`-demoConversation`), without the main window.
+    /// A chat pane in a plain window (`-demoWindow chat`, with `-demoBot`/`-demoConversation` and `-demoWindowSize`), without the main window.
     @MainActor private static func showChat() async {
         let session = SessionStore(demo: true)
         let bots = BotsStore(session: session)
@@ -70,9 +70,10 @@ enum DemoSnapshot {
         let botId = DemoDirector.argument("-demoBot") ?? "cobot"
         guard let bot = bots.bot(id: botId) else { return }
         let selection = ChatSelection(botId: botId, conversationId: DemoDirector.argument("-demoConversation") ?? "c-\(botId)-1")
+        let size = DemoDirector.argument("-demoWindowSize").flatMap(parseSize) ?? NSSize(width: 900, height: 720)
         let host = NSHostingController(rootView: ChatPane(selection: selection, bot: bot, session: session, bots: bots)
             .environments(session: session, bots: bots)
-            .frame(width: 900, height: 720))
+            .frame(width: size.width, height: size.height))
         let panel = NSWindow(contentViewController: host)
         panel.styleMask = [.titled]
         panel.makeKeyAndOrderFront(nil)

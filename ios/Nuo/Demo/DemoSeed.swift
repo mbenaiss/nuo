@@ -227,6 +227,8 @@ enum DemoSeed {
             Conversation(id: "c-cobot-1", botId: "cobot", title: String(localized: "Gateway deployment"), useDraft: false, context: ContextUsage(usedTokens: 412_000, maxTokens: 1_000_000, compactions: 2, updatedAt: ago(240)), createdAt: ago(250), updatedAt: ago(240)),
             Conversation(id: "c-cobot-mail", botId: "cobot", title: String(localized: "Unverified emails"), useDraft: false, createdAt: ago(55), updatedAt: ago(54)),
             Conversation(id: "c-home-1", botId: "home", title: String(localized: "House check"), useDraft: false, createdAt: ago(51), updatedAt: ago(50)),
+            Conversation(id: "c-coach-meal", botId: "coach", title: String(localized: "Salmon poke bowl"), useDraft: false, createdAt: ago(131), updatedAt: ago(130)),
+            Conversation(id: "c-coach-run", botId: "coach", title: String(localized: "Morning intervals"), useDraft: false, createdAt: ago(161), updatedAt: ago(160)),
             Conversation(id: "c-cobot-hook", botId: "cobot", title: String(localized: "Linear webhook"), useDraft: false, createdAt: ago(75), updatedAt: ago(74)),
         ]
 
@@ -247,6 +249,23 @@ enum DemoSeed {
                     text: String(localized: "The draft is ready in Gmail, nothing has been sent. Review it, edit it if needed and send it from the card.") + "\n" + email,
                     steps: [ToolStep(toolCallId: "t8", title: "gmail_draft", kind: "other", status: .completed, durationMs: 1300)],
                     durationMs: 9000, stopReason: .endTurn, createdAt: ago(30)),
+            ],
+            "c-coach-run": [
+                Message(id: "m15", conversationId: "c-coach-run", role: .user, text: String(localized: "How did this morning's session go?"), createdAt: ago(161)),
+                Message(
+                    id: "m16", conversationId: "c-coach-run", role: .assistant, text: DemoCards.session,
+                    steps: [ToolStep(toolCallId: "t10", title: "whoop_workout today", kind: "fetch", status: .completed, durationMs: 900)],
+                    durationMs: 4000, stopReason: .endTurn, createdAt: ago(160)),
+            ],
+            "c-coach-meal": [
+                Message(id: "m17", conversationId: "c-coach-meal", role: .user, text: String(localized: "I had a salmon poke bowl for lunch."), createdAt: ago(131)),
+                Message(
+                    id: "m18", conversationId: "c-coach-meal", role: .assistant, text: DemoCards.meal,
+                    steps: [
+                        ToolStep(toolCallId: "t11", title: "log_food", kind: "execute", status: .completed, durationMs: 600),
+                        ToolStep(toolCallId: "t12", title: "macros", kind: "fetch", status: .completed, durationMs: 300),
+                    ],
+                    durationMs: 4000, stopReason: .endTurn, createdAt: ago(130)),
             ],
             "c-home-1": [
                 Message(id: "m13", conversationId: "c-home-1", role: .user, text: String(localized: "How's the house?"), createdAt: ago(51)),

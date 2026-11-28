@@ -199,4 +199,20 @@ struct WorkoutMealHomeCardTests {
         let alert = #"::home {"alerts":["Fuite sous l'évier"],"energy":7}"#
         #expect(MessageContent.blocks(alert) == [.card(.compact(.init(kind: "HOME", symbol: "exclamationmark.triangle.fill", tint: .bad, title: "Fuite sous l'évier", detail: "7 kWh")))])
     }
+
+    /// The demo's English and French answers must stay valid cards.
+    @Test func theDemoAnswersParseInBothLanguages() throws {
+        final class BundleToken {}
+        for language in ["en", "fr"] {
+            let path = try #require(Bundle(for: BundleToken.self).path(forResource: language, ofType: "lproj"))
+            let strings = try #require(Bundle(path: path))
+            func blocks(_ key: String) -> [ResponseBlock] {
+                ResponseBlockParser.parse(strings.localizedString(forKey: key, value: nil, table: nil))
+            }
+            #expect(blocks("demo.cards.session").contains { if case .workout = $0 { true } else { false } }, "\(language) session")
+            #expect(blocks("demo.cards.strength").contains { if case let .workout(gym) = $0 { gym.exercises.count == 4 } else { false } }, "\(language) strength")
+            #expect(blocks("demo.cards.meal").contains { if case let .meal(meal) = $0 { meal.day != nil && meal.items.count == 5 } else { false } }, "\(language) meal")
+            #expect(blocks("demo.cards.house").contains { if case let .home(home) = $0 { home.rooms.count == 4 && home.devices.count == 5 } else { false } }, "\(language) house")
+        }
+    }
 }

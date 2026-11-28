@@ -155,6 +155,9 @@ final class DemoTransport: LiveTransport {
                 ::question {"question":"Which rooms should the vacuum clean meanwhile?","options":["Living room","Kitchen","Bedroom"],"multiple":true}
                 """))
         }
+        if mentions("upper body", "upper-body", "haut du corps") {
+            return Script(steps: [("workout_log strength", "execute", 700)], text: DemoCards.strength)
+        }
         if mentions("how did", "comment s'est passé") {
             return Script(steps: [("whoop_workout today", "fetch", 900)], text: DemoCards.session)
         }
