@@ -937,6 +937,37 @@ image?, score?, verdict, counts, flagged: [{name, risk}]}` a cosmetic (tap: `GET
 `::email {account, draftId, to, cc, bcc, subject, body}` a Gmail draft: `gmail_draft` returns the line for the bot to
 copy. The card loads the current version (`GET /api/google/drafts/:id`), saves edits (`PUT`) and sends after a native
 confirmation (`POST …/send`); without the gateway it shows the line's fields, read only.
+
+Three cards cover a workout, a meal and the house. Every field is optional except the ones named first; texts are
+in the user's language and shown as written, while a bare number (`9.6`, or `"9,6"`) gets the unit the card adds.
+A card without its required fields renders as text, like an unknown kind.
+
+- `::workout` (also `::session`, `::training`) needs `sport` or `title`. `sport` is an English word for the icon
+  (run, ride, swim, walk, hike, strength, yoga, row…); `date` (`YYYY-MM-DD` or ISO date and time, other text as is),
+  `time`, `status` or `live: true` (an "In progress" badge), `duration` (min), `distance` (km), `pace` (text, or
+  minutes per km), `speed` (km/h), `calories` (kcal), `hr: {avg, max}` or `avgHr`/`maxHr` (bpm), `elevation` (m),
+  `effort`, `zones` (minutes from zone 1: `[6, 14, 9, 15, 8]`, or `[{zone, minutes | percent | time}]`), `laps`
+  (`[{label?, distance?, time?, pace?, hr?}]`, alias `splits`), `exercises`
+  (`[{name, sets: [{reps, weight} | reps | "60 s"], note?}]`, or `{name, sets: 3, reps: 10, weight: 40}`; weight in kg)
+  and `note`.
+
+  `::workout {"sport":"run","title":"Morning intervals","date":"2026-11-28","time":"07:12","duration":52,"distance":9.6,"pace":"4:31 /km","calories":690,"hr":{"avg":148,"max":179},"zones":[6,14,9,15,8],"laps":[{"time":"3:39","pace":"4:34 /km","hr":165}],"note":"Keep the full 2 min recovery."}`
+- `::meal` (also `::nutrition`) needs `name`, `meal` (the moment: breakfast, lunch…) or `items`. Then `time`,
+  `calories` (kcal), `protein`, `carbs`, `fat`, `fiber` (g, at the top level or in `macros`), `items`
+  (`[{name, portion?, calories?}]`, or plain names), `goal` (daily targets, same keys), `day` (eaten today, this meal
+  included: the card then shows the day against the goal) and `note`.
+
+  `::meal {"name":"Salmon poke bowl","meal":"Lunch","time":"12:40","calories":640,"protein":38,"carbs":72,"fat":21,"fiber":8,"items":[{"name":"Sushi rice","portion":"150 g","calories":195}],"goal":{"calories":2450,"protein":165},"day":{"calories":1840,"protein":132},"note":"33 g of protein left today."}`
+- `::home` (also `::house`) needs one of `rooms`, `devices`, `alerts` or `energy`. Then `title`, `summary`,
+  `updated`; `rooms` (`[{name, temperature (°), target, humidity (%), co2 (ppm), heating}]`, or an object keyed by
+  room name), `devices` (`[{name, type, room?, state, on?}]`: `type` picks the icon among light, heater, blind, plug,
+  lock, fan, vacuum, tv, washer, camera, alarm, charger; `state` is shown as is, `true`/`false` as On/Off, and `on`, or
+  a state such as on, open, heating or a level above 0, lights the device), `alerts` (`[{text, detail?, level,
+  kind?}]`, `level` info, warning or critical, `kind` window, door, leak, smoke, co2… for the icon) and `energy`
+  (`{today (kWh), now (kW), cost, note}`, or a number for today).
+
+  `::home {"title":"Home","rooms":[{"name":"Living room","temperature":21.4,"humidity":44,"co2":620}],"devices":[{"name":"Hall light","type":"light","state":"On"}],"alerts":[{"text":"Bathroom window open","detail":"Open for 40 min","level":"warning","kind":"window"}],"energy":{"today":9.4,"now":1.2,"cost":"1.95 €"}}`
+
 The gateway injects the card guide in every bot's instructions.
 
 ## Types

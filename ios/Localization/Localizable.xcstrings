@@ -2457,6 +2457,46 @@
         }
       }
     },
+    "%lld reps" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reps"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rép."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rép."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld reps in reserve" : {
       "localizations" : {
         "en" : {
@@ -7561,6 +7601,22 @@
         }
       }
     },
+    "Avg. heart rate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avg. heart rate"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FC moyenne"
+          }
+        }
+      }
+    },
     "Awaiting reply" : {
       "localizations" : {
         "en" : {
@@ -11609,6 +11665,22 @@
         }
       }
     },
+    "Cost" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cost"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coût"
+          }
+        }
+      }
+    },
     "Could not create" : {
       "localizations" : {
         "en" : {
@@ -14257,6 +14329,22 @@
         }
       }
     },
+    "Distance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance"
+          }
+        }
+      }
+    },
     "Docs" : {
       "localizations" : {
         "en" : {
@@ -15041,6 +15129,22 @@
         }
       }
     },
+    "Elevation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elevation"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dénivelé"
+          }
+        }
+      }
+    },
     "Email address" : {
       "localizations" : {
         "en" : {
@@ -15453,6 +15557,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fin"
+          }
+        }
+      }
+    },
+    "Energy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energy"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Énergie"
           }
         }
       }
@@ -16093,6 +16213,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Excellente quantité de protéines"
+          }
+        }
+      }
+    },
+    "Exercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercises"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercices"
           }
         }
       }
@@ -17069,6 +17205,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aliment"
+          }
+        }
+      }
+    },
+    "Foods" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foods"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aliments"
           }
         }
       }
@@ -18465,6 +18617,22 @@
         }
       }
     },
+    "HOME" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HOME"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MAISON"
+          }
+        }
+      }
+    },
     "Half marathon" : {
       "localizations" : {
         "en" : {
@@ -18621,6 +18789,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Santé pas encore autorisé : tu choisis chaque donnée partagée."
+          }
+        }
+      }
+    },
+    "Heart rate zones" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heart rate zones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zones cardiaques"
+          }
+        }
+      }
+    },
+    "Heating" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heating"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chauffe en cours"
           }
         }
       }
@@ -18993,6 +19193,22 @@
         }
       }
     },
+    "How did this morning's session go?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How did this morning's session go?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment s'est passée ma séance de ce matin ?"
+          }
+        }
+      }
+    },
     "How much did you have? I'll log it in today's macros." : {
       "localizations" : {
         "en" : {
@@ -19025,6 +19241,22 @@
         }
       }
     },
+    "Humidity %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Humidity %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Humidité %@"
+          }
+        }
+      }
+    },
     "Hydroxypropyl distarch phosphate" : {
       "localizations" : {
         "en" : {
@@ -19053,6 +19285,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je n'ai rien entendu."
+          }
+        }
+      }
+    },
+    "I had a salmon poke bowl for lunch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I had a salmon poke bowl for lunch."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "J'ai mangé un poke bowl au saumon à midi."
           }
         }
       }
@@ -20937,6 +21185,22 @@
         }
       }
     },
+    "Laps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tours"
+          }
+        }
+      }
+    },
     "Last" : {
       "localizations" : {
         "en" : {
@@ -22217,6 +22481,22 @@
         }
       }
     },
+    "MEAL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MEAL"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "REPAS"
+          }
+        }
+      }
+    },
     "MUSIC" : {
       "localizations" : {
         "en" : {
@@ -22505,6 +22785,22 @@
         }
       }
     },
+    "Max heart rate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max heart rate"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FC max"
+          }
+        }
+      }
+    },
     "May contain 4-MEI, a possible carcinogen." : {
       "localizations" : {
         "en" : {
@@ -22549,6 +22845,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moi"
+          }
+        }
+      }
+    },
+    "Meal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repas"
           }
         }
       }
@@ -23445,6 +23757,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plus d'options"
+          }
+        }
+      }
+    },
+    "Morning intervals" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morning intervals"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fractionné du matin"
           }
         }
       }
@@ -29465,6 +29793,22 @@
         }
       }
     },
+    "Pace" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pace"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allure"
+          }
+        }
+      }
+    },
     "Packaged agent know-how, called by name." : {
       "localizations" : {
         "en" : {
@@ -31493,6 +31837,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protéines"
+          }
+        }
+      }
+    },
+    "Protein %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protein %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protéines %@"
           }
         }
       }
@@ -34489,6 +34849,22 @@
         }
       }
     },
+    "Right now" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En ce moment"
+          }
+        }
+      }
+    },
     "Right-click to archive the selection." : {
       "localizations" : {
         "en" : {
@@ -34789,6 +35165,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saccharine"
+          }
+        }
+      }
+    },
+    "Salmon poke bowl" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salmon poke bowl"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poke bowl au saumon"
           }
         }
       }
@@ -36689,6 +37081,22 @@
         }
       }
     },
+    "Share of daily goal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share of daily goal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Part de l'objectif du jour"
+          }
+        }
+      }
+    },
     "Share or save “%@”" : {
       "localizations" : {
         "en" : {
@@ -37909,6 +38317,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La reconnaissance vocale n'est pas disponible sur cet appareil."
+          }
+        }
+      }
+    },
+    "Speed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vitesse"
           }
         }
       }
@@ -39493,6 +39917,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Touche pour parler à %@"
+          }
+        }
+      }
+    },
+    "Target %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consigne %@"
           }
         }
       }
@@ -45913,6 +46353,22 @@
         }
       }
     },
+    "WORKOUT" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WORKOUT"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SÉANCE"
+          }
+        }
+      }
+    },
     "Waiting" : {
       "localizations" : {
         "en" : {
@@ -46877,6 +47333,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Travaille…"
+          }
+        }
+      }
+    },
+    "Workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance"
           }
         }
       }
@@ -47938,17 +48410,52 @@
       }
     },
     "calendar.name" : {
+      "comment" : "Fallback name of a calendar without a title",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "calendar.name"
+            "value" : "Calendar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Calendrier"
+          }
+        }
+      }
+    },
+    "card.home.off" : {
+      "comment" : "State of a device in the home card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éteint"
+          }
+        }
+      }
+    },
+    "card.home.on" : {
+      "comment" : "State of a device in the home card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allumé"
           }
         }
       }
@@ -48312,13 +48819,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All good at home, except one thing: the **bathroom window** has been open for 40 min with the heating on.\n::metrics {\"title\":\"Home right now\",\"symbol\":\"house.fill\",\"items\":[[\"Living room\",\"70.5 °F\"],[\"Bedroom\",\"66.6 °F\"],[\"Kitchen\",\"71.8 °F\"],[\"Bathroom\",\"63.1 °F\"],[\"Front door\",\"Locked\"],[\"Power now\",\"1.2 kW\"]]}\n::callout {\"style\":\"warning\",\"title\":\"Bathroom window open\",\"text\":\"Open for 40 min while the radiator heats. I can turn the radiator off until it's closed.\"}\n::chart {\"title\":\"Energy this week\",\"symbol\":\"bolt.fill\",\"type\":\"bar\",\"unit\":\"kWh\",\"average\":9,\"points\":[[\"Mon\",8.2],[\"Tue\",7.4],[\"Wed\",9.1],[\"Thu\",7.9],[\"Fri\",8.6],[\"Sat\",11.2],[\"Sun\",10.4]]}"
+            "value" : "All good at home, except one thing: the **bathroom window** has been open for 40 min with the heating on.\n::home {\"title\":\"Home\",\"summary\":\"Everyone's out\",\"updated\":\"6:05 PM\",\"alerts\":[{\"text\":\"Bathroom window open\",\"detail\":\"Open for 40 min while the radiator heats. I can turn it off until the window is closed.\",\"level\":\"warning\",\"kind\":\"window\"}],\"rooms\":[{\"name\":\"Living room\",\"temperature\":70.5,\"humidity\":44,\"co2\":620},{\"name\":\"Bedroom\",\"temperature\":66.6,\"humidity\":48,\"co2\":540},{\"name\":\"Kitchen\",\"temperature\":71.8,\"humidity\":51,\"co2\":1080},{\"name\":\"Bathroom\",\"temperature\":63.1,\"target\":68,\"humidity\":72,\"heating\":true}],\"devices\":[{\"name\":\"Front door\",\"type\":\"lock\",\"state\":\"Locked\"},{\"name\":\"Bathroom radiator\",\"type\":\"heater\",\"state\":\"Heating\"},{\"name\":\"Living room lights\",\"type\":\"light\",\"state\":\"Off\"},{\"name\":\"Bedroom blinds\",\"type\":\"blind\",\"state\":\"Closed\"},{\"name\":\"Washing machine\",\"type\":\"washer\",\"state\":\"Running\",\"room\":\"Kitchen\"}],\"energy\":{\"today\":9.4,\"now\":1.2,\"cost\":\"$2.10\",\"note\":\"0.7 kWh under your daily average\"}}\n::chart {\"title\":\"Energy this week\",\"symbol\":\"bolt.fill\",\"type\":\"bar\",\"unit\":\"kWh\",\"average\":9,\"points\":[[\"Mon\",8.2],[\"Tue\",7.4],[\"Wed\",9.1],[\"Thu\",7.9],[\"Fri\",8.6],[\"Sat\",11.2],[\"Sun\",10.4]]}"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tout va bien à la maison, sauf une chose : la **fenêtre de la salle de bain** est ouverte depuis 40 min avec le chauffage allumé.\n::metrics {\"title\":\"La maison maintenant\",\"symbol\":\"house.fill\",\"items\":[[\"Salon\",\"21,4 °C\"],[\"Chambre\",\"19,2 °C\"],[\"Cuisine\",\"22,1 °C\"],[\"Salle de bain\",\"17,3 °C\"],[\"Porte d'entrée\",\"Verrouillée\"],[\"Consommation\",\"1,2 kW\"]]}\n::callout {\"style\":\"warning\",\"title\":\"Fenêtre de la salle de bain ouverte\",\"text\":\"Ouverte depuis 40 min pendant que le radiateur chauffe. Je peux couper le radiateur jusqu'à ce qu'elle soit fermée.\"}\n::chart {\"title\":\"Énergie cette semaine\",\"symbol\":\"bolt.fill\",\"type\":\"bar\",\"unit\":\"kWh\",\"average\":9,\"points\":[[\"Lun\",8.2],[\"Mar\",7.4],[\"Mer\",9.1],[\"Jeu\",7.9],[\"Ven\",8.6],[\"Sam\",11.2],[\"Dim\",10.4]]}"
+            "value" : "Tout va bien à la maison, sauf une chose : la **fenêtre de la salle de bain** est ouverte depuis 40 min avec le chauffage allumé.\n::home {\"title\":\"Maison\",\"summary\":\"Tout le monde est sorti\",\"updated\":\"18 h 05\",\"alerts\":[{\"text\":\"Fenêtre de la salle de bain ouverte\",\"detail\":\"Ouverte depuis 40 min pendant que le radiateur chauffe. Je peux le couper jusqu'à ce qu'elle soit fermée.\",\"level\":\"warning\",\"kind\":\"window\"}],\"rooms\":[{\"name\":\"Salon\",\"temperature\":21.4,\"humidity\":44,\"co2\":620},{\"name\":\"Chambre\",\"temperature\":19.2,\"humidity\":48,\"co2\":540},{\"name\":\"Cuisine\",\"temperature\":22.1,\"humidity\":51,\"co2\":1080},{\"name\":\"Salle de bain\",\"temperature\":17.3,\"target\":20,\"humidity\":72,\"heating\":true}],\"devices\":[{\"name\":\"Porte d'entrée\",\"type\":\"lock\",\"state\":\"Verrouillée\"},{\"name\":\"Radiateur salle de bain\",\"type\":\"heater\",\"state\":\"En chauffe\"},{\"name\":\"Lumières du salon\",\"type\":\"light\",\"state\":\"Éteintes\"},{\"name\":\"Volets de la chambre\",\"type\":\"blind\",\"state\":\"Fermés\"},{\"name\":\"Lave-linge\",\"type\":\"washer\",\"state\":\"En marche\",\"room\":\"Cuisine\"}],\"energy\":{\"today\":9.4,\"now\":1.2,\"cost\":\"1,95 €\",\"note\":\"0,7 kWh sous ta moyenne quotidienne\"}}\n::chart {\"title\":\"Énergie cette semaine\",\"symbol\":\"bolt.fill\",\"type\":\"bar\",\"unit\":\"kWh\",\"average\":9,\"points\":[[\"Lun\",8.2],[\"Mar\",7.4],[\"Mer\",9.1],[\"Jeu\",7.9],[\"Ven\",8.6],[\"Sam\",11.2],[\"Dim\",10.4]]}"
           }
         }
       }
@@ -48329,13 +48836,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logged: **salmon poke bowl** for lunch. Good protein after this morning's intervals.\n::facts {\"title\":\"Lunch · Salmon poke bowl\",\"items\":[[\"Calories\",\"640 kcal\"],[\"Protein\",\"38 g\"],[\"Carbs\",\"72 g\"],[\"Fat\",\"21 g\"],[\"Fiber\",\"8 g\"]]}\n::metrics {\"title\":\"Left for today\",\"symbol\":\"fork.knife\",\"items\":[[\"Calories\",\"610 kcal\"],[\"Protein\",\"33 g\"],[\"Carbs\",\"90 g\"],[\"Fat\",\"17 g\"]]}"
+            "value" : "Logged: **salmon poke bowl** for lunch. Good protein after this morning's intervals.\n::meal {\"name\":\"Salmon poke bowl\",\"meal\":\"Lunch\",\"time\":\"12:40 PM\",\"calories\":640,\"protein\":38,\"carbs\":72,\"fat\":21,\"fiber\":8,\"items\":[{\"name\":\"Sushi rice\",\"portion\":\"150 g\",\"calories\":195},{\"name\":\"Raw salmon\",\"portion\":\"100 g\",\"calories\":208},{\"name\":\"Edamame\",\"portion\":\"50 g\",\"calories\":61},{\"name\":\"Avocado\",\"portion\":\"½\",\"calories\":120},{\"name\":\"Mango, cucumber, sesame\",\"portion\":\"80 g\",\"calories\":56}],\"goal\":{\"calories\":2450,\"protein\":165,\"carbs\":280,\"fat\":75},\"day\":{\"calories\":1840,\"protein\":132,\"carbs\":190,\"fat\":58},\"note\":\"610 kcal and 33 g of protein left for today.\"}"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "C'est noté : **poke bowl au saumon** pour le déjeuner. De bonnes protéines après le fractionné de ce matin.\n::facts {\"title\":\"Déjeuner · Poke bowl au saumon\",\"items\":[[\"Calories\",\"640 kcal\"],[\"Protéines\",\"38 g\"],[\"Glucides\",\"72 g\"],[\"Lipides\",\"21 g\"],[\"Fibres\",\"8 g\"]]}\n::metrics {\"title\":\"Reste pour aujourd'hui\",\"symbol\":\"fork.knife\",\"items\":[[\"Calories\",\"610 kcal\"],[\"Protéines\",\"33 g\"],[\"Glucides\",\"90 g\"],[\"Lipides\",\"17 g\"]]}"
+            "value" : "C'est noté : **poke bowl au saumon** pour le déjeuner. De bonnes protéines après le fractionné de ce matin.\n::meal {\"name\":\"Poke bowl au saumon\",\"meal\":\"Déjeuner\",\"time\":\"12 h 40\",\"calories\":640,\"protein\":38,\"carbs\":72,\"fat\":21,\"fiber\":8,\"items\":[{\"name\":\"Riz à sushi\",\"portion\":\"150 g\",\"calories\":195},{\"name\":\"Saumon cru\",\"portion\":\"100 g\",\"calories\":208},{\"name\":\"Edamame\",\"portion\":\"50 g\",\"calories\":61},{\"name\":\"Avocat\",\"portion\":\"½\",\"calories\":120},{\"name\":\"Mangue, concombre, sésame\",\"portion\":\"80 g\",\"calories\":56}],\"goal\":{\"calories\":2450,\"protein\":165,\"carbs\":280,\"fat\":75},\"day\":{\"calories\":1840,\"protein\":132,\"carbs\":190,\"fat\":58},\"note\":\"Il te reste 610 kcal et 33 g de protéines pour aujourd'hui.\"}"
           }
         }
       }
@@ -48346,13 +48853,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Strong session: all **6 × 800 m** done at **4:31/km** on average, 4 s faster than planned. Your heart rate climbed on the last two reps, so keep the full 2 min recovery next time.\n::metrics {\"title\":\"This morning's intervals\",\"symbol\":\"figure.run\",\"items\":[[\"Distance\",\"9.6 km\"],[\"Duration\",\"52 min\"],[\"Avg. pace\",\"4:31 /km\"],[\"Avg. heart rate\",\"148 bpm\"],[\"Strain\",\"14.2\"],[\"Calories\",\"690 kcal\"]]}\n::chart {\"title\":\"Heart rate\",\"symbol\":\"heart.fill\",\"type\":\"line\",\"unit\":\"bpm\",\"average\":148,\"points\":[[\"0'\",104],[\"5'\",124],[\"10'\",136],[\"15'\",168],[\"20'\",149],[\"25'\",172],[\"30'\",151],[\"35'\",176],[\"40'\",179],[\"45'\",146],[\"50'\",121]]}"
+            "value" : "Strong session: all **6 × 800 m** done, 4 s faster than planned.\n::workout {\"sport\":\"run\",\"title\":\"Morning intervals\",\"date\":\"This morning\",\"time\":\"7:12 AM\",\"duration\":52,\"distance\":9.6,\"pace\":\"4:31 /km\",\"calories\":690,\"hr\":{\"avg\":148,\"max\":179},\"zones\":[6,14,9,15,8],\"laps\":[{\"time\":\"3:39\",\"pace\":\"4:34 /km\",\"hr\":165},{\"time\":\"3:37\",\"pace\":\"4:31 /km\",\"hr\":168},{\"time\":\"3:36\",\"pace\":\"4:30 /km\",\"hr\":170},{\"time\":\"3:37\",\"pace\":\"4:31 /km\",\"hr\":172},{\"time\":\"3:35\",\"pace\":\"4:29 /km\",\"hr\":176},{\"time\":\"3:34\",\"pace\":\"4:28 /km\",\"hr\":179}],\"note\":\"Your heart rate climbed on the last two reps: keep the full 2 min recovery next time.\"}"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Belle séance : les **6 × 800 m** bouclés à **4:31/km** de moyenne, 4 s plus vite que prévu. Ton cœur est monté sur les deux dernières répétitions : garde bien les 2 min de récupération la prochaine fois.\n::metrics {\"title\":\"Fractionné de ce matin\",\"symbol\":\"figure.run\",\"items\":[[\"Distance\",\"9,6 km\"],[\"Durée\",\"52 min\"],[\"Allure moy.\",\"4:31 /km\"],[\"FC moyenne\",\"148 bpm\"],[\"Effort\",\"14,2\"],[\"Calories\",\"690 kcal\"]]}\n::chart {\"title\":\"Fréquence cardiaque\",\"symbol\":\"heart.fill\",\"type\":\"line\",\"unit\":\"bpm\",\"average\":148,\"points\":[[\"0'\",104],[\"5'\",124],[\"10'\",136],[\"15'\",168],[\"20'\",149],[\"25'\",172],[\"30'\",151],[\"35'\",176],[\"40'\",179],[\"45'\",146],[\"50'\",121]]}"
+            "value" : "Belle séance : les **6 × 800 m** bouclés, 4 s plus vite que prévu.\n::workout {\"sport\":\"run\",\"title\":\"Fractionné du matin\",\"date\":\"Ce matin\",\"time\":\"7 h 12\",\"duration\":52,\"distance\":9.6,\"pace\":\"4:31 /km\",\"calories\":690,\"hr\":{\"avg\":148,\"max\":179},\"zones\":[6,14,9,15,8],\"laps\":[{\"time\":\"3:39\",\"pace\":\"4:34 /km\",\"hr\":165},{\"time\":\"3:37\",\"pace\":\"4:31 /km\",\"hr\":168},{\"time\":\"3:36\",\"pace\":\"4:30 /km\",\"hr\":170},{\"time\":\"3:37\",\"pace\":\"4:31 /km\",\"hr\":172},{\"time\":\"3:35\",\"pace\":\"4:29 /km\",\"hr\":176},{\"time\":\"3:34\",\"pace\":\"4:28 /km\",\"hr\":179}],\"note\":\"Ton cœur est monté sur les deux dernières répétitions : garde bien les 2 min de récupération la prochaine fois.\"}"
+          }
+        }
+      }
+    },
+    "demo.cards.strength" : {
+      "comment" : "Demo answer centered on a card",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upper-body session logged: **+2.5 kg on the bench press** since last week.\n::workout {\"sport\":\"strength\",\"title\":\"Upper body\",\"date\":\"Today\",\"time\":\"6:30 PM\",\"duration\":64,\"calories\":410,\"hr\":{\"avg\":118,\"max\":154},\"exercises\":[{\"name\":\"Bench press\",\"sets\":[{\"reps\":8,\"weight\":70},{\"reps\":8,\"weight\":72.5},{\"reps\":6,\"weight\":72.5},{\"reps\":6,\"weight\":72.5}]},{\"name\":\"Pull-ups\",\"sets\":[10,9,8],\"note\":\"Bodyweight\"},{\"name\":\"Overhead press\",\"sets\":3,\"reps\":10,\"weight\":40},{\"name\":\"Plank\",\"sets\":[\"60 s\",\"60 s\",\"45 s\"]}],\"note\":\"Next time: 72.5 kg on all four bench press sets.\"}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Séance haut du corps enregistrée : **+2,5 kg au développé couché** depuis la semaine dernière.\n::workout {\"sport\":\"strength\",\"title\":\"Haut du corps\",\"date\":\"Aujourd'hui\",\"time\":\"18 h 30\",\"duration\":64,\"calories\":410,\"hr\":{\"avg\":118,\"max\":154},\"exercises\":[{\"name\":\"Développé couché\",\"sets\":[{\"reps\":8,\"weight\":70},{\"reps\":8,\"weight\":72.5},{\"reps\":6,\"weight\":72.5},{\"reps\":6,\"weight\":72.5}]},{\"name\":\"Tractions\",\"sets\":[10,9,8],\"note\":\"Poids du corps\"},{\"name\":\"Développé militaire\",\"sets\":3,\"reps\":10,\"weight\":40},{\"name\":\"Gainage\",\"sets\":[\"60 s\",\"60 s\",\"45 s\"]}],\"note\":\"La prochaine fois : 72,5 kg sur les quatre séries de développé couché.\"}"
           }
         }
       }

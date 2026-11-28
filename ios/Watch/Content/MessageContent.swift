@@ -139,6 +139,17 @@ enum MessageContent {
             return [.card(.phoneOnly(kind: String(localized: "Conversation"), symbol: "bubble.left.and.bubble.right.fill", title: conversation.title))]
         case let .email(email):
             return [.card(.phoneOnly(kind: String(localized: "Email draft"), symbol: "envelope.fill", title: email.subject.nilIfEmpty ?? String(localized: "(no subject)")))]
+        case let .workout(workout):
+            return [compact(String(localized: "WORKOUT"), workout.sportSymbol, .accent, workout.title ?? workout.sport ?? String(localized: "Workout"),
+                            workout.duration.map(line), workout.distance.map(line), workout.calories.map(line))]
+        case let .meal(meal):
+            return [compact(String(localized: "MEAL"), "fork.knife", .good, meal.name ?? meal.moment ?? String(localized: "Meal"),
+                            meal.calories.map(line), meal.protein.map { String(localized: "Protein \(line($0))") })]
+        case let .home(home):
+            let alert = home.alerts.first?.text
+            return [compact(String(localized: "HOME"), alert == nil ? "house.fill" : "exclamationmark.triangle.fill", alert == nil ? .accent : .bad,
+                            alert ?? home.title ?? String(localized: "Home"), alert == nil ? home.summary : nil,
+                            home.energy?.today.map(line))]
         }
     }
 
@@ -149,6 +160,13 @@ enum MessageContent {
             .joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .nilIfEmpty
+    }
+
+    /// "52 min", "9.6 km", "4:31 /km": the bot's text, or the number and its unit.
+    private static func line(_ quantity: CardQuantity) -> String {
+        if let text = quantity.text { return text }
+        let number = (quantity.number ?? 0).formatted(.number.precision(.fractionLength(0...1)))
+        return quantity.unit.map { "\(number) \($0)" } ?? number
     }
 
     private static func compact(_ kind: String, _ symbol: String, _ tint: WatchCard.Tint, _ title: String, _ details: String?...) -> MessageBlock {

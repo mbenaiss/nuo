@@ -324,7 +324,7 @@ enum ResponseBlockParser {
         return .callout(CalloutPayload(style: style, title: nil, text: text))
     }
 
-    private struct Fields {
+    struct Fields {
         let json: [String: Any]
 
         func string(_ keys: String...) -> String? {
@@ -646,6 +646,15 @@ enum ResponseBlockParser {
             return .email(EmailDraftPayload(
                 account: f.string("account", "from") ?? "", draftId: draftId, to: recipients("to"), cc: recipients("cc"),
                 bcc: recipients("bcc"), subject: f.string("subject") ?? "", body: (json["body"] as? String) ?? ""))
+
+        case "workout", "session", "training":
+            return workout(json).map(ResponseBlock.workout)
+
+        case "meal", "nutrition":
+            return meal(json).map(ResponseBlock.meal)
+
+        case "home", "house":
+            return home(json).map(ResponseBlock.home)
 
         case "notice":
             return .notice(NoticePayload(

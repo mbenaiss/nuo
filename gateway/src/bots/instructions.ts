@@ -16,7 +16,7 @@ keep one or two sentences of context around it:
 - product identified by its barcode → \`::product\` for a food, \`::cosmetic\` for a cosmetic (mandatory, never copy
   its nutrition facts or its ingredient list); parcel → \`::parcel\`;
 - weather → \`::weather\`; flight → \`::flight\`; address, restaurant, place → \`::place\`;
-- summary, recap, key figures, a meal's macros → \`::facts\`;
+- summary, recap, key figures → \`::facts\`;
 - trend or series of values (steps, weight, sleep over several days) → \`::chart\`;
 - advice, warning, point of attention → \`::callout\`;
 - a question you need answered to go on and that is answered by a choice → \`::question\`;
@@ -48,6 +48,13 @@ the rest of your answer; keys, codes and units stay as below.
 - Email draft: \`gmail_draft\` returns a card \`::email {"account":"…","draftId":"…","to":["…"],"cc":[],"bcc":[],"subject":"…","body":"…"}\`.
   Copy it as it is, alone on its line, without rewriting the message around it: the user reads the draft there,
   edits it and sends it themselves. After revising a draft, copy the new card.
+- Workout, meal and home: one card each, values in the user's language; a bare number gets the unit shown in brackets.
+  - Finished or ongoing workout → \`::workout {"sport":"run","title":"Morning intervals","date":"2026-11-28","time":"07:12","duration":52,"distance":9.6,"pace":"4:31 /km","calories":690,"hr":{"avg":148,"max":179},"zones":[6,14,9,15,8],"laps":[{"time":"3:39","pace":"4:34 /km","hr":165}],"note":"Keep the full 2 min recovery."}\`
+    (duration: min, distance: km, zones: minutes in zones 1 to 5, \`"live":true\` while it runs). Strength: \`"exercises":[{"name":"Bench press","sets":[{"reps":8,"weight":70}]}]\` (weight: kg).
+  - Meal logged or analysed → \`::meal {"name":"Salmon poke bowl","meal":"Lunch","time":"12:40","calories":640,"protein":38,"carbs":72,"fat":21,"fiber":8,"items":[{"name":"Sushi rice","portion":"150 g","calories":195}],"goal":{"calories":2450,"protein":165},"day":{"calories":1840,"protein":132},"note":"33 g of protein left today."}\`
+    (macros: g; \`goal\`: daily targets; \`day\`: eaten today, this meal included).
+  - State of the house → \`::home {"title":"Home","rooms":[{"name":"Living room","temperature":21.4,"humidity":44,"co2":620}],"devices":[{"name":"Hall light","type":"light","state":"On"}],"alerts":[{"text":"Bathroom window open","detail":"Open for 40 min","level":"warning","kind":"window"}],"energy":{"today":9.4,"now":1.2,"cost":"1.95 €"}}\`
+    (temperature: °, humidity: %, co2: ppm, energy today: kWh, now: kW; type: light, heater, blind, plug, lock…; level: info, warning or critical).
 
 - File to open, download or share (HTML page, SVG, PDF, spreadsheet, presentation, image…): write it in your working
   folder (e.g. \`artifacts/report.html\`), then add the line \`::artifact {"path":"artifacts/report.html","title":"Report"}\`.

@@ -130,6 +130,7 @@ targets:
       - path: Nuo/Features/Notes/NoteTemplates.swift
       - path: Nuo/Cards/ResponseBlockParser.swift
       - path: Nuo/Cards/CardPayloads.swift
+      - path: Nuo/Cards/WorkoutMealHomePayloads.swift
       - path: Nuo/Cards/WeatherSymbols.swift
     dependencies:
       - target: NuoWatchWidgets
@@ -402,6 +403,7 @@ targets:
       - path: Nuo/Cards/ResponseBlockParser.swift
       - path: Nuo/Cards/TextExcerpt.swift
       - path: Nuo/Cards/CardPayloads.swift
+      - path: Nuo/Cards/WorkoutMealHomePayloads.swift
       - path: Nuo/Cards/EmailDraft.swift
       - path: Nuo/Cards/ArtifactSave.swift
       - path: Nuo/Cards/WeatherSymbols.swift
