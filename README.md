@@ -12,9 +12,9 @@ and update.
 Watch the [full demo (70 s)](https://mbenaiss.github.io/nuo/media/nuo-demo.mp4).
 
 <p>
-  <img src="docs/media/iphone-session.png" alt="A workout recap with metrics and heart rate cards on iPhone" width="220">
+  <img src="docs/media/iphone-session.png" alt="A run recap card with pace, heart rate zones and laps on iPhone" width="220">
   <img src="docs/media/iphone-drink.png" alt="A scanned drink with its score card on iPhone" width="220">
-  <img src="docs/media/iphone-home.png" alt="Room temperatures, an alert and energy use from Home Assistant on iPhone" width="220">
+  <img src="docs/media/iphone-home.png" alt="A home card with an open window alert and room readings from Home Assistant on iPhone" width="220">
 </p>
 <p>
   <img src="docs/media/mac-chat.png" alt="A conversation in the Mac app" width="670">
