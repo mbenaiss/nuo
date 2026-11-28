@@ -157,8 +157,10 @@ private struct HomeDeviceTile: View {
                 .frame(width: 30, height: 30)
                 .background(on ? tint.opacity(0.16) : Color.chip, in: Circle())
             VStack(alignment: .leading, spacing: 1) {
-                Text(device.name).font(.subheadline.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
-                Text(detail).font(.caption).foregroundStyle(on ? Color.ink : Color.text2).lineLimit(1)
+                Text(device.name).font(.subheadline.weight(.medium)).foregroundStyle(Color.ink).lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(detail).font(.caption).foregroundStyle(on ? Color.ink : Color.text2).lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
@@ -173,7 +175,8 @@ private struct HomeDeviceTile: View {
         let state = device.state ?? device.isOn.map {
             $0 ? String(localized: "card.home.on", defaultValue: "On") : String(localized: "card.home.off", defaultValue: "Off")
         }
-        return [state, device.room].compactMap { $0 }.joined(separator: " · ")
+        // A no-break space keeps the dot with the state when the room wraps to the next line.
+        return [state, device.room].compactMap { $0 }.joined(separator: "\u{00A0}· ")
     }
 
     private var kind: String { (device.kind ?? device.name).lowercased() }
