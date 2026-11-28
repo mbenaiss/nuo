@@ -62,7 +62,7 @@ export class ClaudeRuntime extends AcpRuntime {
 
   async start(opts: SessionOptions): Promise<AgentSession> {
     const profileHome = this.host.kind === "profile" ? this.host.home : undefined;
-    return new ClaudeAuthSession(await super.start(opts), { retryDelaysMs: DEFAULT_RETRY_DELAYS_MS, profileHome });
+    return new ClaudeAuthSession(await super.start(opts), { retryDelaysMs: DEFAULT_RETRY_DELAYS_MS, profileHome, lang: opts.uiLanguage });
   }
 
   async status(): Promise<Status> {

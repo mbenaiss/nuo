@@ -158,7 +158,7 @@ export type TaskAction =
 export interface ScheduledTask {
   id: string;
   botId: string; // command tasks: the bot they are grouped under in the app and in push threads
-  title: string; // short French label, e.g. "Séance du jour"
+  title: string; // short label in the user's language, e.g. "Today's workout"
   action: TaskAction;
   prompt: string; // sent to the bot as a user message (slash commands and #tags allowed); "" for command tasks
   schedule: TaskSchedule;
@@ -362,7 +362,7 @@ export type MessageWake =
 
 export type ClientEvent =
   /**
-   * `steer`: « Envoyer maintenant » while a turn runs. Claude and Codex take the message into the running turn; the
+   * `steer`: "Send now" while a turn runs. Claude and Codex take the message into the running turn; the
    * other agents stop the turn and start a new one with it. Without a running turn it is a normal prompt.
    */
   | {
@@ -374,7 +374,7 @@ export type ClientEvent =
       model?: string;
       effort?: string;
       voice?: boolean;
-      /** « Objectif »: the bot works without asking at each step; what it sends, invites or deletes is confirmed. */
+      /** "Goal": the bot works without asking at each step; what it sends, invites or deletes is confirmed. */
       goal?: boolean;
       steer?: boolean;
       /** The folder of the user's Mac this conversation works in, reached through the `mac_*` device tools. */

@@ -119,7 +119,7 @@ describe("a bot without any tool", () => {
   test("a conversation moved to an agent that keeps its own tools is refused", async () => {
     const { conv, sock } = await notes();
     sock.send({ type: "prompt", conversationId: conv.id, text: "Rédige le compte rendu du point budget EDF du 12 novembre.", agent: "codex" });
-    expect((await sock.next("error")).message).toContain("ce bot n'a aucun outil");
+    expect((await sock.next("error")).message).toContain("this bot has no tools");
     expect((await sock.next("message.end")).stopReason).toBe("error");
     expect(t!.runtime.starts).toHaveLength(0);
   });

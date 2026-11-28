@@ -159,7 +159,7 @@ describe("secrets routes", () => {
     expect(events.filter((e) => e.ok).map((e) => [e.detail, e.deviceName])).toEqual([["lumen-bank.env · BANK_SECRET_KEY", "Test iPhone"]]);
     expect(JSON.stringify(t.app.auth.events(500))).not.toContain("bank_fixture_k3y9Zt");
     const pushes = t.pusher.sent.map((p) => JSON.stringify(p.payload));
-    expect(pushes.some((p) => p.includes("Secret affiché") && p.includes("lumen-bank.env › BANK_SECRET_KEY"))).toBe(true);
+    expect(pushes.some((p) => p.includes("Secret shown") && p.includes("lumen-bank.env › BANK_SECRET_KEY"))).toBe(true);
     expect(pushes.join("")).not.toContain("bank_fixture_k3y9Zt");
   });
 
@@ -202,7 +202,7 @@ describe("secrets routes", () => {
     expect(viaInternet.status).toBe(403);
     expect((await register()).status).toBe(200);
     expect(t.app.auth.events().filter((e) => e.type === "action_key" && e.ok).map((e) => e.detail)).toEqual(["registered"]);
-    expect(t.pusher.sent.some((p) => JSON.stringify(p.payload).includes("Nouvelle clé Face ID"))).toBe(true);
+    expect(t.pusher.sent.some((p) => JSON.stringify(p.payload).includes("New Face ID key"))).toBe(true);
   });
 
   test("unknown secrets, the gateway's file, files outside the folder and symlinks cannot be revealed", async () => {

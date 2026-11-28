@@ -78,14 +78,14 @@ export async function saveWorkspaceFile(workspace: string, name: string | undefi
 }
 
 export function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} o`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1).replace(".", ",")} Ko`;
-  return `${(bytes / 1024 / 1024).toFixed(1).replace(".", ",")} Mo`;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 /** Appended to the agent's prompt only; the persisted message keeps the typed text. */
 export function filesNote(files: SavedFile[]): string {
   if (!files.length) return "";
   const lines = files.map((f) => `- ${f.path} (${f.mime}, ${formatSize(f.size)})`);
-  return `\n\n[Nuo] Fichiers joints par l'utilisateur, enregistrés dans ton espace de travail (lis-les avec tes outils) :\n${lines.join("\n")}`;
+  return `\n\n[Nuo] Files attached by the user, saved in your workspace (read them with your tools):\n${lines.join("\n")}`;
 }

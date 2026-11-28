@@ -1,6 +1,6 @@
 /**
  * Checks the `Cf-Access-Jwt-Assertion` Cloudflare Access adds to each request it lets through: without it, any
- * process that reaches the gateway port from a tunnel or proxy host would count as « passed Access ».
+ * process that reaches the gateway port from a tunnel or proxy host would count as "passed Access".
  */
 export interface CfAccessConfig {
   /** `<team>.cloudflareaccess.com`: the token's issuer and where its signing keys are published. */

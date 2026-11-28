@@ -227,7 +227,7 @@ test("voice prompts get a brevity prefix and images are stored", async () => {
   sock.send({ type: "prompt", conversationId: conv.id, text: "Quoi ?", voice: true, attachments: [{ kind: "image", mime: "image/png", dataBase64: png }] });
   await sock.next("message.end");
   const p = t.runtime.prompts[0]!;
-  expect(p.text).toStartWith("[Réponse vocale");
+  expect(p.text).toStartWith("[Voice answer");
   expect(p.text).toEndWith("Quoi ?");
   expect(p.attachments[0]).toMatchObject({ kind: "image", mime: "image/png", dataBase64: png });
   const user = (await t.api("GET", `/api/conversations/${conv.id}/messages`)).data[0];

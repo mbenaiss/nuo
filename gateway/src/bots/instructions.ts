@@ -320,8 +320,8 @@ export const RELAY_GUIDE = `## Request sent from the watch, iPhone locked
 This conversation goes through the relay access: you can only add a reminder, an event, a note or a collection item,
 or pass a message to another bot, with the tools of the nuo server offered to you; each call waits for the user's
 confirmation on their watch. You have neither your memory, nor their data, nor their files. For everything else
-(read, search, send, change, delete, invite someone), answer in one sentence that it is "to do from the unlocked
-iPhone", in the user's language.`;
+(read, search, send, change, delete, invite someone), answer in one sentence, in the user's language, that it is
+"to do from the unlocked iPhone".`;
 
 /** What a relay session reads: the bot's own instructions, never its memory, the database schema or the data paths. */
 export function relayInstructions(config: BotConfig, userLanguage?: string): string {

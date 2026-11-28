@@ -57,12 +57,12 @@ describe("cutting text for the apps", () => {
 
   test("the confirmation asked for a goal turn's action", () => {
     const title = goalConfirmation("apple_event_delete", { title: `${lead(78)}${RUNNER} jeudi` })!;
-    expect(title).toBe(`Supprimer l'évènement « ${lead(78).trimEnd()}… »`);
+    expect(title).toBe(`Delete the event "${lead(78).trimEnd()}…"`);
     expect(title.isWellFormed()).toBe(true);
   });
 
   test("the confirmation asked for a relayed action", () => {
-    const title = relayConfirmationTitle({ server: "nuo", name: "reminder_done", input: { title: `${lead(88)}${RUNNER} ce soir` } });
+    const title = relayConfirmationTitle({ server: "nuo", name: "reminder_done", input: { title: `${lead(88)}${RUNNER} ce soir` } }, "fr");
     expect(title).toBe(`Cocher le rappel « ${lead(88).trimEnd()}… »`);
     expect(title.isWellFormed()).toBe(true);
   });

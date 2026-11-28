@@ -149,10 +149,10 @@ describe("tool commands", () => {
     const { conv } = await setup();
     const { end, events } = await send("/casse", conv.id);
     expect(events.find((e) => e.type === "tool.end")).toMatchObject({ status: "failed" });
-    expect((events.find((e) => e.type === "message.delta") as any).text).toBe("La commande /casse a échoué : date invalide");
+    expect((events.find((e) => e.type === "message.delta") as any).text).toBe("The command /casse failed: date invalide");
     expect(end).toMatchObject({ steps: 1, stopReason: "error" });
     const msgs = (await t.api("GET", `/api/conversations/${conv.id}/messages`)).data;
-    expect(msgs[1]).toMatchObject({ stopReason: "error", text: "La commande /casse a échoué : date invalide" });
+    expect(msgs[1]).toMatchObject({ stopReason: "error", text: "The command /casse failed: date invalide" });
   });
 
   test("a server that cannot start ends with a readable message", async () => {
@@ -162,7 +162,7 @@ describe("tool commands", () => {
     (t.app as any).runner.catalog.reload();
     const { end, events } = await send("/vol X", conv.id);
     expect(end.stopReason).toBe("error");
-    expect((events.find((e) => e.type === "message.delta") as any).text).toStartWith("Impossible d'exécuter /vol : ");
+    expect((events.find((e) => e.type === "message.delta") as any).text).toStartWith("Could not run /vol: ");
   });
 
   test("the server gets NUO_MEDIA_DIR and its client is reused", async () => {
@@ -216,7 +216,7 @@ describe("prompt, open and unknown commands", () => {
   test("open and app commands get a short local answer", async () => {
     const { conv } = await setup();
     const { end, events } = await send("/chrono", conv.id);
-    expect((events.find((e) => e.type === "message.delta") as any).text).toContain("gérée par l'app");
+    expect((events.find((e) => e.type === "message.delta") as any).text).toContain("handled by the Nuo app");
     expect(end).toMatchObject({ steps: 0, stopReason: "end_turn" });
     expect(t.runtime.prompts).toHaveLength(0);
   });
@@ -246,7 +246,7 @@ describe("sync-seed", () => {
       { name: "Absent", status: "missing" },
     ]);
     const got = (await t.api("GET", `/api/bots/${bot.id}`)).data;
-    expect(got.published.note).toBe("Ajout des commandes");
+    expect(got.published.note).toBe("Commands added");
     expect(got.published.config.commands.map((c: BotCommand) => c.name)).toEqual(["vol", "runs", "perso"]);
     expect(got.published.config.instructions).toBe("Tu es l'assistant voyages.");
     expect(got.draft.instructions).toBe("brouillon");

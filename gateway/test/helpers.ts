@@ -84,11 +84,11 @@ export class FakeRuntime implements AgentRuntime {
           on({ type: "usage", usedTokens: 5000, maxTokens: 200000 });
           return { stopReason: "end_turn" };
         }
-        if (text.startsWith("[Nuo] La conversation va être compactée")) {
+        if (text.startsWith("[Nuo] The conversation is about to be compacted")) {
           on({ type: "text", text: "Résumé : l'utilisateur part à Rome le 20/10." });
           return { stopReason: "end_turn" };
         }
-        if (text.startsWith("[Nuo] Cette conversation a été compactée")) {
+        if (text.startsWith("[Nuo] This conversation was compacted")) {
           on({ type: "text", text: "OK" });
           return { stopReason: "end_turn", usage: { usedTokens: 1200 } };
         }
@@ -143,7 +143,8 @@ export class FakeRuntime implements AgentRuntime {
           on({ type: "text", text: "Déployé" });
           return { stopReason: "end_turn" };
         }
-        if (text.includes("tool")) {
+        // A whole word: the goal instructions the gateway puts before a prompt speak of "tools".
+        if (/\btool\b/.test(text)) {
           on({ type: "tool.start", toolCallId: "t1", title: "flight_status", kind: "fetch" });
           await Bun.sleep(20);
           on({ type: "tool.end", toolCallId: "t1", status: "completed" });

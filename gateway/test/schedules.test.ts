@@ -252,7 +252,18 @@ describe("scheduler", () => {
     const run = (await t.api("GET", `/api/schedules/${task.id}/runs`)).data[0];
     expect(run).toMatchObject({ status: "error", error: "agent crashed" });
     expect((await t.api("GET", "/api/schedules")).data[0].lastStatus).toBe("error");
-    expect(t.pusher.sent.map((s) => s.payload.body)).toEqual(["Erreur : agent crashed"]);
+    expect(t.pusher.sent.map((s) => s.payload.body)).toEqual(["Error: agent crashed"]);
+  });
+
+  test("the push is in the language the user's device last sent, English otherwise", async () => {
+    const { bot } = await setup();
+    await t.api("POST", "/api/devices", { apnsToken: "ab".repeat(32), environment: "development" });
+    const task = (await t.api("POST", "/api/schedules", { botId: bot.id, title: "Relevé des compteurs", prompt: "boom", schedule: cron("0 * * * *") })).data;
+    await advance("2026-10-17T11:00:00Z");
+    await fetch(`${t.base}/api/schedules`, { headers: { authorization: `Bearer ${t.token}`, "accept-language": "fr-FR,fr;q=0.9,en;q=0.8" } });
+    await advance("2026-10-17T12:00:00Z");
+    expect(t.pusher.sent.map((s) => s.payload.body)).toEqual(["Error: agent crashed", "Erreur : agent crashed"]);
+    expect((await t.api("GET", `/api/schedules/${task.id}/runs`)).data).toHaveLength(2);
   });
 
   test("a task without notification runs out of the conversation list; one that notifies stays in it", async () => {
@@ -294,7 +305,7 @@ describe("scheduler", () => {
     await Bun.sleep(30);
     await t.app.runner.cancel(r.data.conversationId);
     await t.app.scheduler.idle();
-    expect((await t.api("GET", `/api/schedules/${task.id}/runs`)).data[0]).toMatchObject({ status: "error", error: "annulée" });
+    expect((await t.api("GET", `/api/schedules/${task.id}/runs`)).data[0]).toMatchObject({ status: "error", error: "cancelled" });
   });
 
   test("a run cut by a restart of the gateway pushes no error: its turn resumes once the gateway is back", async () => {
@@ -306,7 +317,7 @@ describe("scheduler", () => {
     await t.app.runner.shutdown();
     await t.app.scheduler.idle();
     expect(t.pusher.sent).toHaveLength(0);
-    expect((await t.api("GET", `/api/schedules/${task.id}/runs`)).data[0]).toMatchObject({ status: "error", error: "coupée par le redémarrage de la passerelle, reprise à son retour" });
+    expect((await t.api("GET", `/api/schedules/${task.id}/runs`)).data[0]).toMatchObject({ status: "error", error: "cut by the gateway restart, resumed once it is back" });
     expect(JSON.parse(t.app.store.getMeta("runner.interrupted")!)).toEqual([run.conversationId]);
   });
 
@@ -343,7 +354,7 @@ describe("command tasks", () => {
 
   test("defaults, no prompt, and older clients keep working", async () => {
     await setupCommands();
-    const r = await create("HYROX — places", command("echo hi"));
+    const r = await create("HYROX: places", command("echo hi"));
     expect(r.status).toBe(200);
     expect(r.data).toMatchObject({ prompt: "", notify: true, action: { type: "command", command: "echo hi", timeoutSec: 600, notifyOn: "failure" } });
     const off = await t.api("PATCH", `/api/schedules/${r.data.id}`, { notify: false });
@@ -397,15 +408,15 @@ describe("command tasks", () => {
     const flag = join(t.home, "ok");
     const task = (await create("Cloud budget guard", command(`test -f ${flag} && echo fine || { echo "quota exceeded" >&2; exit 3; }`))).data;
     await advance("2026-10-17T11:00:00Z");
-    expect((await runs(task.id))[0]).toMatchObject({ status: "error", exitCode: 3, error: "code de sortie 3", output: "quota exceeded" });
+    expect((await runs(task.id))[0]).toMatchObject({ status: "error", exitCode: 3, error: "exit code 3", output: "quota exceeded" });
     await advance("2026-10-17T12:00:00Z");
     expect((await runs(task.id))[0].status).toBe("error");
     writeFileSync(flag, "");
     await advance("2026-10-17T13:00:00Z");
     await advance("2026-10-17T14:00:00Z");
     expect(t.pusher.sent.map((s) => [s.payload.title, s.payload.body])).toEqual([
-      ["⚠️ Cloud budget guard", "code de sortie 3\nquota exceeded"],
-      ["✅ Cloud budget guard rétabli", "fine"],
+      ["⚠️ Cloud budget guard", "exit code 3\nquota exceeded"],
+      ["✅ Cloud budget guard recovered", "fine"],
     ]);
     expect((await runs(task.id)).map((r: any) => r.status)).toEqual(["ok", "ok", "error", "error"]);
   });
@@ -419,10 +430,10 @@ describe("command tasks", () => {
     expect(run).toMatchObject({ status: "error", exitCode: 12 });
     const destination = { kind: "task", id: task.id, botId, runId: run.id };
     expect(t.pusher.sent.map((s) => s.payload)).toEqual([
-      { title: "⚠️ Sauvegarde NAS", body: "code de sortie 12\nrsync: connection refused (111)", botId, taskId: task.id, runId: run.id, destination },
+      { title: "⚠️ Sauvegarde NAS", body: "exit code 12\nrsync: connection refused (111)", botId, taskId: task.id, runId: run.id, destination },
     ]);
     const alerts = (await t.api("GET", "/api/alerts")).data;
-    expect(alerts).toEqual([{ id: expect.any(String), title: "⚠️ Sauvegarde NAS", body: "code de sortie 12\nrsync: connection refused (111)", botId, destination, createdAt: expect.any(String) }]);
+    expect(alerts).toEqual([{ id: expect.any(String), title: "⚠️ Sauvegarde NAS", body: "exit code 12\nrsync: connection refused (111)", botId, destination, createdAt: expect.any(String) }]);
     expect((await sock.next("alert")).alert).toEqual(alerts[0]);
   });
 
@@ -432,7 +443,7 @@ describe("command tasks", () => {
     const task = (await create("Lent", command(`sleep 30 & echo $! > ${pidFile}; wait`, { timeoutSec: 1, notifyOn: "never" }))).data;
     await advance("2026-10-17T11:00:00Z");
     const [run] = await runs(task.id);
-    expect(run).toMatchObject({ status: "error", error: "délai dépassé (1 s) : commande arrêtée" });
+    expect(run).toMatchObject({ status: "error", error: "timed out (1 s): command stopped" });
     const child = Number(readFileSync(pidFile, "utf8"));
     await Bun.sleep(100);
     expect(() => process.kill(child, 0)).toThrow();
@@ -495,13 +506,13 @@ describe("nuo MCP server", () => {
       const { tools } = await client.listTools();
       expect(tools.map((x) => x.name)).toEqual(["schedule_create", "notify_user", "schedule_list", "schedule_update", "schedule_delete", "memory_read", "memory_add", "memory_write", ...GOOGLE_TOOLS.map((x) => x.name), ...DEVICE_TOOLS.map((x) => x.name), ...SCAN_TOOLS.map((x) => x.name)]);
       const google = await call("gmail_search", { query: "is:unread" });
-      expect(google).toEqual({ text: expect.stringContaining("Réglages › Comptes Google"), isError: true });
-      expect(tools[0]!.description).toContain("Maintenant :");
+      expect(google).toEqual({ text: expect.stringContaining("Settings › Google Accounts"), isError: true });
+      expect(tools[0]!.description).toContain("Now:");
       expect(tools[0]!.description).toContain("Europe/Paris");
 
       const daily = await call("schedule_create", { title: "Météo", prompt: "La météo du jour à Paris", cron: "0 7 * * *" });
       expect(daily.isError).toBe(false);
-      expect(daily.text).toContain("Tâche programmée");
+      expect(daily.text).toContain("Task scheduled");
       const reminder = await call("schedule_create", { title: "Rappel", prompt: "Rappelle le passeport", in_minutes: 90, conversation: "current", notify: false });
       expect(reminder.isError).toBe(false);
       const local = await call("schedule_create", { title: "Pesée", prompt: "Pèse-moi", at: "2099-01-02T08:00", bot: "fitness" });
@@ -518,12 +529,12 @@ describe("nuo MCP server", () => {
       expect(all[2]!.schedule).toEqual({ kind: "once", at: "2099-01-02T07:00:00.000Z" }); // 08:00 in Paris (winter)
 
       const mine = await call("schedule_list", {});
-      expect(mine.text).toContain("2 tâche(s)");
+      expect(mine.text).toContain("2 scheduled task(s)");
       expect(mine.text).toContain(all[0]!.id);
-      expect((await call("schedule_list", { all_bots: true })).text).toContain("3 tâche(s)");
+      expect((await call("schedule_list", { all_bots: true })).text).toContain("3 scheduled task(s)");
 
       const upd = await call("schedule_update", { id: all[0]!.id, cron: "30 6 * * 1-5", enabled: false });
-      expect(upd.text).toContain("désactivée");
+      expect(upd.text).toContain("next run: disabled");
       expect(t.app.store.task(all[0]!.id)).toMatchObject({ enabled: false, schedule: { expr: "30 6 * * 1-5", timezone: "Europe/Paris" } });
 
       const bad = await call("schedule_create", { title: "X", prompt: "Y", cron: "nope" });
@@ -532,7 +543,7 @@ describe("nuo MCP server", () => {
       expect((await call("schedule_create", { title: "X", prompt: "Y" })).isError).toBe(true);
       expect((await call("schedule_delete", { id: "missing" })).isError).toBe(true);
 
-      expect((await call("schedule_delete", { id: all[0]!.id })).text).toContain("supprimée");
+      expect((await call("schedule_delete", { id: all[0]!.id })).text).toContain("deleted");
       expect(t.app.store.tasks()).toHaveLength(2);
     } finally {
       await client.close();

@@ -1,4 +1,6 @@
 import { realpath, stat } from "node:fs/promises";
+import { DEFAULT_UI_LANGUAGE, t, type UiLanguage } from "../i18n/language";
+import type { MessageKey } from "../i18n/messages";
 import { basename, extname, isAbsolute, resolve, sep } from "node:path";
 import { MAX_MEDIA_BYTES } from "../store/media";
 
@@ -35,6 +37,8 @@ export interface ArtifactOptions {
   /** The only folders a published file may come from, symlinks resolved. */
   roots: string[];
   save: (mime: string, bytes: Uint8Array, name: string) => Promise<string>;
+  /** The language of the `error` the user reads on a card that could not be published. */
+  lang?: UiLanguage;
 }
 
 async function firstExisting(paths: string[]): Promise<string> {
@@ -50,6 +54,12 @@ async function firstExisting(paths: string[]): Promise<string> {
  * `/api/media/…` url, so the app can show, download and share it without reaching the bot's folder. A file that
  * cannot be published keeps its card, with the reason in `error`.
  */
+class ArtifactError extends Error {
+  constructor(readonly key: MessageKey) {
+    super(key);
+  }
+}
+
 export async function publishArtifacts(text: string, o: ArtifactOptions): Promise<string> {
   const matches = [...text.matchAll(ARTIFACT_LINE)];
   if (!matches.length) return text;
@@ -69,17 +79,23 @@ export async function publishArtifacts(text: string, o: ArtifactOptions): Promis
     let published: Record<string, unknown>;
     try {
       const real = await firstExisting(isAbsolute(path) ? [path] : o.bases.map((b) => resolve(b, path)));
-      if (!allowed(real)) throw new Error("hors de ton espace de travail");
+      if (!allowed(real)) throw new ArtifactError("runner.artifactOutside");
       const info = await stat(real);
-      if (!info.isFile()) throw new Error("introuvable");
-      if (info.size > MAX_MEDIA_BYTES) throw new Error("trop lourd (plus de 20 Mo)");
+      if (!info.isFile()) throw new ArtifactError("runner.artifactMissing");
+      if (info.size > MAX_MEDIA_BYTES) throw new ArtifactError("runner.artifactTooLarge");
       const name = basename(real);
       const mime = artifactMime(name);
       const id = await o.save(mime, new Uint8Array(await Bun.file(real).arrayBuffer()), name);
       published = { ...rest, title, name, mime, size: info.size, url: `/api/media/${id}` };
     } catch (e) {
-      const reason = (e as NodeJS.ErrnoException)?.code === "ENOENT" ? "introuvable" : ((e as Error)?.message ?? String(e));
-      published = { ...rest, title, name: basename(path), error: `Fichier ${reason}` };
+      const lang = o.lang ?? DEFAULT_UI_LANGUAGE;
+      const error =
+        e instanceof ArtifactError
+          ? t(e.key, {}, lang)
+          : (e as NodeJS.ErrnoException)?.code === "ENOENT"
+            ? t("runner.artifactMissing", {}, lang)
+            : t("runner.artifactFailed", { reason: (e as Error)?.message ?? String(e) }, lang);
+      published = { ...rest, title, name: basename(path), error };
     }
     out = out.replace(m[0], `::artifact ${JSON.stringify(published)}`);
   }

@@ -166,9 +166,9 @@ describe("files the bots publish", () => {
       '::artifact {"url":"/api/media/deja.pdf","title":"Déjà publié"}',
     ].join("\n");
     const lines = (await publishArtifacts(text, { bases: [w.root, w.bot], roots: [w.bot], save: w.save })).split("\n").map((l) => JSON.parse(l.replace("::artifact ", "")));
-    expect(lines[0].error).toBe("Fichier hors de ton espace de travail");
-    expect(lines[1].error).toBe("Fichier hors de ton espace de travail");
-    expect(lines[2]).toEqual({ title: "Budget", name: "budget.xlsx", error: "Fichier introuvable" });
+    expect(lines[0].error).toBe("File outside the bot's workspace");
+    expect(lines[1].error).toBe("File outside the bot's workspace");
+    expect(lines[2]).toEqual({ title: "Budget", name: "budget.xlsx", error: "File not found" });
     expect(lines[3]).toEqual({ url: "/api/media/deja.pdf", title: "Déjà publié" });
     expect(w.saved).toEqual([]);
   });
@@ -266,12 +266,28 @@ describe("restart of the gateway", () => {
 
     expect(t!.app.runner.resumeInterrupted()).toEqual([conv.id]);
     await waitFor(() => t!.runtime.prompts.length === 2);
-    expect(t!.runtime.prompts[1]!.text).toContain("La passerelle a redémarré pendant ta réponse");
+    expect(t!.runtime.prompts[1]!.text).toContain("The gateway restarted during your answer");
     await waitFor(() => !t!.app.runner.activeTurn(conv.id));
     const messages = (await t!.api("GET", `/api/conversations/${conv.id}/messages`)).data as { role: string; text: string }[];
     expect(messages.slice(before).map((m) => m.role)).toEqual(["assistant", "assistant"]);
-    expect(messages[before]!.text).toContain("Reprise après le redémarrage de la passerelle");
+    expect(messages[before]!.text).toContain("Resumed after the gateway restarted");
     expect(t!.app.runner.resumeInterrupted()).toEqual([]);
+  });
+
+  test("the notice of a resumed turn is in the language the user's device sent, and the bot is told it", async () => {
+    const { conv, sock } = await setup();
+    await fetch(`${t!.base}/api/bots`, { headers: { authorization: `Bearer ${t!.token}`, "accept-language": "fr-FR, en;q=0.5" } });
+    sock.send({ type: "prompt", conversationId: conv.id, text: "slow: compare les devis des trois menuisiers" });
+    await sock.next("message.start");
+    await waitFor(() => t!.runtime.prompts.length === 1);
+    await t!.app.runner.shutdown();
+    const before = (await t!.api("GET", `/api/conversations/${conv.id}/messages`)).data.length;
+    expect(t!.app.runner.resumeInterrupted()).toEqual([conv.id]);
+    await waitFor(() => t!.runtime.prompts.length === 2);
+    expect(t!.runtime.prompts[1]!.text).toStartWith("[Nuo: no message from the user in this turn. Write in French, their preferred language.]\n\n[Nuo] The gateway restarted");
+    await waitFor(() => !t!.app.runner.activeTurn(conv.id));
+    const messages = (await t!.api("GET", `/api/conversations/${conv.id}/messages`)).data as { text: string }[];
+    expect(messages[before]!.text).toContain("Reprise après le redémarrage de la passerelle");
   });
 
   test("a turn its agent ends before the gateway gets to stop is still resumed", async () => {
@@ -297,7 +313,7 @@ describe("restart of the gateway", () => {
     expect(JSON.parse(t!.app.store.getMeta("runner.interrupted")!)).toEqual([conv.id]);
     expect(t!.app.runner.resumeInterrupted()).toEqual([conv.id]);
     await waitFor(() => t!.runtime.prompts.length === 2);
-    expect(t!.runtime.prompts[1]!.text).toContain("tes tâches de fond (sous-agents, commandes)");
+    expect(t!.runtime.prompts[1]!.text).toContain("your background work (subagents, commands)");
   });
 
   test("background work that ends before the stop is not resumed", async () => {

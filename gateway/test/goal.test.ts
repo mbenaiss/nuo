@@ -33,21 +33,27 @@ const deviceTool = (conversationId: string, tool: string, args: Record<string, u
 
 describe("goal confirmations", () => {
   test("only what acts on other people or loses data is confirmed, said in words", () => {
-    expect(goalConfirmation("gmail_send", { draft_id: "r-4821" }, "à julie.martin@lumen.example : « Devis cuisine, version 2 »")).toBe(
-      "Envoyer l'e-mail : à julie.martin@lumen.example : « Devis cuisine, version 2 »",
+    expect(goalConfirmation("gmail_send", { draft_id: "r-4821" }, 'to julie.martin@lumen.example: "Kitchen quote, version 2"')).toBe(
+      'Send the email: to julie.martin@lumen.example: "Kitchen quote, version 2"',
     );
-    expect(goalConfirmation("gmail_send", { draft_id: "r-4821" })).toBe("Envoyer l'e-mail (brouillon r-4821)");
+    expect(goalConfirmation("gmail_send", { draft_id: "r-4821" })).toBe("Send the email (draft r-4821)");
     expect(goalConfirmation("calendar_create", { title: "Point chantier", attendees: ["julie.martin@lumen.example", "karim.haddad@lumen.example"] })).toBe(
-      "Inviter julie.martin@lumen.example, karim.haddad@lumen.example à « Point chantier »",
+      'Invite julie.martin@lumen.example, karim.haddad@lumen.example to "Point chantier"',
     );
     expect(goalConfirmation("calendar_create", { title: "Bloc concentration" })).toBeUndefined();
     expect(goalConfirmation("calendar_create", { title: "Bloc concentration", attendees: [] })).toBeUndefined();
-    expect(goalConfirmation("apple_event_delete", { id: "EV-31", title: "Dentiste" })).toBe("Supprimer l'évènement « Dentiste »");
-    expect(goalConfirmation("calendar_delete", { event_id: "7hq2m" })).toBe("Supprimer l'évènement Google 7hq2m");
-    expect(goalConfirmation("apple_calendar_delete", { id: "CAL-9" })).toBe("Supprimer l'agenda CAL-9");
-    expect(goalConfirmation("workout_cancel", { name: "Fractionné 6 x 400 m" })).toBe("Retirer la séance « Fractionné 6 x 400 m » de la montre");
-    expect(goalConfirmation("workout_cancel", { all: true })).toBe("Retirer toutes les séances programmées sur la montre");
+    expect(goalConfirmation("apple_event_delete", { id: "EV-31", title: "Dentiste" })).toBe('Delete the event "Dentiste"');
+    expect(goalConfirmation("calendar_delete", { event_id: "7hq2m" })).toBe("Delete the Google event 7hq2m");
+    expect(goalConfirmation("apple_calendar_delete", { id: "CAL-9" })).toBe("Delete the calendar CAL-9");
+    expect(goalConfirmation("workout_cancel", { name: "Fractionné 6 x 400 m" })).toBe('Remove the workout "Fractionné 6 x 400 m" from the watch');
+    expect(goalConfirmation("workout_cancel", { all: true })).toBe("Remove all the workouts scheduled on the watch");
     for (const name of ["gmail_draft", "gmail_search", "apple_event_create", "reminder_add", "mac_file_write"]) expect(goalConfirmation(name, {})).toBeUndefined();
+  });
+
+  test("are written in the user's language", () => {
+    expect(goalConfirmation("apple_event_delete", { id: "EV-31", title: "Dentiste" }, undefined, "fr")).toBe("Supprimer l'évènement « Dentiste »");
+    expect(goalConfirmation("gmail_send", { draft_id: "r-4821" }, undefined, "fr")).toBe("Envoyer l'e-mail (brouillon r-4821)");
+    expect(goalConfirmation("workout_cancel", { name: "Fractionné 6 x 400 m" }, undefined, "fr")).toBe("Retirer la séance « Fractionné 6 x 400 m » de la montre");
   });
 });
 
@@ -87,7 +93,7 @@ describe("goal turns", () => {
     await sock.next("message.delta");
     const call = deviceTool(conv.id, "apple_event_delete", { id: "EV-31", title: "Dentiste" });
     const req = await sock.next("permission.request");
-    expect(req).toMatchObject({ conversationId: conv.id, title: "Supprimer l'évènement « Dentiste »" });
+    expect(req).toMatchObject({ conversationId: conv.id, title: 'Delete the event "Dentiste"' });
     expect(req.options.map((o) => o.kind)).toEqual(["allow_once", "reject_once"]);
     sock.send({ type: "permission", requestId: req.requestId, optionId: "reject" });
     expect(await call).toEqual({ status: 403, data: { error: GOAL_REFUSAL } });

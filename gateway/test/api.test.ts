@@ -82,7 +82,7 @@ describe("pairing and auth", () => {
     const illusions = (await t.api("POST", "/api/conversations", { botId: cirque.id, useDraft: true })).data;
 
     const tools = new NuoTools({ url: t.base, token: "local-secret", botId: voyages.id, conversationId: lisbonne.id });
-    expect(await tools.call("notify_user", { title: "✈️ Voyages", body: "Ton vol AF1234 pour Lisbonne est retardé de 40 min" })).toBe("Notification envoyée.");
+    expect(await tools.call("notify_user", { title: "✈️ Voyages", body: "Ton vol AF1234 pour Lisbonne est retardé de 40 min" })).toBe("Notification sent.");
     const alert = { title: "✈️ Voyages", body: "Porte d'embarquement changée : K42", botId: voyages.id };
     await t.api("POST", "/api/notify", { ...alert, conversationId: illusions.id }, "local-secret");
     await t.api("POST", "/api/notify", { ...alert, conversationId: "conv-supprimee" }, "local-secret");
@@ -110,8 +110,8 @@ describe("pairing and auth", () => {
     expect(t.pusher.sent).toHaveLength(3);
 
     const tools = new NuoTools({ url: t.base, token: "local-secret", botId: "cirque" });
-    expect(await tools.call("notify_user", { title: "Illusions Tour", body: "Séance du 9 novembre à 17h disponible.", key: "illusions-2321201" })).toBe("Notification envoyée.");
-    expect(await tools.call("notify_user", { title: "Illusions Tour", body: "Séance du 9 novembre à 17h disponible.", key: "illusions-2321201" })).toContain("Déjà notifié");
+    expect(await tools.call("notify_user", { title: "Illusions Tour", body: "Séance du 9 novembre à 17h disponible.", key: "illusions-2321201" })).toBe("Notification sent.");
+    expect(await tools.call("notify_user", { title: "Illusions Tour", body: "Séance du 9 novembre à 17h disponible.", key: "illusions-2321201" })).toContain("Already notified");
     expect(t.pusher.sent).toHaveLength(4);
     expect((await t.api("POST", "/api/notify", { ...alert, key: 42 }, "local-secret")).status).toBe(400);
   });

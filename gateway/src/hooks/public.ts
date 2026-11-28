@@ -289,18 +289,18 @@ export class WakeSite {
     // A genuine signed mail of the owner resent by someone else stays signed: it must also be addressed to this bot
     // (To or Cc) and recent.
     const doubt = !p.wake.ownAddress(from)
-      ? "expéditeur inconnu"
+      ? "unknown sender"
       : !senderVerified(from, parseAuthResults(str(b.authResults) || undefined, this.o.authservId ?? DEFAULT_AUTHSERV_ID))
         ? str(b.authResults)
-          ? "authentification non concluante"
-          : "aucun verdict d'authentification"
+          ? "inconclusive authentication"
+          : "no authentication verdict"
         : !listed.some((a) => !!a && sameMailbox(a, to))
-          ? "bot absent de To et Cc"
+          ? "bot not in To or Cc"
           : !recentMail(str(b.date) || undefined, this.now())
-            ? "date absente ou trop ancienne"
+            ? "date missing or too old"
             : undefined;
     const trusted = !doubt;
-    const trust = trusted ? "vérifié" : `non vérifié (${doubt})`;
+    const trust = trusted ? "verified" : `unverified (${doubt})`;
     const windows: [string, number][] = trusted
       ? [[`mail:${p.id}:${bot.id}`, this.limits.perBotMail]]
       : [

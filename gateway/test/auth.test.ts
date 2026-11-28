@@ -141,14 +141,14 @@ describe("pairing", () => {
     const fails = t.app.auth.events(100).filter((e) => e.type === "pair" && !e.ok);
     expect(fails[0]).toMatchObject({ ip: "10.20.0.99", detail: "locked" });
     expect(fails.some((e) => e.detail === 'unknown profile (profile "nobody-3")')).toBe(true);
-    expect(t.pusher.sent.map((s) => s.payload.title)).toContain("Nuo · échecs d'appairage");
+    expect(t.pusher.sent.map((s) => s.payload.title)).toContain("Nuo · failed pairings");
   });
 
   test("pairing alerts the other devices and is audited", async () => {
     t = await startTestApp();
     await t.api("POST", "/api/devices", { apnsToken: "ab".repeat(32), environment: "development" });
     await pairDevice({ base: t.base, api: t.api, store: t.app.store, totpSecret: t.totpSecret, now: Date.now(), name: "Mac" });
-    expect(t.pusher.sent.map((s) => s.payload.body)).toEqual([expect.stringContaining("« Mac »")]);
+    expect(t.pusher.sent.map((s) => s.payload.body)).toEqual([expect.stringContaining('"Mac" was just paired from')]);
     expect(t.pusher.sent[0]!.payload).toMatchObject({ category: "nuo.security", destination: { kind: "settings" } });
     expect(t.app.auth.events().find((e) => e.type === "pair" && e.ok)).toMatchObject({ deviceName: "Mac", ip: "127.0.0.1" });
   });

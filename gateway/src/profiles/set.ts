@@ -4,6 +4,7 @@ import { normalizePublicKey, sha256 } from "../auth/keys";
 import type { GateAuth } from "../auth/routes";
 import { bearer, FAIL_WINDOW_MS, isFailure, MAX_FAILS_PER_IP, MAX_FAILS_TOTAL, type AuthContext, type Failure, type TokenGrant } from "../auth/service";
 import { join } from "node:path";
+import { t } from "../i18n/language";
 import { profileLayout, treeLayout, type GlobalLayout, type Layout } from "../paths";
 import type { NuoEndpoint } from "../runner/runner";
 import { OWNER, profileKey, type Profile, Registry } from "./registry";
@@ -231,9 +232,10 @@ export class ProfileSet implements GateAuth {
     if (stack !== this.owner) this.owner.auth.event("pair", false, { ip, deviceName: name, detail: `${r.detail} (profile "${key.slice(0, 40)}")` });
     const recent = this.registry.pairFailures(this.now() - FAIL_WINDOW_MS).length;
     if (recent === 3 || recent === MAX_FAILS_PER_IP || recent === MAX_FAILS_TOTAL) {
-      const body = `${recent} tentatives d'appairage échouées en 15 min (dernière depuis ${ip}).`;
-      this.owner.alert("Nuo · échecs d'appairage", body);
-      if (stack && stack !== this.owner) stack.alert("Nuo · échecs d'appairage", body);
+      for (const s of new Set([this.owner, ...(stack ? [stack] : [])])) {
+        const lang = s.store.uiLanguage();
+        s.alert(t("auth.pairFailuresTitle", {}, lang), t("auth.pairFailures", { count: recent, ip }, lang));
+      }
     }
     return { status: 401, error: PAIR_FAILED };
   }

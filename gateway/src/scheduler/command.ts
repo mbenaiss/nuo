@@ -1,6 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { DEFAULT_UI_LANGUAGE, t, type UiLanguage } from "../i18n/language";
 
 export const DEFAULT_COMMAND_TIMEOUT_SEC = 600;
 export const MAX_COMMAND_TIMEOUT_SEC = 24 * 60 * 60;
@@ -130,22 +131,22 @@ export interface RunningCommand {
   kill(): void;
 }
 
-export function runCommand(spec: CommandSpec, home = homedir(), spawner: CommandSpawner = localSpawner): RunningCommand {
+export function runCommand(spec: CommandSpec, home = homedir(), spawner: CommandSpawner = localSpawner, lang: UiLanguage = DEFAULT_UI_LANGUAGE): RunningCommand {
   const started = Date.now();
   const fail = (error: string): RunningCommand => ({ done: Promise.resolve({ ok: false, output: "", durationMs: 0, error }), kill() {} });
 
   const cwd = expandHome(spec.cwd || "~", home);
   try {
-    if (!statSync(cwd).isDirectory()) return fail(`dossier introuvable : ${spec.cwd}`);
+    if (!statSync(cwd).isDirectory()) return fail(t("schedule.folderNotFound", { folder: spec.cwd ?? cwd }, lang));
   } catch {
-    return fail(`dossier introuvable : ${spec.cwd ?? cwd}`);
+    return fail(t("schedule.folderNotFound", { folder: spec.cwd ?? cwd }, lang));
   }
   const env = baseEnv(home);
   if (spec.envFile) {
     try {
       Object.assign(env, parseEnvFile(readFileSync(expandHome(spec.envFile, home), "utf8")));
     } catch {
-      return fail(`fichier d'env illisible : ${spec.envFile}`);
+      return fail(t("schedule.envFileUnreadable", { file: spec.envFile }, lang));
     }
   }
   Object.assign(env, spec.env ?? {});
@@ -185,11 +186,11 @@ export function runCommand(spec: CommandSpec, home = homedir(), spawner: Command
     if (killTimer) clearTimeout(killTimer);
     const output = tail.text();
     const durationMs = Date.now() - started;
-    if (timedOut) return { ok: false, output, durationMs, error: `délai dépassé (${timeoutSec} s) : commande arrêtée` };
-    if (killed) return { ok: false, output, durationMs, error: "arrêtée par la passerelle" };
+    if (timedOut) return { ok: false, output, durationMs, error: t("schedule.timedOut", { seconds: timeoutSec }, lang) };
+    if (killed) return { ok: false, output, durationMs, error: t("schedule.stoppedByGateway", {}, lang) };
     const exitCode = proc.signalCode ? undefined : code;
     if (exitCode === 0) return { ok: true, exitCode, output, durationMs };
-    return { ok: false, exitCode, output, durationMs, error: exitCode === undefined ? `tuée par le signal ${proc.signalCode}` : `code de sortie ${exitCode}` };
+    return { ok: false, exitCode, output, durationMs, error: exitCode === undefined ? t("schedule.killedBySignal", { signal: String(proc.signalCode) }, lang) : t("schedule.exitCode", { code: exitCode }, lang) };
   })();
 
   return {

@@ -82,7 +82,7 @@ describe("pairing with a profile", () => {
     const alice = await withAlice();
     const me = await alice.api("GET", "/api/me");
     expect(me).toEqual({ status: 200, data: { deviceId: alice.device.id, profile: { id: "alice", name: "Alice" } } });
-    expect((await t!.api("GET", "/api/me")).data.profile).toEqual({ id: "owner", name: "Propriétaire" });
+    expect((await t!.api("GET", "/api/me")).data.profile).toEqual({ id: "owner", name: "Owner" });
     const stack = t!.app.profiles.stack("alice")!;
     const { spki } = await newDeviceKey();
     const r = await t!.api(

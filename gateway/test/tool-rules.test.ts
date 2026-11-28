@@ -100,7 +100,7 @@ describe("tool rules", () => {
     const removed = (await t.api("DELETE", `/api/bots/${botId}/tool-rules/nuo/gmail_search`)).data;
     expect(removed.published.config.toolRules).toBeUndefined();
     expect(removed.draft.toolRules).toBeUndefined();
-    expect(removed.published.note).toBe("Règle d'outil : nuo/gmail_search retirée");
+    expect(removed.published.note).toBe("Tool rule: nuo/gmail_search removed");
 
     sock.events.length = 0;
     sock.send({ type: "prompt", conversationId: conv.id, text: "Et le billet retour : call:nuo/gmail_search" });

@@ -35,19 +35,19 @@ describe("handoff transcript", () => {
       [
         msg("user", "Voici ma carte d'embarquement", { attachments: [{ kind: "image", mime: "image/jpeg" }, { kind: "file", mime: "application/pdf", name: "billet-AF1084.pdf" }] }),
         msg("assistant", "Vol AF1084, départ 9 h 40 de CDG terminal 2E.", { agent: "claude", model: "claude-opus-5-5" }),
-        msg("assistant", noticeLine({ kind: "switched", text: "Passage à Codex · GPT-5.6 Sol", agent: "codex", model: "gpt-5.6-sol" })),
+        msg("assistant", noticeLine({ kind: "switched", text: "Switched to Codex · GPT-5.6 Sol", agent: "codex", model: "gpt-5.6-sol" })),
         msg("assistant", "", { agent: "codex", stopReason: "error" }),
       ],
       false,
     );
     expect(text.split("\n")).toEqual([
       HANDOFF_FULL_PREFIX,
-      "<historique>",
-      "Utilisateur : Voici ma carte d'embarquement [image jointe] [fichier joint : billet-AF1084.pdf]",
-      "Assistant (claude · claude-opus-5-5) : Vol AF1084, départ 9 h 40 de CDG terminal 2E.",
-      "</historique>",
+      "<history>",
+      "User: Voici ma carte d'embarquement [attached image] [attached file: billet-AF1084.pdf]",
+      "Assistant (claude · claude-opus-5-5): Vol AF1084, départ 9 h 40 de CDG terminal 2E.",
+      "</history>",
       "",
-      "Nouveau message :",
+      "New message:",
       "",
     ]);
   });
@@ -56,17 +56,17 @@ describe("handoff transcript", () => {
     const history = Array.from({ length: 30 }, (_, i) => msg(i % 2 ? "assistant" : "user", `Étape ${String(i).padStart(2, "0")} ${"x".repeat(990)}`));
     const text = handoffTranscript(history, true, 5_000);
     expect(text).toStartWith(HANDOFF_DELTA_PREFIX);
-    expect(text).toContain("(26 messages plus anciens omis)");
+    expect(text).toContain("(26 older messages left out)");
     expect(text).not.toContain("Étape 25");
     expect(text).toContain("Étape 26");
     expect(text).toContain("Étape 29");
 
     const long = handoffTranscript([msg("assistant", "a".repeat(HANDOFF_MESSAGE_MAX_CHARS + 500), { agent: "grok" })], false);
-    expect(long).toContain(`Assistant (grok) : ${"a".repeat(HANDOFF_MESSAGE_MAX_CHARS)} […]`);
+    expect(long).toContain(`Assistant (grok): ${"a".repeat(HANDOFF_MESSAGE_MAX_CHARS)} […]`);
   });
 
   test("a single message larger than the budget is still handed over", () => {
-    expect(handoffTranscript([msg("user", "b".repeat(3_000))], false, 1_000)).toContain("Utilisateur : bbb");
+    expect(handoffTranscript([msg("user", "b".repeat(3_000))], false, 1_000)).toContain("User: bbb");
     expect(handoffTranscript([], false)).toBe("");
   });
 });
@@ -137,8 +137,8 @@ test("auto-compact threshold", () => {
 });
 
 test("notice line is a single card line", () => {
-  expect(noticeLine({ kind: "compacted", text: "Conversation compactée", beforeTokens: 120000, afterTokens: 8000 })).toBe(
-    '::notice {"kind":"compacted","text":"Conversation compactée","beforeTokens":120000,"afterTokens":8000}',
+  expect(noticeLine({ kind: "compacted", text: "Conversation compacted", beforeTokens: 120000, afterTokens: 8000 })).toBe(
+    '::notice {"kind":"compacted","text":"Conversation compacted","beforeTokens":120000,"afterTokens":8000}',
   );
 });
 
@@ -195,7 +195,7 @@ describe("runner", () => {
     const end = await say(sock, conv.id, "/compact");
     expect(end.stopReason).toBe("end_turn");
     const notice = await sock.next("notice");
-    expect(notice).toMatchObject({ kind: "compacted", text: "Conversation compactée", beforeTokens: 90000, afterTokens: 5000 });
+    expect(notice).toMatchObject({ kind: "compacted", text: "Conversation compacted", beforeTokens: 90000, afterTokens: 5000 });
     const ctx = (await sock.next("context")).context;
     expect(ctx).toMatchObject({ usedTokens: 5000, maxTokens: 200_000, compactions: 1 });
     expect(t.runtime.prompts.at(-1)!.text).toBe("/compact");
@@ -205,7 +205,7 @@ describe("runner", () => {
     expect(msgs.at(-1)).toMatchObject({
       id: end.messageId,
       role: "assistant",
-      text: '::notice {"kind":"compacted","text":"Conversation compactée","beforeTokens":90000,"afterTokens":5000}',
+      text: '::notice {"kind":"compacted","text":"Conversation compacted","beforeTokens":90000,"afterTokens":5000}',
     });
     const types = sock.events.map((e) => e.type);
     expect(types.slice(types.lastIndexOf("message.start"))).toEqual(["message.start", "notice", "context", "message.end"]);
@@ -239,7 +239,7 @@ describe("runner", () => {
     await say(sock, conv.id, "/compact");
     expect(t.runtime.starts).toHaveLength(0);
     const msgs = (await t.api("GET", `/api/conversations/${conv.id}/messages`)).data;
-    expect(msgs.at(-1).text).toStartWith("Rien à compacter");
+    expect(msgs.at(-1).text).toStartWith("Nothing to compact");
   });
 
   test("a nearly full context is compacted before the next prompt", async () => {

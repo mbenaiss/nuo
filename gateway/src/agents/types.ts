@@ -1,3 +1,4 @@
+import type { UiLanguage } from "../i18n/language";
 import type { AgentId, Attachment, ModelInfo, PermissionOption, PermissionPolicy, ToolRule } from "../protocol";
 import type { RelayToolCall } from "../relay/whitelist";
 
@@ -47,6 +48,8 @@ export interface SessionOptions {
    * it the short updates between two tool calls drift to English.
    */
   language?: string;
+  /** The language of what the gateway itself writes for the user in this session (src/i18n/language.ts). */
+  uiLanguage?: UiLanguage;
   /**
    * Started for a turn the relay passed on: no built-in tool but the loader of the `nuo` server's schemas, and
    * every permission request checked against the whitelist (src/relay/whitelist.ts) before anyone is asked.

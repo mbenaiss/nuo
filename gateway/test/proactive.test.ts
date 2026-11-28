@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { PROACTIVE_PROMPT } from "../src/scheduler/proactive";
+import { isNothingToPropose, PROACTIVE_PROMPT } from "../src/scheduler/proactive";
 import { botConfig, startTestApp, type TestApp } from "./helpers";
 
 let t: TestApp;
@@ -42,7 +42,7 @@ describe("proactive bots", () => {
     const [task, ...more] = await proposals(bot.id);
     expect(more).toEqual([]);
     expect(task).toMatchObject({
-      title: "Propositions du jour",
+      title: "Today's proposals",
       prompt: PROACTIVE_PROMPT,
       schedule: { kind: "cron", expr: "0 9 * * *", timezone: "Europe/Paris" },
       conversation: "dedicated",
@@ -97,6 +97,12 @@ describe("proactive bots", () => {
     expect(await proposals(bot.id)).toHaveLength(1);
   });
 
+  test("the marker of a proposals task created with the French prompt still counts", () => {
+    expect(isNothingToPropose(" NOTHING\n")).toBe(true);
+    expect(isNothingToPropose("RIEN")).toBe(true);
+    expect(isNothingToPropose("Rien de neuf côté factures, mais le contrat d'assurance arrive à échéance.")).toBe(false);
+  });
+
   test("proactive must be a boolean", async () => {
     await setup();
     const bot = (await t.api("POST", "/api/bots", { name: "Maison" })).data;
@@ -105,16 +111,16 @@ describe("proactive bots", () => {
     expect(bad.data.error).toContain("proactive must be a boolean");
   });
 
-  test("RIEN: no push, and neither the prompt nor the answer stays in the conversation", async () => {
+  test("NOTHING: no push, and neither the prompt nor the answer stays in the conversation", async () => {
     await setup();
     await t.api("POST", "/api/devices", { apnsToken: "ab".repeat(32), environment: "development" });
     const bot = await makeBot(true);
     const [task] = await proposals(bot.id);
-    await t.api("PATCH", `/api/schedules/${task.id}`, { prompt: "repeat:   RIEN  " });
+    await t.api("PATCH", `/api/schedules/${task.id}`, { prompt: "repeat:   NOTHING  " });
 
     await advance("2026-10-18T07:00:05Z");
     const [run] = (await t.api("GET", `/api/schedules/${task.id}/runs`)).data;
-    expect(run).toMatchObject({ status: "ok", preview: "Rien à proposer aujourd'hui" });
+    expect(run).toMatchObject({ status: "ok", preview: "Nothing to propose today" });
     expect(t.pusher.sent).toEqual([]);
     expect((await t.api("GET", `/api/conversations/${run.conversationId}/messages`)).data).toEqual([]);
     expect((await t.api("GET", `/api/conversations?botId=${bot.id}`)).data).toEqual([]);
@@ -141,7 +147,7 @@ describe("proactive bots", () => {
     const [run] = (await t.api("GET", `/api/schedules/${task.id}/runs`)).data;
     expect(t.pusher.sent.map((s) => s.payload)).toEqual([
       {
-        title: "🏡 Propositions du jour",
+        title: "🏡 Today's proposals",
         body: "Je peux relancer le plombier pour le devis de la salle de bain.",
         botId: bot.id,
         conversationId: run.conversationId,

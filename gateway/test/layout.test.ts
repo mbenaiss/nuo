@@ -144,7 +144,7 @@ describe("memory", () => {
     await sock.next("message.end");
     sock.close();
     const text = readFileSync(join(t.profileHome, "instructions", "voyages.md"), "utf8");
-    expect(text).toContain("## Mémoire");
+    expect(text).toContain("## Memory");
     expect(text).toContain("Vols du matin uniquement");
     expect(readFileSync(join(t.profileHome, "bots", "voyages", "CLAUDE.md"), "utf8")).toBe(text);
 

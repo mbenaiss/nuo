@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import type { BotCommand, BotConfig } from "../protocol";
+import { t } from "../i18n/language";
 import type { Store } from "../store/store";
 import type { ToolCatalog } from "./catalog";
 import { validateCommands } from "./commands";
 
-export const SYNC_NOTE = "Ajout des commandes";
 
 export interface SyncResult {
   name: string;
@@ -35,7 +35,7 @@ export function syncSeedCommands(store: Store, catalog: ToolCatalog, seedPath: s
     const commands = mergeCommands(current.commands, validateCommands(seed.commands ?? [], current.toolServers, catalog, errors) ?? []);
     if (errors.length) return { name, status: "invalid", detail: errors.join("; ") };
     if (JSON.stringify(current.commands ?? []) === JSON.stringify(commands)) return { name, status: "unchanged", version: bot.published.version };
-    const version = store.publish(bot.id, { ...current, commands }, SYNC_NOTE, false);
+    const version = store.publish(bot.id, { ...current, commands }, t("bots.commandsAdded", {}, store.uiLanguage()), false);
     if (bot.draft) store.setDraft(bot.id, { ...bot.draft, commands: mergeCommands(bot.draft.commands, commands) });
     return { name, status: "published", version };
   });

@@ -52,8 +52,8 @@ describe("helpers", () => {
   test("files note lists path, mime and size in French", () => {
     expect(filesNote([])).toBe("");
     const note = filesNote([{ path: "/w/.nuo/attachments/2026-10-17/a.pdf", mime: "application/pdf", size: 1536 }]);
-    expect(note).toContain("Fichiers joints");
-    expect(note).toContain("- /w/.nuo/attachments/2026-10-17/a.pdf (application/pdf, 1,5 Ko)");
+    expect(note).toContain("Files attached by the user");
+    expect(note).toContain("- /w/.nuo/attachments/2026-10-17/a.pdf (application/pdf, 1.5 KB)");
   });
 });
 
@@ -104,8 +104,8 @@ describe("REST prompt", () => {
     expect(await media.text()).toBe("%PDF-1.7 rapport");
 
     const sent = t.runtime.prompts[0]!;
-    expect(sent.text).toStartWith("Résume ce rapport\n\n[Nuo] Fichiers joints");
-    const path = sent.text.match(/- (\S+\/rapport\.pdf) \(application\/pdf, 16 o\)/)![1]!;
+    expect(sent.text).toStartWith("Résume ce rapport\n\n[Nuo] Files attached by the user");
+    const path = sent.text.match(/- (\S+\/rapport\.pdf) \(application\/pdf, 16 B\)/)![1]!;
     expect(dirname(dirname(path))).toBe(join(t.profileHome, "bots", bot.slug, ".nuo/attachments"));
     expect(readFileSync(path, "utf8")).toBe("%PDF-1.7 rapport");
     expect(sent.attachments.map((a) => a.kind)).toEqual(["image"]);

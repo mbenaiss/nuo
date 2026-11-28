@@ -199,7 +199,7 @@ function profileApi(d: ProfileDeps) {
     if (callerPolicy(req) === "auto") return;
     for (const target of targets) {
       const bot = typeof target === "string" ? resolveBot(d.store, target) : undefined;
-      if (policyOf(bot?.id) === "auto") throw new HttpError(403, "seul un bot à accès complet peut programmer ou lancer une tâche d'un bot à accès complet");
+      if (policyOf(bot?.id) === "auto") throw new HttpError(403, "only a bot with full access can schedule or start a task of a bot with full access");
     }
   };
   const wake = () => {
@@ -334,7 +334,7 @@ function profileApi(d: ProfileDeps) {
       "GET",
       /^\/api\/conversations$/,
       ({ url }) => {
-        // A task without notification works out of sight: each « nothing found » would otherwise fill the list.
+        // A task without notification works out of sight: each "nothing found" would otherwise fill the list.
         const background = d.store.backgroundConversationIds();
         return d.store
           .conversations(url.searchParams.get("botId") || undefined)
@@ -581,7 +581,7 @@ export function startServer(s: ServerDeps): Server<SocketData> {
       return new Request(req.url, { method: "POST", headers, body: JSON.stringify(rest) });
     };
     const confirmed = (name: string) => runner.takeRelayApproval(caller, name);
-    const unconfirmed = (name: string) => fail(403, `« ${name} » attend une confirmation : demande-la avant d'utiliser l'outil`);
+    const unconfirmed = (name: string) => fail(403, `"${name}" waits for a confirmation: ask for it before using the tool`);
     try {
       if (path === "/api/bots" && req.method === "GET" && overviewCaller(a.d.store, req)) {
         // What `bot_ask` needs to find a bot by name: nothing of what it said or how it is set up.
@@ -622,7 +622,7 @@ export function startServer(s: ServerDeps): Server<SocketData> {
         // An account's or a device's error may name accounts or calendars: the relay learns only that it failed.
         if (!res.ok) {
           runner.relayRefusedTool(caller, name);
-          return fail(res.status, `« ${name} » n'a pas abouti : ${RELAY_REFUSAL}.`);
+          return fail(res.status, `"${name}" did not go through: ${RELAY_REFUSAL}.`);
         }
         const out = ((await res.json().catch(() => undefined)) ?? {}) as { text?: unknown };
         const text = typeof out.text === "string" ? out.text : "";
@@ -630,9 +630,9 @@ export function startServer(s: ServerDeps): Server<SocketData> {
         const event = relayDeviceEvent(text);
         // The event this turn created: the only one it may move afterwards.
         if (name === "apple_event_create" && typeof event?.id === "string") runner.relayCreatedEvent(caller, event.id);
-        return json({ text: event ? JSON.stringify(event) : `« ${name} » : fait.` });
+        return json({ text: event ? JSON.stringify(event) : `"${name}": done.` });
       }
-      return refuse(path.match(/\/tools\/([a-z_]+)$/)?.[1] ?? RELAY_ROUTE_NAMES.find(([re]) => re.test(path))?.[1] ?? "cet outil");
+      return refuse(path.match(/\/tools\/([a-z_]+)$/)?.[1] ?? RELAY_ROUTE_NAMES.find(([re]) => re.test(path))?.[1] ?? "this tool");
     } catch (e) {
       if (e instanceof HttpError) return fail(e.status, e.message);
       throw e;
@@ -887,8 +887,8 @@ export function startServer(s: ServerDeps): Server<SocketData> {
  * it) nor the link (whose `eid` encodes the calendar's address).
  */
 export function relayGoogleAnswer(text: string): string {
-  const m = text.match(/\(id ([^)\s]+)\) : ([^\n]*)/);
-  return m ? `Évènement ajouté à l'agenda Google par défaut (id ${m[1]}) : ${m[2]}` : "Évènement ajouté à l'agenda Google par défaut.";
+  const m = text.match(/\(id ([^)\s]+)\) ?: ([^\n]*)/);
+  return m ? `Event added to the default Google calendar (id ${m[1]}): ${m[2]}` : "Event added to the default Google calendar.";
 }
 
 /** The fields of an Apple event a relay session may read back: what it wrote, not the calendar, account or people. */
@@ -911,7 +911,7 @@ const RELAY_ROUTE_NAMES: [RegExp, string][] = [
   [/\/memory$/, "memory"],
   [/^\/api\/bots\/[^/]+\/ask$/, "bot_ask"],
   [/^\/api\/(bots|conversations)(\/|$)/, "conversation_read"],
-  [/^\/api\/browser(\/|$)/, "navigateur"],
+  [/^\/api\/browser(\/|$)/, "browser"],
 ];
 
 /** The relay transcribes a short dictation, waited for: no named job, no background job, nothing long. */

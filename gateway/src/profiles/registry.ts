@@ -102,7 +102,7 @@ export class Registry {
   }
 
   /** The owner row is created once, by the layout migration; its name can be changed like any other. */
-  ensureOwner(name = "Propriétaire"): Profile {
+  ensureOwner(name = "Owner"): Profile {
     this.db.query("INSERT OR IGNORE INTO profiles (id, name, created_at) VALUES (?, ?, ?)").run(OWNER, name, new Date().toISOString());
     return this.get(OWNER)!;
   }

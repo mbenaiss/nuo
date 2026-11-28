@@ -1,24 +1,25 @@
 import type { ScheduledTask, TaskSchedule } from "../protocol";
+import { t } from "../i18n/language";
 import type { Store } from "../store/store";
 import { nextRun, parseCron } from "./cron";
 
-export const PROACTIVE_TITLE = "Propositions du jour";
 export const PROACTIVE_SCHEDULE: Extract<TaskSchedule, { kind: "cron" }> = { kind: "cron", expr: "0 9 * * *", timezone: "Europe/Paris" };
 /** The whole answer of a morning with nothing worth proposing: no push, and the turn leaves the conversation. */
-export const NOTHING_TO_PROPOSE = "RIEN";
-export const NOTHING_PREVIEW = "Rien à proposer aujourd'hui";
+export const NOTHING_TO_PROPOSE = "NOTHING";
+/** The marker of the French prompt that proposals tasks created before keep in the database. */
+const LEGACY_NOTHING_TO_PROPOSE = "RIEN";
 
-export const PROACTIVE_PROMPT = `Propositions du jour : avant que je te demande quoi que ce soit, cherche ce que tu pourrais prendre en charge pour moi aujourd'hui.
+export const PROACTIVE_PROMPT = `Today's proposals: before I ask you anything, look for what you could take care of for me today.
 
-1. Regarde ta mémoire, nos conversations et tes données récentes, ainsi que mon agenda et mes rappels si tu y as accès. Utilise uniquement des outils de lecture : ne crée, n'envoie et ne modifie rien.
-2. Propose-moi au plus 3 choses concrètes que tu pourrais faire maintenant pour moi : une relance, un rappel, une tâche planifiée, un suivi, la préparation d'un rendez-vous… Chacune tient en une phrase, suivie sur la ligne d'après d'une carte dont la question reprend la proposition en quelques mots, par exemple :
-::question {"question":"Je relance Julie Martin pour le devis ?","options":["Oui, fais-le","Plus tard","Non merci"]}
-3. Ne fais rien avant ma réponse : je choisis sur chaque carte.
-4. Ne propose que ce qui m'est vraiment utile, sans répéter une proposition que j'ai déjà refusée. Si tu n'as rien d'utile à proposer, réponds exactement ${NOTHING_TO_PROPOSE}, sans aucun autre mot.`;
+1. Look at your memory, our conversations and your recent data, as well as my calendar and my reminders if you have access to them. Use read-only tools only: create, send and change nothing.
+2. Offer me at most 3 concrete things you could do for me now: a follow-up, a reminder, a scheduled task, a tracking, getting ready for an appointment… Each one fits in one sentence, followed on the next line by a card whose question sums up the proposal in a few words, for example:
+::question {"question":"Shall I follow up with Julie Martin about the quote?","options":["Yes, do it","Later","No thanks"]}
+3. Do nothing before my answer: I choose on each card.
+4. Only offer what is really useful to me, without repeating a proposal I already turned down. If you have nothing useful to offer, answer exactly ${NOTHING_TO_PROPOSE}, without any other word.`;
 
 export const isProactiveTask = (t: Pick<ScheduledTask, "createdBy">) => t.createdBy === "gateway";
 
-export const isNothingToPropose = (answer: string) => answer.trim() === NOTHING_TO_PROPOSE;
+export const isNothingToPropose = (answer: string) => [NOTHING_TO_PROPOSE, LEGACY_NOTHING_TO_PROPOSE].includes(answer.trim());
 
 /**
  * Keeps exactly one proposals task for a published proactive bot and none otherwise. An existing task is left as
@@ -33,7 +34,7 @@ export function syncProactiveTask(store: Store, botId: string, now: number): Sch
   const next = nextRun(parseCron(PROACTIVE_SCHEDULE.expr), PROACTIVE_SCHEDULE.timezone, now);
   return store.createTask({
     botId,
-    title: PROACTIVE_TITLE,
+    title: t("schedule.proactiveTitle", {}, store.uiLanguage()),
     action: { type: "prompt" },
     prompt: PROACTIVE_PROMPT,
     schedule: PROACTIVE_SCHEDULE,

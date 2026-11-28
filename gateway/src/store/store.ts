@@ -16,7 +16,7 @@ export function foldText(s: string): string {
   return s.normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase();
 }
 
-/** Each word of the query as a prefix, all required: « factu edf » finds « la facture EDF de mars ». */
+/** Each word of the query as a prefix, all required: "factu edf" finds "la facture EDF de mars". */
 export function searchTerms(query: string): string[] {
   return foldText(query).match(/[\p{L}\p{N}]+/gu) ?? [];
 }

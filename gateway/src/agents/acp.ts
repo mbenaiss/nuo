@@ -716,7 +716,7 @@ export class AcpSession implements AgentSession {
   }
 
   /**
-   * Subagents that only show as tool calls: Codex's « Start subagent x » / « Complete subagent x » (same
+   * Subagents that only show as tool calls: Codex's "Start subagent x" / "Complete subagent x" (same
    * `agentThreadId`), and the description of Grok's `spawn_subagent`, kept for the child it announces next.
    */
   private toolSubagent(a: ActivePrompt, u: { title?: string | null; rawInput?: unknown }, isNew: boolean) {

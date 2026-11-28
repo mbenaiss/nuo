@@ -20,7 +20,7 @@ import { BUILTIN_TOOL_SERVER, expandTemplate, parseCommand, toolArguments } from
 import { NuoTools } from "../mcp/nuo-server";
 import { relayConfirmationTitle, relayRefusal, type RelayToolCall } from "../relay/whitelist";
 import { prepareWorkspace, relayInstructions, unattendedLanguageHint, VOICE_PREFIX } from "../bots/instructions";
-import { languageName } from "../i18n/language";
+import { languageName, t } from "../i18n/language";
 import { GOAL_CONFIRMATION_TIMEOUT_MS, GOAL_PREFIX, goalConfirmation } from "./goal";
 import type { MachineToolSource } from "../machine/discovery";
 import { taggedTools, toolHint } from "../machine/tags";
@@ -93,9 +93,9 @@ export interface PromptInput {
   model?: string;
   effort?: string;
   voice?: boolean;
-  /** « Objectif »: the bot works without asking at each step (src/runner/goal.ts). Ignored from an extension or the relay. */
+  /** "Goal": the bot works without asking at each step (src/runner/goal.ts). Ignored from an extension or the relay. */
   goal?: boolean;
-  /** « Envoyer maintenant »: into the running turn when the agent can take it, else after stopping that turn. */
+  /** "Send now": into the running turn when the agent can take it, else after stopping that turn. */
   steer?: boolean;
   folder?: unknown;
 }
@@ -134,7 +134,7 @@ export class RelayRefusedError extends Error {
 
 /** What the agent reads before a relay turn's request, not kept in the transcript. */
 export const RELAY_HINT =
-  "[Nuo] Demande passée par la montre pendant que l'iPhone est verrouillé : tu peux seulement ajouter un rappel, un évènement, une note ou un élément de collection, ou passer un message à un bot. Pour tout le reste, dis que c'est « à faire depuis l'iPhone déverrouillé ».\n\n";
+  "[Nuo] Request sent from the watch while the iPhone is locked: you can only add a reminder, an event, a note or a collection item, or pass a message to a bot. For everything else, say that it is \"to do from the unlocked iPhone\", in the user's language.\n\n";
 
 /** A slash command however it is padded (spaces, BOM, zero-width or invisible characters before it). */
 export function isSlashCommand(text: string): boolean {
@@ -175,12 +175,10 @@ export interface PromptOptions {
 const INTERRUPTED_KEY = "runner.interrupted";
 /** Relay turns the last shutdown cut, with where they came from: never started again as the app's. */
 const INTERRUPTED_RELAY_KEY = "runner.interruptedRelay";
-const RESUMED_TEXT = "Reprise après le redémarrage de la passerelle";
-export const RELAY_INTERRUPTED_TEXT = "Coupée par le redémarrage de la passerelle : la demande attend le déverrouillage de l'iPhone";
 /** A relay session's native session, kept apart from the app's: neither ever resumes the other's. */
 export const relayNativeKey = (agent: string) => `${agent}:relay`;
 const RESUME_PROMPT =
-  "[Nuo] La passerelle a redémarré pendant ta réponse ou pendant que tes tâches de fond (sous-agents, commandes) tournaient : tout a été coupé. Reprends exactement là où tu t'es arrêté, relance ce qui n'était pas fini sans refaire ce qui est déjà fait, et termine la demande de l'utilisateur.";
+  "[Nuo] The gateway restarted during your answer or while your background work (subagents, commands) was running: everything was cut. Pick up exactly where you stopped, start again what was not finished without redoing what is already done, and complete the user's request.";
 /** How long shutdown waits for the interrupted turns to save what they had. */
 const SHUTDOWN_SETTLE_MS = 5_000;
 
@@ -296,10 +294,8 @@ function activityContentState(s: LiveActivityState): Record<string, unknown> {
 
 const COMPACT_RE = /^\s*\/(?:compact|compress)(?:\s+([\s\S]*))?$/i;
 const NATIVE_COMPACT = ["compact", "compress"];
-export const COMPACTED_TEXT = "Conversation compactée";
-
-export const SUMMARY_PROMPT = `[Nuo] La conversation va être compactée. Rédige un résumé dense, en français, de toute notre conversation jusqu'ici : il sera ton seul contexte pour la suite. Garde les décisions prises, les faits établis, les tâches ouvertes, les préférences de l'utilisateur, les chemins de fichiers et identifiants utiles. Moins de 800 mots, texte simple, sans cartes ni outils. Réponds uniquement par le résumé.`;
-export const SEED_PREFIX = `[Nuo] Cette conversation a été compactée. Voici le résumé de l'échange précédent, à garder comme contexte pour la suite. Réponds seulement « OK ».\n\n`;
+export const SUMMARY_PROMPT = `[Nuo] The conversation is about to be compacted. Write a dense summary, in the language of the conversation, of our whole conversation so far: it will be your only context from now on. Keep the decisions made, the facts established, the open tasks, the user's preferences, the useful file paths and identifiers. Under 800 words, plain text, no cards or tools. Answer with the summary only.`;
+export const SEED_PREFIX = `[Nuo] This conversation was compacted. Here is the summary of the previous exchange, to keep as context from now on. Answer only "OK".\n\n`;
 
 export function shouldAutoCompact(context: ContextUsage | undefined, ratio = AUTO_COMPACT_RATIO): boolean {
   return !!context?.maxTokens && context.usedTokens > ratio * context.maxTokens;
@@ -509,7 +505,7 @@ export class Runner {
       .then(async () => {
         this.outcomes.delete(conv.id);
         if (popts.relay && this.relayEpoch(popts.relay.deviceId) !== relayEpoch) {
-          this.outcomes.set(conv.id, { text: "", stopReason: "cancelled", error: "accès de relais révoqué" });
+          this.outcomes.set(conv.id, { text: "", stopReason: "cancelled", error: t("runner.relayRevoked", {}, this.store.uiLanguage()) });
           return;
         }
         if (popts.scheduled) this.scheduled.add(conv.id);
@@ -536,7 +532,7 @@ export class Runner {
           const pending = this.relayPending.get(conv.id);
           if (pending && --pending.n <= 0) this.relayPending.delete(conv.id);
         }
-        const outcome = this.outcomes.get(conv.id) ?? { text: "", stopReason: "error" as const, error: "conversation introuvable" };
+        const outcome = this.outcomes.get(conv.id) ?? { text: "", stopReason: "error" as const, error: t("runner.conversationNotFound", {}, this.store.uiLanguage()) };
         this.outcomes.delete(conv.id);
         resolveDone(outcome);
       });
@@ -654,18 +650,18 @@ export class Runner {
     if (input.agent || input.model || input.effort || input.attachments?.length || input.folder) throw new RelayRefusedError("the relay sends text only", 400);
     const config = this.configFor(conv);
     if (config && (conv.agent ?? config.agent) !== "claude") {
-      throw new RelayRefusedError(`${config.name} ne passe pas par l'accès de relais : à faire depuis l'iPhone déverrouillé`, 409);
+      throw new RelayRefusedError(t("runner.relayNotForBot", { bot: config.name }), 409);
     }
   }
 
   /**
    * With a `rule`, the card's tool is decided for good on its bot, and this call is answered once accordingly
-   * (`optionId` aside): the agent's own « always » would only last its session.
+   * (`optionId` aside): the agent's own "always" would only last its session.
    */
   answerPermission(requestId: string, optionId: string, rule?: ToolRule): boolean {
     const p = this.permissions.get(requestId);
     if (!p) return false;
-    // A relay session was offered « once » answers only: an « always » from the app would leave no yes to count.
+    // A relay session was offered "once" answers only: an "always" from the app would leave no yes to count.
     if (p.relay && !p.options.some((o) => o.id === optionId)) return false;
     let chosen = optionId;
     if (rule) {
@@ -750,7 +746,7 @@ export class Runner {
     if (!Array.isArray(ids)) return [];
     const resumed = ids.filter((id): id is string => typeof id === "string" && !!this.store.conversation(id));
     for (const id of resumed) {
-      this.recordNotice(id, { kind: "resumed", text: RESUMED_TEXT });
+      this.recordNotice(id, { kind: "resumed", text: t("runner.resumed", {}, this.store.uiLanguage()) });
       void this.prompt({ conversationId: id, text: this.languageHint(this.configFor(this.store.conversation(id)!)) + RESUME_PROMPT }, { silent: true }).catch((e) => console.warn(`[runner] resume ${id}: ${(e as Error)?.message ?? e}`));
     }
     return resumed;
@@ -771,9 +767,9 @@ export class Runner {
       const origin = c?.origin;
       if (typeof c?.conversationId !== "string" || typeof origin?.deviceId !== "string" || typeof origin.conversationId !== "string") continue;
       if (!this.store.conversation(c.conversationId)) continue;
-      this.recordNotice(c.conversationId, { kind: "resumed", text: RELAY_INTERRUPTED_TEXT });
+      this.recordNotice(c.conversationId, { kind: "resumed", text: t("runner.relayInterrupted", {}, this.store.uiLanguage()) });
       this.relayRefused.add(origin.conversationId);
-      this.onRelayRefused?.({ deviceId: origin.deviceId, conversationId: origin.conversationId }, "redémarrage", c.conversationId);
+      this.onRelayRefused?.({ deviceId: origin.deviceId, conversationId: origin.conversationId }, "restart", c.conversationId);
     }
   }
 
@@ -901,7 +897,7 @@ export class Runner {
     const runtime = this.runtimes.get(b.agent);
     const models = (await runtime?.models().catch(() => [])) ?? [];
     const model = models.find((m) => m.id === b.model)?.name ?? b.model;
-    return `Passage à ${[runtime?.name ?? b.agent, model].filter(Boolean).join(" · ")}`;
+    return t("runner.switched", { brain: [runtime?.name ?? b.agent, model].filter(Boolean).join(" · ") }, this.store.uiLanguage());
   }
 
   /** Resolves a slash command against the conversation's bot config, then runs the matching turn. */
@@ -958,7 +954,7 @@ export class Runner {
       case "tool":
         return this.runTool(conv, action, parsed.command.name, parsed.args, pending);
       default:
-        return this.reply(conv, "Cette commande est gérée par l'app Nuo : choisis-la dans le menu / pour l'utiliser.", pending);
+        return this.reply(conv, t("runner.appCommand", {}, this.store.uiLanguage()), pending);
     }
   }
 
@@ -992,6 +988,7 @@ export class Runner {
   private async runTool(conv: StoredConversation, action: Extract<BotCommandAction, { type: "tool" }>, name: string, args: string, start?: TurnStart) {
     const conversationId = conv.id;
     const config = this.configFor(conv);
+    const lang = this.store.uiLanguage();
     const { messageId, startedAt, at } = start ?? this.begin(conv, "working");
     const step: ToolStep = { toolCallId: newId(), title: action.tool, status: "running" };
     this.emit({ type: "tool.start", conversationId, messageId, toolCallId: step.toolCallId, title: step.title });
@@ -1002,11 +999,11 @@ export class Runner {
     let text = "";
     let stopReason: Message["stopReason"] = "end_turn";
     try {
-      if (!config) throw new Error("ce bot n'a pas de configuration publiée");
+      if (!config) throw new Error(t("runner.noPublishedConfig", {}, lang));
       const toolArgs = toolArguments(action.params, action.fixedArgs, args);
       let result: { content: ToolContent[]; isError?: boolean };
       if (action.server === BUILTIN_TOOL_SERVER) {
-        if (!this.nuo) throw new Error("la passerelle n'a pas encore d'adresse locale");
+        if (!this.nuo) throw new Error(t("runner.noLocalAddress", {}, lang));
         const tools = new NuoTools({ url: this.nuo.url, token: this.nuo.token, botId: conv.botId, conversationId, overview: config.overview }, Date.now, controller.signal);
         result = await tools.call(action.tool, toolArgs).then(
           (t) => ({ content: [{ type: "text", text: t }] }),
@@ -1014,14 +1011,14 @@ export class Runner {
         );
       } else {
         const spec = this.catalog.specs([action.server], this.mcpEnv(config), config.workdir)[0];
-        if (!spec) throw new Error(`serveur d'outils « ${action.server} » introuvable`);
+        if (!spec) throw new Error(t("runner.toolServerNotFound", { server: action.server }, lang));
         result = await this.mcp.call(spec, action.tool, toolArgs, controller.signal);
       }
       text = await this.renderToolContent(result.content);
       if (!result.isError) text = cardsFromToolText(text);
       if (result.isError) {
         stopReason = "error";
-        text = `La commande /${name} a échoué : ${text.trim() || "erreur inconnue"}`;
+        text = t("runner.commandFailed", { name, error: text.trim() || t("runner.unknownError", {}, lang) }, lang);
       }
     } catch (e) {
       if (turn.cancelled) {
@@ -1029,7 +1026,7 @@ export class Runner {
         text = "";
       } else {
         stopReason = "error";
-        text = `Impossible d'exécuter /${name} : ${(e as Error)?.message ?? String(e)}`;
+        text = t("runner.commandError", { name, error: (e as Error)?.message ?? String(e) }, lang);
       }
     } finally {
       this.active.delete(conversationId);
@@ -1334,6 +1331,7 @@ export class Runner {
         bases,
         roots: [...bases, this.bots.attachmentsRoot(bot.id)],
         save: (mime, bytes, name) => this.media.saveBytes(mime, bytes, name),
+        lang: this.store.uiLanguage(),
       }).catch(() => out);
     }
     const durationMs = Date.now() - startedAt;
@@ -1359,7 +1357,7 @@ export class Runner {
     if (config && (usage || stopReason === "end_turn")) {
       if (compacted) {
         // The agent compacted by itself during the turn (e.g. Claude Code's auto-compact).
-        this.recordNotice(conversationId, { kind: "compacted", text: COMPACTED_TEXT, ...compacted });
+        this.recordNotice(conversationId, { kind: "compacted", text: t("runner.compacted", {}, this.store.uiLanguage()), ...compacted });
       }
       this.recordContext(conversationId, config, model, usage, estimateTokens([sent, out, thoughts]), compacted ? 1 : 0);
     }
@@ -1425,7 +1423,7 @@ export class Runner {
     const { messageId, startedAt, at } = start ?? this.begin(conv);
 
     if (!conv.agentSessionId && !this.lives.has(conversationId)) {
-      const text = "Rien à compacter : la conversation n'a pas encore de contexte.";
+      const text = t("runner.nothingToCompact", {}, this.store.uiLanguage());
       this.emit({ type: "message.delta", conversationId, messageId, text });
       this.finish(conv, undefined, { messageId, at, startedAt, text, steps: [], stopReason: "end_turn" });
       return false;
@@ -1436,7 +1434,7 @@ export class Runner {
     let result: CompactResult | undefined;
     let error: string | undefined;
     try {
-      if (!bot || !config) throw new Error(conv.useDraft ? "ce bot n'a pas de configuration" : "ce bot n'a pas de version publiée");
+      if (!bot || !config) throw new Error(t(conv.useDraft ? "runner.noConfig" : "runner.noPublishedVersion", {}, this.store.uiLanguage()));
       const live = await this.ensureSession(conv, bot.id, config);
       if (turn.cancelled) throw new Error("cancelled");
       turn.session = live.session;
@@ -1457,7 +1455,8 @@ export class Runner {
     const durationMs = Date.now() - startedAt;
     if (!result || !config) {
       const stopReason = turn.cancelled ? "cancelled" : "error";
-      const text = stopReason === "error" ? `La compaction a échoué : ${error ?? "erreur inconnue"}` : "";
+      const lang = this.store.uiLanguage();
+      const text = stopReason === "error" ? t("runner.compactionFailed", { error: error ?? t("runner.unknownError", {}, lang) }, lang) : "";
       if (stopReason === "error") this.emit({ type: "error", conversationId, message: text });
       if (text) this.emit({ type: "message.delta", conversationId, messageId, text });
       this.finish(conv, undefined, { messageId, at, startedAt, text, steps: [], stopReason });
@@ -1466,7 +1465,7 @@ export class Runner {
 
     this.recordCompaction(conv, config, result, messageId, at, durationMs);
     this.emit({ type: "message.end", conversationId, messageId, durationMs, steps: 0, stopReason: "end_turn" });
-    this.outcomes.set(conversationId, { text: COMPACTED_TEXT, stopReason: "end_turn" });
+    this.outcomes.set(conversationId, { text: t("runner.compacted", {}, this.store.uiLanguage()), stopReason: "end_turn" });
     return true;
   }
 
@@ -1481,7 +1480,7 @@ export class Runner {
     const before = result.before ?? conv.context?.usedTokens;
     const notice: CompactedNotice = {
       kind: "compacted",
-      text: COMPACTED_TEXT,
+      text: t("runner.compacted", {}, this.store.uiLanguage()),
       ...(before !== undefined ? { beforeTokens: before } : {}),
       ...(result.after !== undefined ? { afterTokens: result.after } : {}),
     };
@@ -1580,9 +1579,9 @@ export class Runner {
       },
       async (ask) => rejectOption(ask.options),
     );
-    if (asked.stopReason !== "end_turn") throw new Error(asked.error ?? "résumé interrompu");
+    if (asked.stopReason !== "end_turn") throw new Error(asked.error ?? t("runner.summaryInterrupted", {}, this.store.uiLanguage()));
     summary = summary.trim();
-    if (!summary) throw new Error("l'agent n'a pas produit de résumé");
+    if (!summary) throw new Error(t("runner.noSummary", {}, this.store.uiLanguage()));
     if (turn.cancelled) throw new Error("cancelled");
 
     this.lives.delete(conv.id);
@@ -1640,7 +1639,7 @@ export class Runner {
     const alert =
       stopReason === "cancelled" || !config || this.scheduled.has(conversationId) || this.hub.anyActive()
         ? undefined
-        : { title: `${config.emoji} ${config.name}`.trim(), body: preview(text, 120) || "Nouvelle réponse" };
+        : { title: `${config.emoji} ${config.name}`.trim(), body: preview(text, 120) || t("push.newAnswer", {}, this.store.uiLanguage()) };
     const dismissalDate = Math.floor(Date.now() / 1000) + LIVE_ACTIVITY_DISMISS_S;
     for (const a of list) {
       handled.add(a.deviceId);
@@ -1656,7 +1655,7 @@ export class Runner {
 
   private pushIfAway(conv: StoredConversation, config: BotConfig, text: string, o: { messageId?: string; skip?: Set<string>; only?: string } = {}) {
     if (this.scheduled.has(conv.id) || this.hub.anyActive()) return;
-    const body = preview(text, 120) || "Nouvelle réponse";
+    const body = preview(text, 120) || t("push.newAnswer", {}, this.store.uiLanguage());
     for (const d of this.store.devices()) {
       if (o.only ? d.id !== o.only : o.skip?.has(d.id)) continue;
       if (!d.apnsToken || this.hub.connected(d.id)) continue;
@@ -1697,7 +1696,7 @@ export class Runner {
     const agent = conv.agent ?? config.agent;
     const relay = this.relayTurns.get(conv.id);
     // Only Claude's tools can be narrowed to the whitelist: another agent never runs a relay turn.
-    if (relay && agent !== "claude") throw new Error(`${config.name} ne passe pas par l'accès de relais : à faire depuis l'iPhone déverrouillé`);
+    if (relay && agent !== "claude") throw new Error(t("runner.relayNotForBot", { bot: config.name }, this.store.uiLanguage()));
     const model = override?.model || (await this.brain(conv, config)).model;
     const effort = override?.effort || conv.effort || (agent === config.agent ? config.effort : undefined);
     const key = JSON.stringify([agent, config.instructions, config.toolServers, config.workdir, config.permissionPolicy, !!config.noTools, !!relay]);
@@ -1718,7 +1717,7 @@ export class Runner {
 
     const runtime = this.runtimes.get(agent);
     if (!runtime) throw new Error(`agent ${agent} is not available`);
-    if (config.noTools && !runtime.toolless) throw new Error(`ce bot n'a aucun outil : ${runtime.name} ne peut pas lui répondre, seul Claude le peut`);
+    if (config.noTools && !runtime.toolless) throw new Error(t("runner.noToolsAgent", { agent: runtime.name }, this.store.uiLanguage()));
     const ws = this.bots.workspace(botId);
     // A relay session works in its own folder, with instructions that leave out the memory and the database schema;
     // the bot's shared CLAUDE.md is neither read nor rewritten for it.
@@ -1742,6 +1741,7 @@ export class Runner {
         : { toolRule: (tool: RelayToolCall) => this.toolRule(conv.id, tool) }),
       ...(config.noTools ? { noTools: true } : {}),
       ...(config.language || userLanguage ? { language: config.language ?? userLanguage } : {}),
+      uiLanguage: this.store.uiLanguage(),
       // Conversations from before per-agent sessions only have the last agent's session.
       resumeId: relay ? conv.agentSessions?.[relayNativeKey(agent)]?.sessionId : (conv.agentSessions?.[agent]?.sessionId ?? (conv.agentId === agent ? conv.agentSessionId : undefined)),
       ...(ws.shared ? { attachmentsDir: join(this.bots.attachmentsRoot(botId), ".nuo", "attachments") } : {}),
@@ -1817,15 +1817,16 @@ export class Runner {
    */
   async confirmGoalAction(conversationId: string, name: string, input: Record<string, unknown>, draft?: () => Promise<string | undefined>): Promise<boolean> {
     if (!this.goals.has(conversationId) || this.relaySession(conversationId)) return true;
-    const title = goalConfirmation(name, input, name === "gmail_send" ? await draft?.().catch(() => undefined) : undefined);
+    const lang = this.store.uiLanguage();
+    const title = goalConfirmation(name, input, name === "gmail_send" ? await draft?.().catch(() => undefined) : undefined, lang);
     if (!title) return true;
     const options: PermissionOption[] = [
-      { id: "allow", name: "Autoriser", kind: "allow_once" },
-      { id: "reject", name: "Refuser", kind: "reject_once" },
+      { id: "allow", name: t("goal.allow", {}, lang), kind: "allow_once" },
+      { id: "reject", name: t("goal.reject", {}, lang), kind: "reject_once" },
     ];
     const conv = this.store.conversation(conversationId);
     const config = conv ? this.configFor(conv) : undefined;
-    if (conv && config) this.pushIfAway(conv, config, `Confirmation demandée : ${title}`);
+    if (conv && config) this.pushIfAway(conv, config, t("goal.confirmationAsked", { title }, lang));
     return (await this.waitForAnswer(conversationId, title, options, GOAL_CONFIRMATION_TIMEOUT_MS)) === "allow";
   }
 
@@ -1859,8 +1860,8 @@ export class Runner {
       }
     }
     const tool: RelayToolCall | undefined = relay ? ask.tool : undefined;
-    // In a relay session the yes is given for what the call adds, said in words, and counts once: no « always ».
-    const title = tool ? relayConfirmationTitle(tool) : ask.title;
+    // In a relay session the yes is given for what the call adds, said in words, and counts once: no "always".
+    const title = tool ? relayConfirmationTitle(tool, this.store.uiLanguage()) : ask.title;
     const options = relay ? ask.options.filter((o) => o.kind === "allow_once" || o.kind === "reject_once") : ask.options;
     if (relay && relay.conversationId !== conversationId) this.pushDelegatedConfirmation(conversationId, relay, title);
     const key = !relay && ask.tool ? toolRuleKey(ask.tool) : undefined;
@@ -1917,8 +1918,8 @@ export class Runner {
     const device = this.store.devices().find((d) => d.id === relay.deviceId);
     if (!conv || !config || !device) return;
     void this.pusher.send(device, {
-      title: `${config.emoji} ${config.name} attend ta confirmation`.trim(),
-      body: preview(what, 120) || "Une action attend ton accord dans Nuo.",
+      title: `${config.emoji} ${t("push.waitsForConfirmation", { bot: config.name }, this.store.uiLanguage())}`.trim(),
+      body: preview(what, 120) || t("push.actionWaits", {}, this.store.uiLanguage()),
       botId: conv.botId,
       conversationId: conv.id,
       destination: { kind: "conversation", id: conv.id, botId: conv.botId },

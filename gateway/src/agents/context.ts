@@ -134,9 +134,9 @@ export const HANDOFF_MAX_CHARS = 24_000;
 export const HANDOFF_MESSAGE_MAX_CHARS = 4_000;
 
 export const HANDOFF_FULL_PREFIX =
-  "[Nuo] Cette conversation a commencé avec un autre agent. Voici les messages précédents, du plus ancien au plus récent, à garder comme contexte. Ne les rejoue pas : réponds seulement au nouveau message qui suit.";
+  "[Nuo] This conversation started with another agent. Here are the earlier messages, oldest first, to keep as context. Do not replay them: answer only the new message that follows.";
 export const HANDOFF_DELTA_PREFIX =
-  "[Nuo] Depuis ton dernier message dans cette conversation, l'utilisateur a continué avec un autre agent. Voici ces messages, du plus ancien au plus récent, à garder comme contexte. Ne les rejoue pas : réponds seulement au nouveau message qui suit.";
+  "[Nuo] Since your last message in this conversation, the user went on with another agent. Here are those messages, oldest first, to keep as context. Do not replay them: answer only the new message that follows.";
 
 /**
  * Transcript for an agent that did not see these turns (another agent answered them). `resumed`: the agent's own
@@ -154,17 +154,17 @@ export function handoffTranscript(messages: Message[], resumed: boolean, maxChar
   }
   if (!kept.length) return "";
   const dropped = lines.length - kept.length;
-  const omitted = dropped ? [`(${dropped} message${dropped > 1 ? "s plus anciens omis" : " plus ancien omis"})`] : [];
-  return [resumed ? HANDOFF_DELTA_PREFIX : HANDOFF_FULL_PREFIX, "<historique>", ...omitted, ...kept, "</historique>", "", "Nouveau message :", ""].join("\n");
+  const omitted = dropped ? [`(${dropped} older message${dropped > 1 ? "s" : ""} left out)`] : [];
+  return [resumed ? HANDOFF_DELTA_PREFIX : HANDOFF_FULL_PREFIX, "<history>", ...omitted, ...kept, "</history>", "", "New message:", ""].join("\n");
 }
 
 function transcriptLine(m: Message): string {
-  const who = m.role === "user" ? "Utilisateur" : m.agent ? `Assistant (${[m.agent, m.model].filter(Boolean).join(" · ")})` : "Assistant";
+  const who = m.role === "user" ? "User" : m.agent ? `Assistant (${[m.agent, m.model].filter(Boolean).join(" · ")})` : "Assistant";
   let text = m.text.trim();
   if (text.length > HANDOFF_MESSAGE_MAX_CHARS) text = `${text.slice(0, HANDOFF_MESSAGE_MAX_CHARS).trimEnd()} […]`;
-  return `${who} : ${[text, ...(m.attachments ?? []).map(attachmentNote)].filter(Boolean).join(" ")}`;
+  return `${who}: ${[text, ...(m.attachments ?? []).map(attachmentNote)].filter(Boolean).join(" ")}`;
 }
 
 function attachmentNote(a: Attachment): string {
-  return a.kind === "image" ? "[image jointe]" : `[fichier joint : ${a.name ?? a.mime}]`;
+  return a.kind === "image" ? "[attached image]" : `[attached file: ${a.name ?? a.mime}]`;
 }

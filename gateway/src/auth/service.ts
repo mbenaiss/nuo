@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
+import { t } from "../i18n/language";
 import type { Store } from "../store/store";
 import { newId, now as isoNow } from "../store/store";
 import { normalizePublicKey, open, seal, sha256, verifyP256 } from "./keys";
@@ -273,7 +274,8 @@ export class AuthService {
       .query("INSERT INTO devices (id, name, platform, public_key, created_at, last_seen_at, app_naming) VALUES (?, ?, ?, ?, ?, ?, 'current')")
       .run(id, name, platform ?? null, publicKey, isoNow(), isoNow());
     this.event("pair", true, { ip, deviceId: id, deviceName: name, detail: factor === "recovery" ? `recovery code (${this.recoveryCodesLeft()} left)` : platform });
-    this.opts.alert?.("Nuo · nouvel appareil", `« ${name} » vient d'être appairé depuis ${ip}${factor === "recovery" ? " avec un code de secours" : ""}.`, id);
+    const lang = this.store.uiLanguage();
+    this.opts.alert?.(t("auth.newDevice", {}, lang), t(factor === "recovery" ? "auth.pairedWithRecovery" : "auth.paired", { device: name, ip }, lang), id);
     return { grant: { ...this.grant(id, { forceExtensions: true }), network: this.opts.network ?? {} }, recovery: factor === "recovery" };
   }
 
@@ -290,7 +292,7 @@ export class AuthService {
     this.opts.alert?.(title, body);
   }
 
-  // Action key: a Face ID–bound key that signs each sensitive action
+  // Action key: a key bound to Face ID that signs each sensitive action
 
   hasActionKey(deviceId: string): boolean {
     return !!(this.db.query("SELECT action_key FROM devices WHERE id = ?").get(deviceId) as Row | null)?.action_key;
@@ -310,7 +312,8 @@ export class AuthService {
     const replaced = this.hasActionKey(ctx.deviceId);
     this.db.query("UPDATE devices SET action_key = ? WHERE id = ?").run(key, ctx.deviceId);
     this.event("action_key", true, { ip, deviceId: ctx.deviceId, deviceName: ctx.deviceName, detail: replaced ? "replaced" : "registered" });
-    this.alert("Nouvelle clé Face ID", `${ctx.deviceName} a ${replaced ? "remplacé" : "enregistré"} sa clé de confirmation des secrets.`);
+    const lang = this.store.uiLanguage();
+    this.alert(t("auth.actionKeyTitle", {}, lang), t(replaced ? "auth.actionKeyReplaced" : "auth.actionKeyRegistered", { device: ctx.deviceName }, lang));
     return { ok: true };
   }
 
@@ -354,7 +357,8 @@ export class AuthService {
     })();
     this.event("relay_key", true, { ip, deviceId: ctx.deviceId, deviceName: ctx.deviceName, detail: replaced ? "replaced" : "registered" });
     if (replaced) this.opts.relayRevoked?.(ctx.deviceId);
-    this.alert("Accès de relais", `${ctx.deviceName} a ${replaced ? "recréé" : "activé"} son accès de relais pour la montre.`);
+    const lang = this.store.uiLanguage();
+    this.alert(t("auth.relayTitle", {}, lang), t(replaced ? "auth.relayRecreated" : "auth.relayTurnedOn", { device: ctx.deviceName }, lang));
     return { ok: true };
   }
 
@@ -594,7 +598,7 @@ export class AuthService {
     if (++this.logged % 500 === 1) this.db.query("DELETE FROM auth_requests WHERE at < ?").run(t - 30 * 24 * 3600 * 1000);
   }
 
-  /** Data of the app's « Activité de sécurité » screen. */
+  /** Data of the app's "Security Activity" screen. */
   activity(limit = 100) {
     const since = this.now() - 7 * 24 * 3600 * 1000;
     const names = new Map((this.db.query("SELECT id, name FROM devices").all() as Row[]).map((r) => [r.id, r.name]));

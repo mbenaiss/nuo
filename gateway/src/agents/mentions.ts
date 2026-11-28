@@ -5,7 +5,7 @@
  * Claude Code from loading the bot's CLAUDE.md, its instructions: the text is neutralized instead.
  */
 
-/** FULLWIDTH COMMERCIAL AT: reads as « @ » to the model and to the user, never starts a mention. */
+/** FULLWIDTH COMMERCIAL AT: reads as "@" to the model and to the user, never starts a mention. */
 const NEUTRAL_AT = "\uFF20";
 
 /**
@@ -22,7 +22,7 @@ export function neutralizeMentions(text: string): string {
   return text.replace(MENTION_AT, NEUTRAL_AT);
 }
 
-/** FULLWIDTH SOLIDUS: still reads as « / », never starts a command. */
+/** FULLWIDTH SOLIDUS: still reads as "/", never starts a command. */
 const NEUTRAL_SLASH = "／";
 
 /**

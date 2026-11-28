@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { newId, now } from "../store/store";
 
 /**
- * What wakes a bot from outside (docs/protocol.md, « Réveils »): webhooks, its mail alias, the conversation each
+ * What wakes a bot from outside (docs/protocol.md, "Wake-ups from outside"): webhooks, its mail alias, the conversation each
  * sender's mails go to, and the Message-IDs already handled.
  */
 export const wakeMigration = `

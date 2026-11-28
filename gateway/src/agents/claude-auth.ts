@@ -1,3 +1,4 @@
+import { DEFAULT_UI_LANGUAGE, t, type UiLanguage } from "../i18n/language";
 import type { Attachment } from "../protocol";
 import type { AgentSession, PermissionAsk, PromptResult, RunEvent, UnpromptedWork } from "./types";
 
@@ -24,12 +25,9 @@ function mayBeAuthFailure(text: string): boolean {
   return PREFIXES.some((p) => p.startsWith(t) || t.startsWith(p)) || /^Failed to authenticate\b/.test(t);
 }
 
-export function claudeAuthMessage(kind: ClaudeAuthFailure, profileHome?: string): string {
-  const where = profileHome ? `sur le serveur, avec le compte du profil (HOME ${profileHome})` : "sur le serveur";
-  if (kind === "login_required") {
-    return `Claude Code n'est plus connecté : sa session OAuth a expiré et n'a pas pu être renouvelée. Reconnecte-le ${where} en lançant \`claude\` puis \`/login\`, puis renvoie ton message.`;
-  }
-  return `Claude Code n'a pas pu renouveler son jeton OAuth : un autre processus Claude Code le renouvelait ou s'est arrêté en plein renouvellement. Renvoie ton message dans une minute ; si l'erreur persiste, reconnecte Claude Code ${where} (\`claude\` puis \`/login\`).`;
+export function claudeAuthMessage(kind: ClaudeAuthFailure, profileHome?: string, lang: UiLanguage = DEFAULT_UI_LANGUAGE): string {
+  const where = profileHome ? t("agents.onServerProfile", { home: profileHome }, lang) : t("agents.onServer", {}, lang);
+  return t(kind === "login_required" ? "agents.claudeLoginRequired" : "agents.claudeRefreshContended", { where }, lang);
 }
 
 export interface ClaudeAuthOptions {
@@ -39,6 +37,8 @@ export interface ClaudeAuthOptions {
    */
   retryDelaysMs: number[];
   profileHome?: string;
+  /** The language of the message that replaces the CLI's error. */
+  lang?: UiLanguage;
 }
 
 export const DEFAULT_RETRY_DELAYS_MS = [20_000, 45_000];
@@ -114,7 +114,7 @@ export class ClaudeAuthSession implements AgentSession {
         continue;
       }
       console.warn(`[claude] OAuth failure (${failure}): ${held.trim()}`);
-      const message = claudeAuthMessage(failure, this.opts.profileHome);
+      const message = claudeAuthMessage(failure, this.opts.profileHome, this.opts.lang);
       onEvent({ type: "text", text: message });
       return { stopReason: "error", error: message };
     }

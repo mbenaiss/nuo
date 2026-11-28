@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { moveClaudeProject } from "../agents/claude";
-import { forcedLanguages } from "../i18n/language";
+import { forcedLanguages, t } from "../i18n/language";
 import { findBinary, type AgentHost } from "../agents/host";
 import { lightpandaMcp, type McpServerSpec } from "../agents/types";
 import { AuthService, type NetworkInfo } from "../auth/service";
@@ -129,8 +129,9 @@ export class ProfileStack {
     this.agents = new AgentDirectory(o.runtimes);
     if (this.owner || o.browser) {
       this.browser = new BrowserManager(o.browser, (r) => {
-        const title = `Connexion requise sur ${r.site}`;
-        const body = "Un agent attend que tu te connectes dans le navigateur de Nuo. Touche pour l'ouvrir, puis « Terminé ».";
+        const lang = this.store.uiLanguage();
+        const title = t("browser.loginNeeded", { site: r.site }, lang);
+        const body = t("browser.loginNeededBody", {}, lang);
         this.hub.broadcast({ type: "notification", title, body, ...(r.botId ? { botId: r.botId } : {}) });
         for (const dev of this.store.devices()) void this.pusher.send(dev, { title, body, category: "nuo.browser", url: "nuo://browser", destination: { kind: "browser" } }).catch(() => {});
       });
@@ -153,7 +154,7 @@ export class ProfileStack {
     this.device = new DeviceBridge(this.store, this.hub, this.pusher, o.device);
     this.machine = this.owner ? (o.machine ?? NO_MACHINE_TOOLS) : NO_MACHINE_TOOLS;
     const secretFiles = this.owner && o.secrets ? new SecretStore(o.secrets) : undefined;
-    const mask = secretFiles ? new SecretMask(() => secretFiles.allValues()) : undefined;
+    const mask = secretFiles ? new SecretMask(() => secretFiles.allValues(), undefined, () => this.store.uiLanguage()) : undefined;
     this.runner = new Runner(this.store, this.bots, this.catalog, o.runtimes, this.media, this.hub, this.pusher, { ...DEFAULT_RUNNER_OPTIONS, mask, ...o.runner, browserMcp }, this.machine);
     this.localToken = o.localToken ?? randomBytes(32).toString("base64url");
     this.auth = new AuthService(this.store, {
@@ -184,7 +185,7 @@ export class ProfileStack {
         this.hub.broadcast({ type: "notification", title, body });
         for (const dev of this.store.devices()) void this.pusher.send(dev, { title, body, category: "nuo.booking", bookingId, destination: { kind: "booking", id: bookingId } }).catch(() => {});
       },
-      this.owner ? o.calendar : { gogRunner: null, clock: o.calendar?.clock },
+      { ...(this.owner ? o.calendar : { gogRunner: null, clock: o.calendar?.clock }), ownerLanguage: () => this.store.uiLanguage() },
     );
     if (o.google) {
       const g = o.google;
@@ -207,6 +208,7 @@ export class ProfileStack {
     this.scan = createScanServices(this.data.db, this.pusher, () => this.store.devices(), {
       tracker: new TrackerChain([]),
       ...o.scan,
+      language: () => this.store.uiLanguage(),
       products: {
         ...o.scan?.products,
         memory: {

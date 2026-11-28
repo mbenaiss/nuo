@@ -46,14 +46,14 @@ test("another model of the same agent keeps the session and leaves a marker", as
   expect(await sock.next("notice")).toMatchObject({
     conversationId: conv.id,
     kind: "switched",
-    text: "Passage à Fake Claude · Sonnet 5",
+    text: "Switched to Fake Claude · Sonnet 5",
     agent: "claude",
     model: "claude-sonnet-5",
   });
 
   const msgs = await messages();
   expect(msgs.map((m) => m.role)).toEqual(["user", "assistant", "assistant", "user", "assistant"]);
-  expect(JSON.parse(msgs[2].text.slice("::notice ".length))).toEqual({ kind: "switched", text: "Passage à Fake Claude · Sonnet 5", agent: "claude", model: "claude-sonnet-5" });
+  expect(JSON.parse(msgs[2].text.slice("::notice ".length))).toEqual({ kind: "switched", text: "Switched to Fake Claude · Sonnet 5", agent: "claude", model: "claude-sonnet-5" });
   expect(msgs[1]).toMatchObject({ agent: "claude", model: "claude-opus-5-5" });
   expect(msgs[4]).toMatchObject({ agent: "claude", model: "claude-sonnet-5" });
 
@@ -72,10 +72,10 @@ test("another agent gets the history; switching back resumes the first session w
   expect(t.runtime.closed).toEqual(["s1"]);
   const seeded = codex.prompts[0]!.text;
   expect(seeded).toStartWith(HANDOFF_FULL_PREFIX);
-  expect(seeded).toContain("Utilisateur : Je pars à Rome le 20 octobre, trouve-moi un vol depuis Paris");
-  expect(seeded).toContain("Assistant (claude · claude-opus-5-5) : Hello world");
+  expect(seeded).toContain("User: Je pars à Rome le 20 octobre, trouve-moi un vol depuis Paris");
+  expect(seeded).toContain("Assistant (claude · claude-opus-5-5): Hello world");
   expect(seeded).not.toContain("::notice");
-  expect(seeded).toEndWith("Nouveau message :\nCompare avec un départ de Lyon");
+  expect(seeded).toEndWith("New message:\nCompare avec un départ de Lyon");
 
   const c = (await t.api("GET", `/api/conversations/${conv.id}`)).data;
   expect(c).toMatchObject({ agent: "codex", model: "gpt-5.6-sol" });
@@ -86,10 +86,10 @@ test("another agent gets the history; switching back resumes the first session w
   expect(t.runtime.starts[1]!.resumeId).toBe("s1");
   const delta = t.runtime.prompts[1]!.text;
   expect(delta).toStartWith(HANDOFF_DELTA_PREFIX);
-  expect(delta).toContain("Utilisateur : Compare avec un départ de Lyon");
-  expect(delta).toContain("Assistant (codex · gpt-5.6-sol) : Hello world");
+  expect(delta).toContain("User: Compare avec un départ de Lyon");
+  expect(delta).toContain("Assistant (codex · gpt-5.6-sol): Hello world");
   expect(delta).not.toContain("Je pars à Rome");
-  expect(delta).toEndWith("Nouveau message :\nFinalement je garde Paris");
+  expect(delta).toEndWith("New message:\nFinalement je garde Paris");
 
   await say("Réserve le vol de 9 h 40");
   expect(t.runtime.prompts[2]!.text).toBe("Réserve le vol de 9 h 40");
@@ -98,12 +98,12 @@ test("another agent gets the history; switching back resumes the first session w
   expect(codex.starts[1]!.resumeId).toBe("codex-s1");
   const back = codex.prompts[1]!.text;
   expect(back).toStartWith(HANDOFF_DELTA_PREFIX);
-  expect(back).toContain("Utilisateur : Finalement je garde Paris");
-  expect(back).toContain("Utilisateur : Réserve le vol de 9 h 40");
+  expect(back).toContain("User: Finalement je garde Paris");
+  expect(back).toContain("User: Réserve le vol de 9 h 40");
   expect(back).not.toContain("Compare avec un départ de Lyon");
 
   const notices = (await messages()).filter((m) => m.text.startsWith("::notice ")).map((m) => JSON.parse(m.text.slice("::notice ".length)).text);
-  expect(notices).toEqual(["Passage à Codex · GPT-5.6 Sol", "Passage à Fake Claude · Opus 5.5", "Passage à Codex · GPT-5.6 Sol"]);
+  expect(notices).toEqual(["Switched to Codex · GPT-5.6 Sol", "Switched to Fake Claude · Opus 5.5", "Switched to Codex · GPT-5.6 Sol"]);
   const sessions = t.app.store.conversation(conv.id)!.agentSessions!;
   expect(sessions.claude!.sessionId).toBe("s1");
   expect(sessions.codex!.sessionId).toBe("codex-s1");
@@ -142,8 +142,8 @@ test("a failed turn on the new agent is handed over again", async () => {
   await say("Réessaie avec Lyon");
   const retried = codex.prompts[1]!.text;
   expect(retried).toStartWith(HANDOFF_FULL_PREFIX);
-  expect(retried).toContain("Utilisateur : Je pars à Rome le 20 octobre");
-  expect(retried).toEndWith("Nouveau message :\nRéessaie avec Lyon");
+  expect(retried).toContain("User: Je pars à Rome le 20 octobre");
+  expect(retried).toEndWith("New message:\nRéessaie avec Lyon");
 });
 
 test("an unknown agent is refused", async () => {

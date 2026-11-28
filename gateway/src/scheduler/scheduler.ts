@@ -2,10 +2,11 @@ import { HttpError } from "../bots/service";
 import type { Bot, BotConfig, CommandNotify, ScheduledTask, TaskAction, TaskRun, TaskSchedule } from "../protocol";
 import type { Pusher } from "../push/apns";
 import type { Runner } from "../runner/runner";
+import { t } from "../i18n/language";
 import { newId, preview, type Store } from "../store/store";
 import { DEFAULT_COMMAND_TIMEOUT_SEC, MAX_COMMAND_TIMEOUT_SEC, runCommand, type CommandResult, type CommandSpawner, type RunningCommand } from "./command";
 import { CronError, isValidTimeZone, nextRun, parseCron } from "./cron";
-import { isNothingToPropose, isProactiveTask, NOTHING_PREVIEW, syncAllProactiveTasks, syncProactiveTask } from "./proactive";
+import { isNothingToPropose, isProactiveTask, syncAllProactiveTasks, syncProactiveTask } from "./proactive";
 
 export const DEFAULT_TIMEZONE = "Europe/Paris";
 /** A once-task whose date passed less than this ago still runs (gateway restart, late creation). */
@@ -17,7 +18,6 @@ const BUSY_RETRY_MS = 5 * 1000;
 const PREVIEW_MAX = 160;
 const PUSH_OUTPUT_LINES = 6;
 const STOP_WAIT_MS = 6000;
-const STOPPED_ERROR = "coupée par le redémarrage de la passerelle, reprise à son retour";
 const PUSH_BODY_MAX = 600;
 export const COMMAND_FORBIDDEN = "command tasks can only be created or changed from the paired app";
 
@@ -317,7 +317,7 @@ export class Scheduler {
   /** Forgets runs interrupted by a restart, skips missed cron runs, then starts the timer loop. */
   start() {
     this.stopped = false;
-    this.store.failRunningTaskRuns("interrompue par un redémarrage de la passerelle");
+    this.store.failRunningTaskRuns(t("schedule.interruptedByRestart", {}, this.store.uiLanguage()));
     const now = this.now();
     syncAllProactiveTasks(this.store, now);
     for (const t of this.store.tasks()) {
@@ -469,7 +469,7 @@ export class Scheduler {
     const bot = this.store.bot(task.botId);
     const config = botConfig(bot);
     if (!bot || !config) {
-      const run: TaskRun = { id: newId(), taskId: task.id, conversationId: "", startedAt, endedAt: startedAt, status: "error", error: "ce bot n'a pas de configuration" };
+      const run: TaskRun = { id: newId(), taskId: task.id, conversationId: "", startedAt, endedAt: startedAt, status: "error", error: t("schedule.noConfig", {}, this.store.uiLanguage()) };
       this.store.addTaskRun(run);
       this.store.updateTask(task.id, { lastRunAt: startedAt, lastStatus: "error" });
       return run;
@@ -492,7 +492,7 @@ export class Scheduler {
     this.store.addTaskRun(run);
     this.store.updateTask(task.id, { lastRunAt: startedAt, lastStatus: "running" });
     const cmd = this.commandsAllowed()
-      ? runCommand(action, this.commandHome, this.commandSpawner)
+      ? runCommand(action, this.commandHome, this.commandSpawner, this.store.uiLanguage())
       : { done: Promise.resolve<CommandResult>({ ok: false, output: "", durationMs: 0, error: COMMANDS_DISABLED }), kill() {} };
     this.commands.set(task.id, cmd);
     this.track(
@@ -540,15 +540,16 @@ export class Scheduler {
     if (isOpen !== wasOpen) this.store.setTaskAlertOpen(taskId, isOpen);
 
     const tail = lastLines(r.output, PUSH_OUTPUT_LINES);
+    const lang = this.store.uiLanguage();
     let push: { title: string; body: string } | undefined;
     if (status === "error") {
       if (notifyOn === "always" || (notifyOn === "failure" && !wasOpen)) {
-        push = { title: `⚠️ ${current.title}`, body: [r.error ?? "échec", tail].filter(Boolean).join("\n") };
+        push = { title: `⚠️ ${current.title}`, body: [r.error ?? t("push.failed", {}, lang), tail].filter(Boolean).join("\n") };
       }
     } else if (wasOpen && notifyOn !== "never") {
-      push = { title: `✅ ${current.title} rétabli`, body: tail || "La commande fonctionne à nouveau." };
+      push = { title: `✅ ${t("schedule.recovered", { title: current.title }, lang)}`, body: tail || t("schedule.worksAgain", {}, lang) };
     } else if (notifyOn === "always") {
-      push = { title: current.title, body: tail || "Terminé" };
+      push = { title: current.title, body: tail || t("push.done", {}, lang) };
     }
     if (!push) return;
     const body = clip(push.body, PUSH_BODY_MAX);
@@ -565,13 +566,14 @@ export class Scheduler {
     let text = "";
     let error: string | undefined;
     let quiet = false;
+    const lang = this.store.uiLanguage();
     try {
       const { messageId, done } = await this.runner.prompt({ conversationId: run.conversationId, text: task.prompt }, { scheduled: true, task: { id: task.id, title: task.title } });
       const outcome = await done;
       text = outcome.text;
       if (outcome.stopReason === "end_turn") status = "ok";
-      else if (this.stopped) error = STOPPED_ERROR;
-      else error = outcome.stopReason === "cancelled" ? "annulée" : outcome.error || text || "erreur inconnue";
+      else if (this.stopped) error = t("schedule.stoppedByRestart", {}, lang);
+      else error = outcome.stopReason === "cancelled" ? t("schedule.cancelled", {}, lang) : outcome.error || text || t("runner.unknownError", {}, lang);
       quiet = status === "ok" && isProactiveTask(task) && isNothingToPropose(text);
       // The agent session keeps the turn; only the transcript the user reads loses it.
       if (quiet) this.store.deleteMessages(run.conversationId, [messageId, ...(outcome.messageId ? [outcome.messageId] : [])]);
@@ -579,14 +581,14 @@ export class Scheduler {
       error = (e as Error)?.message ?? String(e);
     }
     const endedAt = new Date(this.now()).toISOString();
-    const shown = quiet ? NOTHING_PREVIEW : preview(text, PREVIEW_MAX) || undefined;
+    const shown = quiet ? t("schedule.nothingToPropose", {}, lang) : preview(text, PREVIEW_MAX) || undefined;
     this.store.finishTaskRun(run.id, { status, endedAt, preview: shown, error });
     const current = this.store.task(task.id);
     if (!current) return;
     this.store.updateTask(task.id, { lastStatus: status });
     // The runner resumes the turn once the gateway is back: an error push would announce a failure that is not one.
     if (!current.notify || quiet || (this.stopped && status !== "ok")) return;
-    const body = status === "ok" ? (shown ?? "Terminé") : `Erreur : ${preview(error ?? "", PREVIEW_MAX) || "échec"}`;
+    const body = status === "ok" ? (shown ?? t("push.done", {}, lang)) : t("push.error", { error: preview(error ?? "", PREVIEW_MAX) || t("push.failed", {}, lang) }, lang);
     const title = `${config.emoji} ${current.title}`.trim();
     await Promise.all(
       this.store

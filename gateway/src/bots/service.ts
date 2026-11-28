@@ -8,7 +8,7 @@ import type { ToolCatalog } from "./catalog";
 import { validateCommands } from "./commands";
 import { prepareWorkspace, type BrowserAccess, type Workspace } from "./instructions";
 import { MemoryStore } from "./memory";
-import { languageName } from "../i18n/language";
+import { languageName, t } from "../i18n/language";
 import { isToolRuleKey, TOOL_RULES_MAX, toolRuleError, validateToolRules } from "./tool-rules";
 
 export class HttpError extends Error {
@@ -288,7 +288,7 @@ export class BotService {
     const published = bot.published ? apply(bot.published.config) : undefined;
     const draft = bot.draft ? apply(bot.draft) : undefined;
     if (published) {
-      this.store.publish(id, published, `Règle d'outil : ${key} ${rule === "allow" ? "toujours autorisé" : rule === "block" ? "bloqué" : "retirée"}`, false);
+      this.store.publish(id, published, t(rule === "allow" ? "bots.toolRuleAllowed" : rule === "block" ? "bots.toolRuleBlocked" : "bots.toolRuleRemoved", { tool: key }, this.store.uiLanguage()), false);
       this.onPublished?.(id);
     }
     if (draft) this.store.setDraft(id, draft);

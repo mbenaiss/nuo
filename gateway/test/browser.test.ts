@@ -274,7 +274,7 @@ describe("live view", () => {
 });
 
 describe("login requests", () => {
-  test("an agent asks, the user is notified with a link to the browser and « Terminé » answers it", async () => {
+  test("an agent asks, the user is notified with a link to the browser and Done answers it", async () => {
     const t = await setup();
     const local = (m: string, p: string, b?: unknown) => t.api(m, p, b, "local-secret");
     expect((await local("POST", "/api/browser/login-requests", { site: "LinkedIn", url: "javascript:alert(1)" })).status).toBe(400);
@@ -282,7 +282,7 @@ describe("login requests", () => {
     const r = await local("POST", "/api/browser/login-requests", { site: "LinkedIn", url: "https://www.linkedin.com/login" });
     expect(r.status).toBe(201);
     expect(r.data).toMatchObject({ site: "LinkedIn", url: "https://www.linkedin.com/login", status: "pending" });
-    expect(t.pusher.sent.at(-1)!.payload).toMatchObject({ title: "Connexion requise sur LinkedIn", category: "nuo.browser", url: "nuo://browser", destination: { kind: "browser" } });
+    expect(t.pusher.sent.at(-1)!.payload).toMatchObject({ title: "Login needed on LinkedIn", category: "nuo.browser", url: "nuo://browser", destination: { kind: "browser" } });
 
     // The live view opens on the login page, in a new tab since none is on linkedin.com.
     const v = await Viewer.open(t);
@@ -416,7 +416,7 @@ describe("profile browsers", () => {
 
     const r = await aliceLocal("POST", "/api/browser/login-requests", { site: "LinkedIn" });
     expect(r.status).toBe(201);
-    expect(t.pusher.sent.at(-1)).toMatchObject({ device: { id: device.id }, payload: { title: "Connexion requise sur LinkedIn", url: "nuo://browser" } });
+    expect(t.pusher.sent.at(-1)).toMatchObject({ device: { id: device.id }, payload: { title: "Login needed on LinkedIn", url: "nuo://browser" } });
     expect((await t.api("GET", "/api/browser")).data.logins).toEqual([]);
     expect((await t.api("GET", "/api/browser", undefined, token)).data.logins).toHaveLength(1);
     expect((await t.api("GET", `/api/browser/login-requests/${r.data.id}`, undefined, "local-secret")).status).toBe(404);

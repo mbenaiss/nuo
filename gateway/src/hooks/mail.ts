@@ -151,10 +151,10 @@ export function splitOwnText(text: string): { own: string; quoted: string } {
     const l = line.trim();
     const next = (lines[i + 1] ?? "").trim();
     if (QUOTE_LINES.some((re) => re.test(l))) return true;
-    // « Le jeu. 26 nov. 2026 à 09:14, Julie Martin <…> a écrit : », often wrapped over two lines.
+    // "Le jeu. 26 nov. 2026 à 09:14, Julie Martin <…> a écrit :" (French clients), often wrapped over two lines.
     if (/^Le\s/.test(l) && (/a écrit\s*:$/.test(l) || /a écrit\s*:$/.test(next))) return true;
     if (/^On\s/.test(l) && (/wrote:$/.test(l) || /wrote:$/.test(next))) return true;
-    // Outlook's header block: « From: … Sent: … » or « De : … Envoyé : ».
+    // Outlook's header block: "From: … Sent: …" or, in French, "De : … Envoyé :".
     return /^(from|de)\s*:/i.test(l) && lines.slice(i + 1, i + 4).some((n) => /^(sent|envoyé|date)\s*:/i.test(n.trim()));
   });
   if (at < 0) return { own: text.trim(), quoted: "" };

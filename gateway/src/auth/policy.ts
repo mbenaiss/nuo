@@ -36,7 +36,7 @@ const PROMPT: Rule[] = [
 
 /**
  * What a machine token may do (NUO_MACHINE_TOKEN): hold a conversation with a bot, nothing else. It is a
- * standing credential on another host — Forma's server asking its bot to draw a part — so it reads and writes
+ * standing credential on another host (Forma's server asking its bot to draw a part), so it reads and writes
  * conversations and never touches devices, data, schedules or secrets.
  */
 export const MACHINE_RULES: Rule[] = [
@@ -47,7 +47,7 @@ export const MACHINE_RULES: Rule[] = [
 ];
 
 /**
- * What a relay token may do (docs/security.md, « Accès de relais »): the iPhone passes on the watch's spoken requests
+ * What a relay token may do (docs/security.md, "Relay access"): the iPhone passes on the watch's spoken requests
  * while it is locked. It transcribes a short dictation, opens conversations and prompts in them, reads them and
  * answers their confirmations once; the server further limits each of those to the conversations this relay
  * opened and to its own transcription jobs. Nothing else: no data, docs, devices, secrets, settings or socket.
