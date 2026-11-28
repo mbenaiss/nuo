@@ -208,8 +208,8 @@ function mcpTool(name: string): MachineTool {
     id: slugId(name),
     name,
     kind: "mcp",
-    description: `Serveur MCP « ${name} » configuré pour Claude sur la machine.`,
-    usage: `Utilise les outils MCP du serveur « ${name} » (préfixe mcp__${name}__), disponibles dans les sessions Claude.`,
+    description: `MCP server "${name}" set up for Claude on the machine.`,
+    usage: `Use the MCP tools of the server "${name}" (prefix mcp__${name}__), available in Claude sessions.`,
     needsShell: false,
     available: true,
   };
@@ -252,7 +252,7 @@ export function skillTool(dirName: string, file: string, text: string): MachineT
     name,
     kind: "skill",
     description,
-    usage: `Skill Claude « ${name} » : suis les instructions de ${file} (outil Skill dans Claude Code). ${description}`,
+    usage: `Claude skill "${name}": follow the instructions of ${file} (Skill tool in Claude Code). ${description}`,
     // A skill that declares its tools and none of them is Bash can run without a shell.
     needsShell: allowed === undefined || /\bBash\b/.test(allowed),
     available: true,

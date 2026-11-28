@@ -1,5 +1,6 @@
 import type { AuthContext, AuthService } from "../auth/service";
 import { HttpError, type BotService } from "../bots/service";
+import { t } from "../i18n/language";
 import { RelayRefusedError, type Runner } from "../runner/runner";
 import type { Store } from "../store/store";
 import { now as isoNow } from "../store/store";
@@ -49,7 +50,7 @@ async function cappedBody(req: Request): Promise<Record<string, unknown>> {
 }
 
 /**
- * Every route a relay token reaches, written out one by one (docs/security.md, « Accès de relais »). The gate already
+ * Every route a relay token reaches, written out one by one (docs/security.md, "Relay access"). The gate already
  * keeps the token to these paths; here each is narrowed to what the relay opened, and anything else is refused.
  */
 export async function relayRoute(d: RelayDeps, path: string, req: Request, ctx: AuthContext, ip: string): Promise<Response> {
@@ -75,9 +76,9 @@ export async function relayRoute(d: RelayDeps, path: string, req: Request, ctx: 
       const bot = d.bots.get(String(b.botId ?? ""));
       if (!bot.published) throw new HttpError(400, "this bot has no published version");
       if (!d.auth.relayConversation(ctx, `${bot.published.config.name} · ${bot.id}`, ip)) {
-        throw new HttpError(429, "trop de conversations ouvertes par la montre cette heure-ci : réessaie plus tard ou déverrouille l'iPhone");
+        throw new HttpError(429, t("relay.tooManyConversations"));
       }
-      const c = d.store.createConversation(bot.id, false, "Depuis la montre");
+      const c = d.store.createConversation(bot.id, false, t("relay.conversationTitle"));
       d.store.db.query("INSERT INTO relay_conversations (conversation_id, device_id, created_at) VALUES (?, ?, ?)").run(c.id, ctx.deviceId, isoNow());
       return json({ id: c.id, botId: c.botId, title: c.title, createdAt: c.createdAt, updatedAt: c.updatedAt });
     }
@@ -104,7 +105,7 @@ export async function relayRoute(d: RelayDeps, path: string, req: Request, ctx: 
         if (Object.keys(b).some((k) => k !== "text")) throw new HttpError(400, "the relay sends text only");
         const bot = d.store.bot(c.botId);
         if (!d.auth.relayPrompt(ctx, `${bot?.published?.config.name ?? c.botId} · ${c.id}`, ip)) {
-          throw new HttpError(429, "trop de demandes passées par la montre cette heure-ci : réessaie plus tard ou déverrouille l'iPhone");
+          throw new HttpError(429, t("relay.tooManyPrompts"));
         }
         const { messageId } = await d.runner.prompt({ conversationId: c.id, text }, { relay: { deviceId: ctx.deviceId, conversationId: c.id }, untrusted: true });
         return json({ messageId }, 202);

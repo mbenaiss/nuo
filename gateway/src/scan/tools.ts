@@ -5,30 +5,30 @@ export const SCAN_TOOLS = [
   {
     name: "parcel_track",
     description:
-      "Suit un colis à partir de son numéro de suivi (Colissimo, Chronopost, La Poste, UPS, DHL, DPD, GLS, Mondial Relay, Amazon, AliExpress…) : l'ajoute à la collection « Colis » de l'utilisateur, interroge le transporteur et renvoie une carte ::parcel à recopier telle quelle, seule sur sa ligne. La passerelle vérifie ensuite le colis toutes les 2 heures et notifie chaque changement de statut. Un numéro déjà suivi est simplement mis à jour (et renommé si label est donné).",
+      "Tracks a parcel from its tracking number (Colissimo, Chronopost, La Poste, UPS, DHL, DPD, GLS, Mondial Relay, Amazon, AliExpress…): adds it to the user's \"Colis\" collection, queries the carrier and returns a ::parcel card to copy as it is, alone on its line. The gateway then checks the parcel every 2 hours and notifies each change of status. A number already tracked is just updated (and renamed if label is given).",
     inputSchema: {
       type: "object",
       properties: {
-        number: { type: "string", description: "Numéro de suivi, tel quel (espaces permis)." },
-        label: { type: "string", description: "Libellé court pour s'y retrouver, ex. « Chaussures Decathlon »." },
+        number: { type: "string", description: "Tracking number, as it is (spaces allowed)." },
+        label: { type: "string", description: "Short label to tell it apart, in the user's language, e.g. \"Running shoes\"." },
       },
       required: ["number"],
     },
   },
   {
     name: "parcel_list",
-    description: "Liste les colis suivis : statut, dernier événement, livraison prévue. Par défaut ceux encore en route ; all=true ajoute les livrés et retournés.",
-    inputSchema: { type: "object", properties: { all: { type: "boolean", description: "Inclure les colis livrés, retournés ou expirés." } } },
+    description: "Lists the tracked parcels: status, last event, expected delivery. By default those still on their way; all=true adds the delivered and returned ones.",
+    inputSchema: { type: "object", properties: { all: { type: "boolean", description: "Include the delivered, returned or expired parcels." } } },
   },
   {
     name: "product_lookup",
     description:
-      "Identifie un produit par son code-barres (EAN-13, EAN-8, UPC) dans Open Food Facts puis Open Beauty Facts. Aliment : renvoie la carte ::product. Cosmétique : renvoie la carte ::cosmetic avec la note sur 100 et les ingrédients à risque (perturbateurs endocriniens, allergènes…). Recopie la carte telle quelle, seule sur sa ligne.",
+      "Identifies a product by its barcode (EAN-13, EAN-8, UPC) in Open Food Facts then Open Beauty Facts. Food: returns the ::product card. Cosmetic: returns the ::cosmetic card with the score out of 100 and the risky ingredients (endocrine disruptors, allergens…). Copy the card as it is, alone on its line.",
     inputSchema: {
       type: "object",
       properties: {
-        barcode: { type: "string", description: "Code-barres, chiffres uniquement." },
-        kind: { type: "string", enum: ["food", "cosmetic"], description: "À préciser seulement si l'utilisateur l'a dit ; sinon les deux bases sont interrogées." },
+        barcode: { type: "string", description: "Barcode, digits only." },
+        kind: { type: "string", enum: ["food", "cosmetic"], description: "Only when the user said so; otherwise both bases are queried." },
       },
       required: ["barcode"],
     },

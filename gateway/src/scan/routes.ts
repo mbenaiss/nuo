@@ -1,4 +1,5 @@
 import { HttpError } from "../bots/service";
+import { t } from "../i18n/language";
 import { SCAN_KINDS, type ScanKind } from "./codes";
 import { ParcelError } from "./parcels";
 import { LookupError } from "./products";
@@ -30,7 +31,7 @@ async function parcelCall<T>(fn: () => T | Promise<T>): Promise<T> {
 export function scanRoutes(s: ScanServices): ScanRoute[] {
   const parcel = (id: string) => {
     const p = s.parcels.get(id);
-    if (!p || p.archivedAt) throw new HttpError(404, "colis introuvable");
+    if (!p || p.archivedAt) throw new HttpError(404, t("parcel.notFound"));
     return p;
   };
   return [

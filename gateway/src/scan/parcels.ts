@@ -1,3 +1,5 @@
+import { DEFAULT_UI_LANGUAGE, t, type UiLanguage } from "../i18n/language";
+import type { MessageKey } from "../i18n/messages";
 import { head } from "../text";
 import type { Database } from "bun:sqlite";
 import { asApp, NOW_SQL } from "../data/db";
@@ -39,6 +41,8 @@ export interface ParcelOptions {
   maxActive?: number;
   clock?: () => number;
   autoStart?: boolean;
+  /** The profile's language: the status labels and notifications are written in it, whoever asks. */
+  language?: () => UiLanguage;
 }
 
 export class ParcelError extends Error {
@@ -74,7 +78,12 @@ const MAX_EVENTS = 50;
 /** Statuses a carrier falls back to when it momentarily loses a number: they never replace a known one. */
 const VAGUE: ReadonlySet<ParcelStatus> = new Set(["unknown", "pending"]);
 
-function toParcel(r: Row, checkedAt?: string): Parcel {
+/** What the app and the cards show; the stored `statut` stays the French label of STATUS_LABELS. */
+export function parcelStatusLabel(status: ParcelStatus, lang: UiLanguage): string {
+  return t(`parcel.status.${status}` as MessageKey, {}, lang);
+}
+
+function toParcel(r: Row, lang: UiLanguage, checkedAt?: string): Parcel {
   const status = STATUS_BY_LABEL.get(r.statut) ?? "unknown";
   let events: TrackingEvent[] = [];
   try {
@@ -88,7 +97,7 @@ function toParcel(r: Row, checkedAt?: string): Parcel {
     ...(carrier ? { carrier } : {}),
     ...(r.transporteur ? { carrierName: r.transporteur } : {}),
     status,
-    statusLabel: STATUS_LABELS[status],
+    statusLabel: parcelStatusLabel(status, lang),
     ...(r.dernier_evenement ? { lastEvent: { label: r.dernier_evenement, ...(r.dernier_evenement_at ? { at: r.dernier_evenement_at } : {}) } } : {}),
     events,
     ...(r.livraison_prevue ? { estimatedDelivery: r.livraison_prevue } : {}),
@@ -164,7 +173,11 @@ export class Parcels {
   }
 
   private parcel(r: Row): Parcel {
-    return toParcel(r, this.checks.get(r.id));
+    return toParcel(r, this.lang(), this.checks.get(r.id));
+  }
+
+  private lang(): UiLanguage {
+    return this.o.language?.() ?? DEFAULT_UI_LANGUAGE;
   }
 
   private lastCheck(r: Pick<Row, "id" | "verifie_at">): string | undefined {
@@ -196,7 +209,7 @@ export class Parcels {
   /** Adds the number (or renames the parcel already tracked with it), then asks the carrier right away. */
   async add(input: { number: string; label?: string; carrier?: string }): Promise<Parcel> {
     const number = cleanTrackingNumber(input.number ?? "");
-    if (!number) throw new ParcelError(400, "numéro de suivi invalide : 6 à 40 lettres ou chiffres");
+    if (!number) throw new ParcelError(400, t("parcel.invalidNumber"));
     const label = head(input.label?.trim() ?? "", 120) || null;
     const carrier = carrierOf(input.carrier)?.id ?? guessParcel(number)?.carrier;
     const existing = this.byNumber(number);
@@ -206,7 +219,7 @@ export class Parcels {
       if (label) asApp(this.db, () => this.db.query(`UPDATE colis SET libelle = ?, updated_at = ${NOW_SQL} WHERE id = ?`).run(label, id));
     } else {
       const max = this.o.maxActive ?? 50;
-      if (this.list().length >= max) throw new ParcelError(429, `déjà ${max} colis en cours de suivi : archivez-en avant d'en ajouter`);
+      if (this.list().length >= max) throw new ParcelError(429, t("parcel.tooMany", { max }));
       const row = asApp(this.db, () =>
         this.db
           .query(`INSERT INTO colis (numero, libelle, transporteur, transporteur_id, statut, lien) VALUES (?, ?, ?, ?, ?, ?) RETURNING id`)
@@ -219,7 +232,7 @@ export class Parcels {
 
   archive(id: string): Parcel {
     const r = this.row(id);
-    if (!r || r.archived_at) throw new ParcelError(404, "colis introuvable");
+    if (!r || r.archived_at) throw new ParcelError(404, t("parcel.notFound"));
     asApp(this.db, () => this.db.query(`UPDATE colis SET archived_at = ${NOW_SQL}, updated_at = ${NOW_SQL} WHERE id = ?`).run(id));
     return this.get(id)!;
   }
@@ -286,8 +299,9 @@ export class Parcels {
   }
 
   private async notify(p: Parcel) {
-    const title = `📦 ${p.label ?? p.number} : ${p.statusLabel.toLowerCase()}`;
-    const body = p.lastEvent?.label ?? `${p.carrierName ?? "Transporteur"} · ${p.number}`;
+    const lang = this.lang();
+    const title = t("parcel.pushTitle", { parcel: p.label ?? p.number, status: p.statusLabel.toLowerCase() }, lang);
+    const body = p.lastEvent?.label ?? `${p.carrierName ?? t("parcel.carrier", {}, lang)} · ${p.number}`;
     const url = `nuo://data/colis/${p.id}`;
     await Promise.all(
       this.devices().map((d) =>

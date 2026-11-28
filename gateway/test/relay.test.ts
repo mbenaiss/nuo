@@ -74,7 +74,7 @@ describe("relay key", () => {
     expect((await app.api("POST", "/api/auth/relay", { publicKey: key.spki }, await stepUp(app.api, app.device, "relay"))).status).toBe(200);
     expect((await app.api("GET", "/api/auth/relay")).data).toMatchObject({ registered: true });
     expect(relayEvents(app, "relay_key").map((e) => e.detail)).toEqual(["registered"]);
-    expect(JSON.stringify(app.pusher.sent)).toContain("Accès de relais");
+    expect(JSON.stringify(app.pusher.sent)).toContain("Relay access");
   });
 
   test("signs for 15-minute tokens; a wrong key, a replayed nonce or no key get nothing", async () => {

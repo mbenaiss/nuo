@@ -9,8 +9,8 @@ export const BROWSER_USAGE = `  bun run src/cli.ts browser-start
     (127.0.0.1 only), for Playwright connectOverCDP or \`playwright-cli attach --cdp=<endpoint>\`.
   bun run src/cli.ts browser-status
   bun run src/cli.ts browser-login-needed --site <name> [--url <login page>] [--bot <slug|id>] [--timeout <seconds>] [--no-wait]
-    Pushes « Connexion requise sur <site> » to the user's devices with a link to the app's browser, then waits until
-    they tap « Terminé » (exit 0) or the timeout passes (exit 3; default 900 s). Passwords and 2FA codes are typed by
+    Pushes "Login needed on <site>" (in the user's language) to the user's devices with a link to the app's browser,
+    then waits until they tap Done (exit 0) or the timeout passes (exit 3; default 900 s). Passwords and 2FA codes are typed by
     the user in the app, never by an agent.`;
 
 /** Same lookup as scripts/nuo-notify: the environment, then the gateway's env file (parsed, never sourced). */
@@ -67,7 +67,7 @@ export async function browserCommand(cmd: string, argv: string[], resolveBot: (r
       if (values.bot && !botId) throw new Error(`unknown bot "${values.bot}"`);
       await call("POST", "/api/browser/start");
       const r = await call("POST", "/api/browser/login-requests", { site: values.site, url: values.url, botId });
-      console.log(`Notification « Connexion requise sur ${r.site} » envoyée ; l'utilisateur se connecte dans l'app Nuo (Navigateur) puis touche « Terminé ».`);
+      console.log(`Notification "Login needed on ${r.site}" sent; the user logs in from the Nuo app (Browser screen), then taps Done.`);
       if (values["no-wait"]) {
         console.log(`request ${r.id}`);
         return 0;
@@ -77,13 +77,13 @@ export async function browserCommand(cmd: string, argv: string[], resolveBot: (r
         await Bun.sleep(3000);
         const s = await call("GET", `/api/browser/login-requests/${r.id}`);
         if (s.status === "done") {
-          console.log("L'utilisateur a terminé : vérifie maintenant que la session est bien connectée.");
+          console.log("The user is done: now check that the session is logged in.");
           return 0;
         }
         // Waiting is activity: the browser must not idle out while the user logs in.
         await call("POST", "/api/browser/start");
       }
-      console.log("Délai dépassé : l'utilisateur ne s'est pas connecté.");
+      console.log("Timed out: the user did not log in.");
       return 3;
     }
   }

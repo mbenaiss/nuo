@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite";
+import type { UiLanguage } from "../i18n/language";
 import type { Pusher } from "../push/apns";
 import type { Device } from "../store/store";
 import { cosmeticCard, type CosmeticProduct } from "./cards";
@@ -13,6 +14,8 @@ export interface ScanOptions {
   fetcher?: Fetch;
   parcels?: ParcelOptions;
   products?: ProductSources;
+  /** The profile's language, for the parcels' labels and notifications. */
+  language?: () => UiLanguage;
 }
 
 export interface ScanServices {
@@ -26,7 +29,7 @@ export interface ScanServices {
 
 export function createScanServices(db: Database, pusher: Pusher, devices: () => Device[], o: ScanOptions): ScanServices {
   const products = new ProductLookup(o.fetcher, o.products);
-  const parcels = new Parcels(db, o.tracker, pusher, devices, o.parcels);
+  const parcels = new Parcels(db, o.tracker, pusher, devices, { ...o.parcels, ...(o.language ? { language: o.language } : {}) });
   return {
     scanner: new Scanner(products, parcels),
     parcels,
@@ -37,15 +40,15 @@ export function createScanServices(db: Database, pusher: Pusher, devices: () => 
   };
 }
 
-const fmtDate = (iso: string) => new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
-const fmtDay = (day: string) => new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(`${day}T00:00:00Z`));
+const fmtDate = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+const fmtDay = (day: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(`${day}T00:00:00Z`));
 
 function describeParcel(p: Parcel): string {
   return [
-    `- ${p.label ? `${p.label} · ` : ""}${p.number}${p.carrierName ? ` (${p.carrierName})` : ""} : ${p.statusLabel}`,
-    p.lastEvent ? `  dernier événement : ${p.lastEvent.label}${p.lastEvent.at ? `, ${fmtDate(p.lastEvent.at)}` : ""}` : "",
-    p.estimatedDelivery && !FINAL_STATUSES.has(p.status) ? `  livraison prévue : ${fmtDay(p.estimatedDelivery)}` : "",
-    p.error ? `  dernière vérification en échec : ${p.error}` : "",
+    `- ${p.label ? `${p.label} · ` : ""}${p.number}${p.carrierName ? ` (${p.carrierName})` : ""}: ${p.statusLabel}`,
+    p.lastEvent ? `  last event: ${p.lastEvent.label}${p.lastEvent.at ? `, ${fmtDate(p.lastEvent.at)}` : ""}` : "",
+    p.estimatedDelivery && !FINAL_STATUSES.has(p.status) ? `  expected delivery: ${fmtDay(p.estimatedDelivery)}` : "",
+    p.error ? `  last check failed: ${p.error}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -76,42 +79,42 @@ export class ScanTools {
   async call(name: string, a: Record<string, unknown>): Promise<string> {
     switch (name) {
       case "parcel_track": {
-        if (typeof a.number !== "string" || !a.number.trim()) throw new ToolInputError("number requis");
+        if (typeof a.number !== "string" || !a.number.trim()) throw new ToolInputError("number is required");
         const p = await this.parcels.add(splitNumber(a.number, typeof a.label === "string" ? a.label : undefined));
         const notes = [
           !this.parcels.trackingConfigured
-            ? "Aucune clé de suivi n'est configurée sur la passerelle (NUO_LAPOSTE_OKAPI_KEY, NUO_SHIP24_API_KEY, NUO_SEVENTEENTRACK_API_KEY) : le colis est enregistré avec le lien du transporteur, sans statut automatique."
+            ? "No tracking key is set on the gateway (NUO_LAPOSTE_OKAPI_KEY, NUO_SHIP24_API_KEY, NUO_SEVENTEENTRACK_API_KEY): the parcel is saved with the carrier's link, without an automatic status."
             : "",
-          p.error ? `Le transporteur n'a pas répondu : ${p.error}` : "",
-          "La passerelle revérifie le colis toutes les 2 heures et notifie chaque changement de statut.",
+          p.error ? `The carrier did not answer: ${p.error}` : "",
+          "The gateway checks the parcel again every 2 hours and notifies each change of status.",
         ].filter(Boolean);
         return `${parcelCard(p)}\n${notes.join("\n")}`;
       }
       case "parcel_list": {
         const all = this.parcels.list({ includeDone: a.all === true });
-        if (!all.length) return a.all === true ? "Aucun colis suivi." : "Aucun colis en cours. (all=true pour voir les colis livrés.)";
-        return `${all.length} colis :\n${all.map(describeParcel).join("\n")}`;
+        if (!all.length) return a.all === true ? "No tracked parcel." : "No parcel on its way. (all=true to see the delivered parcels.)";
+        return `${all.length} parcel(s):\n${all.map(describeParcel).join("\n")}`;
       }
       case "product_lookup": {
         const code = typeof a.barcode === "string" ? a.barcode.replace(/\D/g, "") : "";
-        if (code.length < 8) throw new ToolInputError("barcode requis (8 à 14 chiffres)");
+        if (code.length < 8) throw new ToolInputError("barcode is required (8 to 14 digits)");
         const product = a.kind === "food" ? await this.products.food(code) : a.kind === "cosmetic" ? await this.products.cosmeticAnywhere(code) : await this.products.any(code);
-        if (!product) return `Code ${code} absent d'Open Food Facts et d'Open Beauty Facts. Demande à l'utilisateur ce qu'est le produit ou une photo de l'étiquette.`;
+        if (!product) return `Code ${code} is in neither Open Food Facts nor Open Beauty Facts. Ask the user what the product is, or for a photo of the label.`;
         if (product.kind === "food") {
-          return `::product ${JSON.stringify({ barcode: code })}\nAliment : ${product.name}${product.brand ? ` (${product.brand})` : ""}.`;
+          return `::product ${JSON.stringify({ barcode: code })}\nFood: ${product.name}${product.brand ? ` (${product.brand})` : ""}.`;
         }
         return `${cosmeticCard(product)}\n${cosmeticSummary(product)}`;
       }
       default:
-        throw new ToolInputError(`outil inconnu ${name}`);
+        throw new ToolInputError(`unknown tool ${name}`);
     }
   }
 }
 
 export function cosmeticSummary(p: CosmeticProduct): string {
   const a = p.analysis;
-  if (a.score === undefined) return `Cosmétique : ${p.name}. Ingrédients non renseignés dans Open Beauty Facts : pas de note possible.`;
+  if (a.score === undefined) return `Cosmetic: ${p.name}. No ingredients in Open Beauty Facts: no score possible.`;
   const flagged = a.ingredients.filter((i) => i.risk !== "none");
-  const lines = flagged.map((i) => `- ${i.name} : risque ${i.risk === "high" ? "élevé" : i.risk === "moderate" ? "modéré" : "faible"} (${i.reason})`);
-  return [`Cosmétique : ${p.name}${p.brand ? ` (${p.brand})` : ""}, note ${a.score}/100.`, ...(lines.length ? ["Ingrédients à risque :", ...lines] : ["Aucun ingrédient à risque repéré."])].join("\n");
+  const lines = flagged.map((i) => `- ${i.name}: ${i.risk} risk (${i.reason})`);
+  return [`Cosmetic: ${p.name}${p.brand ? ` (${p.brand})` : ""}, score ${a.score}/100.`, ...(lines.length ? ["Risky ingredients:", ...lines] : ["No risky ingredient found."])].join("\n");
 }

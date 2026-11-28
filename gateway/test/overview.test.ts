@@ -125,7 +125,7 @@ describe("overview bot", () => {
     expect(plain.data.draft).not.toHaveProperty("overview");
 
     const tools = new NuoTools({ url: t.base, token: LOCAL, botId: bot.id });
-    await expect(tools.call("conversations_search", { query: "lisbonne" })).rejects.toThrow("réservé au bot qui a l'accès à tous les bots");
+    await expect(tools.call("conversations_search", { query: "lisbonne" })).rejects.toThrow("is reserved for the bot that sees all the bots");
   });
 
   test("the overview bot's agent starts with the overview tools", async () => {
@@ -146,17 +146,17 @@ describe("overview bot", () => {
     const { tools } = await generalBot();
 
     const bots = await tools.call("bots_list", {});
-    expect(bots).toContain(`🏠 Maison [id ${maison.id}, slug ${maison.slug}] : Factures, énergie et travaux`);
+    expect(bots).toContain(`🏠 Maison [id ${maison.id}, slug ${maison.slug}]: Factures, énergie et travaux`);
     expect(bots).toContain("Général");
-    expect(bots).toContain("(toi)");
+    expect(bots).toContain("(you)");
 
     const found = await tools.call("conversations_search", { query: "facture edf" });
-    expect(found).toContain(`« Contrat d'électricité » [id ${contrat.id}, bot 🏠 Maison (${maison.id})]`);
-    expect(found).toContain("bot : Ta facture EDF de février");
-    expect(await tools.call("conversations_search", { query: "facture", bot: "voyages" })).toContain("Aucune conversation");
+    expect(found).toContain(`"Contrat d'électricité" [id ${contrat.id}, bot 🏠 Maison (${maison.id})]`);
+    expect(found).toContain("bot: Ta facture EDF de février");
+    expect(await tools.call("conversations_search", { query: "facture", bot: "voyages" })).toContain("No conversation");
 
     const read = await tools.call("conversation_read", { id: contrat.id, limit: 1 });
-    expect(read).toContain("« Contrat d'électricité » avec 🏠 Maison · 1 message(s) sur 2");
+    expect(read).toContain("\"Contrat d'électricité\" with 🏠 Maison · 1 message(s) of 2");
     expect(read).toContain("Ta facture EDF de février s'élève à 142,30 €");
     expect(read).not.toContain("Compare mon contrat");
     expect(read).toContain(`::conversation {"id":"${contrat.id}","botId":"${maison.id}","title":"Contrat d'électricité"}`);
@@ -168,7 +168,7 @@ describe("overview bot", () => {
     const { tools } = await generalBot();
 
     const answer = await tools.call("bot_ask", { bot: "maison", prompt: "repeat: La prochaine facture EDF arrive le 5 mars." });
-    expect(answer).toContain("Réponse de 🏠 Maison");
+    expect(answer).toContain("Answer from 🏠 Maison");
     expect(answer).toContain("La prochaine facture EDF arrive le 5 mars.");
     const asked = t.app.store.conversations(maison.id).find((c) => c.id !== contrat.id && t.app.store.messageCount(c.id) > 0 && c.title.startsWith("repeat:"));
     expect(asked).toBeDefined();
@@ -185,8 +185,8 @@ describe("overview bot", () => {
     await tools.call("bot_ask", { bot: "maison", conversation: contrat.id, prompt: "/fiche-client Julie Martin" });
     expect(t.runtime.prompts.at(-1)!.text).toBe("\uFF0Ffiche-client Julie Martin");
 
-    await expect(tools.call("bot_ask", { bot: "Général", prompt: "repeat: Bonjour" })).rejects.toThrow("c'est toi");
-    await expect(tools.call("bot_ask", { bot: "jardin", prompt: "repeat: Bonjour" })).rejects.toThrow("aucun bot « jardin »");
+    await expect(tools.call("bot_ask", { bot: "Général", prompt: "repeat: Bonjour" })).rejects.toThrow("that is you");
+    await expect(tools.call("bot_ask", { bot: "jardin", prompt: "repeat: Bonjour" })).rejects.toThrow('no bot "jardin"');
     await expect(tools.call("bot_ask", { bot: "voyages", conversation: contrat.id, prompt: "repeat: Bonjour" })).rejects.toThrow("another bot");
   });
 
@@ -223,6 +223,6 @@ describe("overview bot", () => {
     expect(findBot(bots, "Maison").id).toBe("b1");
     expect(findBot(bots, "maison secondaire").id).toBe("b2");
     expect(findBot(bots, "voya").id).toBe("b3");
-    expect(() => findBot(bots, "mais")).toThrow("aucun bot « mais »");
+    expect(() => findBot(bots, "mais")).toThrow('no bot "mais"');
   });
 });

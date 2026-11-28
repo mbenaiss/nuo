@@ -34,7 +34,7 @@ type Args = Record<string, unknown>;
 class ToolError extends Error {}
 
 export function describeNow(tz: string, now = Date.now()): string {
-  const date = new Intl.DateTimeFormat("fr-FR", { timeZone: tz, dateStyle: "full", timeStyle: "short" }).format(new Date(now));
+  const date = new Intl.DateTimeFormat("en-GB", { timeZone: tz, dateStyle: "full", timeStyle: "short" }).format(new Date(now));
   const off = tzOffset(now, tz) / 60_000;
   const sign = off < 0 ? "-" : "+";
   const hh = String(Math.floor(Math.abs(off) / 60)).padStart(2, "0");
@@ -43,8 +43,8 @@ export function describeNow(tz: string, now = Date.now()): string {
 }
 
 function formatInstant(iso: string | undefined, tz: string): string {
-  if (!iso) return "aucune";
-  return new Intl.DateTimeFormat("fr-FR", { timeZone: tz, dateStyle: "full", timeStyle: "short" }).format(new Date(iso));
+  if (!iso) return "none";
+  return new Intl.DateTimeFormat("en-GB", { timeZone: tz, dateStyle: "full", timeStyle: "short" }).format(new Date(iso));
 }
 
 /** A date without offset is a wall-clock time in `tz`, which is what an agent naturally writes. */
@@ -52,20 +52,20 @@ export function parseAt(at: string, tz: string): string {
   const m = at.trim().match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/);
   if (m) return new Date(zonedToUtc(+m[1]!, +m[2]!, +m[3]!, +m[4]!, +m[5]!, tz) + Number(m[6] ?? 0) * 1000).toISOString();
   const t = Date.parse(at);
-  if (!Number.isFinite(t)) throw new ToolError(`date invalide « ${at} » : utilise le format 2026-10-18T07:00`);
+  if (!Number.isFinite(t)) throw new ToolError(`invalid date "${at}": use the format 2026-10-18T07:00`);
   return new Date(t).toISOString();
 }
 
 function scheduleFrom(a: Args, fallbackTz: string, now: number): TaskSchedule | undefined {
   const tz = typeof a.timezone === "string" && a.timezone ? a.timezone : fallbackTz;
-  if (!isValidTimeZone(tz)) throw new ToolError(`fuseau horaire inconnu « ${tz} »`);
+  if (!isValidTimeZone(tz)) throw new ToolError(`unknown time zone "${tz}"`);
   const given = [a.cron, a.at, a.in_minutes].filter((v) => v !== undefined && v !== null && v !== "").length;
-  if (given > 1) throw new ToolError("donne un seul de cron, at ou in_minutes");
+  if (given > 1) throw new ToolError("give only one of cron, at or in_minutes");
   if (typeof a.cron === "string" && a.cron.trim()) return { kind: "cron", expr: a.cron.trim(), timezone: tz };
   if (typeof a.at === "string" && a.at.trim()) return { kind: "once", at: parseAt(a.at, tz) };
   if (a.in_minutes !== undefined && a.in_minutes !== null && a.in_minutes !== "") {
     const n = Number(a.in_minutes);
-    if (!Number.isFinite(n) || n < 1) throw new ToolError("in_minutes doit être un nombre de minutes ≥ 1");
+    if (!Number.isFinite(n) || n < 1) throw new ToolError("in_minutes must be a number of minutes ≥ 1");
     return { kind: "once", at: new Date(now + Math.round(n) * 60_000).toISOString() };
   }
   return undefined;
@@ -73,14 +73,14 @@ function scheduleFrom(a: Args, fallbackTz: string, now: number): TaskSchedule | 
 
 function describeTask(t: ScheduledTask, self: string): string {
   const tz = t.schedule.kind === "cron" ? t.schedule.timezone : DEFAULT_TIMEZONE;
-  const when = t.schedule.kind === "cron" ? `cron « ${t.schedule.expr} » (${t.schedule.timezone})` : `une fois, ${formatInstant(t.schedule.at, tz)}`;
+  const when = t.schedule.kind === "cron" ? `cron "${t.schedule.expr}" (${t.schedule.timezone})` : `once, ${formatInstant(t.schedule.at, tz)}`;
   return [
     `- ${t.title} [id ${t.id}]${t.botId === self ? "" : ` (bot ${t.botId})`}`,
-    `  quand : ${when}`,
-    `  prochaine exécution : ${t.enabled ? formatInstant(t.nextRunAt, tz) : "désactivée"}`,
+    `  when: ${when}`,
+    `  next run: ${t.enabled ? formatInstant(t.nextRunAt, tz) : "disabled"}`,
     t.action?.type === "command"
-      ? `  commande (lecture seule, gérée depuis l'app) : ${clip(t.action.command, 200)}${t.action.cwd ? ` · dossier : ${t.action.cwd}` : ""}${t.lastStatus ? ` · dernier statut : ${t.lastStatus}` : ""}`
-      : `  conversation : ${t.conversation === "new" ? "nouvelle à chaque fois" : "dédiée"} · notification : ${t.notify ? "oui" : "non"}${t.lastStatus ? ` · dernier statut : ${t.lastStatus}` : ""}\n  prompt : ${clip(t.prompt, 200)}`,
+      ? `  command (read only, managed from the app): ${clip(t.action.command, 200)}${t.action.cwd ? ` · folder: ${t.action.cwd}` : ""}${t.lastStatus ? ` · last status: ${t.lastStatus}` : ""}`
+      : `  conversation: ${t.conversation === "new" ? "a new one each time" : "dedicated"} · notification: ${t.notify ? "yes" : "no"}${t.lastStatus ? ` · last status: ${t.lastStatus}` : ""}\n  prompt: ${clip(t.prompt, 200)}`,
   ].join("\n");
 }
 
@@ -99,15 +99,15 @@ async function withFileContent(a: Args): Promise<Args> {
     // A bot once wrote a PDF as hex text in nine appends; a binary file goes in one copy or not at all.
     const ext = typeof a.path === "string" ? extname(a.path).toLowerCase() : "";
     if (typeof a.content === "string" && BINARY_EXTENSIONS.has(ext)) {
-      throw new ToolError(`un fichier ${ext} ne s'écrit pas en texte : passe le fichier de ton espace de travail dans \`from\`, il est copié tel quel en une seule fois`);
+      throw new ToolError(`a ${ext} file is not written as text: pass the file of your workspace in \`from\`, it is copied as it is in one go`);
     }
     return a;
   }
-  if (typeof a.content === "string") throw new ToolError("donne content ou from, pas les deux");
+  if (typeof a.content === "string") throw new ToolError("give content or from, not both");
   const path = resolve(a.from.trim());
   const info = await stat(path).catch(() => undefined);
-  if (!info?.isFile()) throw new ToolError(`${path} n'est pas un fichier de ton espace de travail`);
-  if (info.size > MAX_MAC_FILE_BYTES) throw new ToolError(`${path} fait ${Math.ceil(info.size / 1024 / 1024)} Mo : 30 Mo au plus`);
+  if (!info?.isFile()) throw new ToolError(`${path} is not a file of your workspace`);
+  if (info.size > MAX_MAC_FILE_BYTES) throw new ToolError(`${path} is ${Math.ceil(info.size / 1024 / 1024)} MB: 30 MB at most`);
   const { from: _, ...rest } = a;
   return { ...rest, content_base64: (await readFile(path)).toString("base64") };
 }
@@ -124,7 +124,7 @@ function forRelay<T extends { inputSchema: unknown }>(tool: T): T {
   const properties = Object.fromEntries(
     Object.entries(schema.properties)
       .filter(([k]) => !(RELAY_DROPPED_FIELDS as readonly string[]).includes(k))
-      .map(([k, v]) => [k, ["start", "end", "at", "occurrence_start"].includes(k) ? { ...v, description: "Date-heure locale, exactement AAAA-MM-JJTHH:MM, sans fuseau." } : v]),
+      .map(([k, v]) => [k, ["start", "end", "at", "occurrence_start"].includes(k) ? { ...v, description: "Local date and time, exactly YYYY-MM-DDTHH:MM, without a time zone." } : v]),
   );
   return { ...tool, inputSchema: { ...schema, properties } };
 }
@@ -135,35 +135,35 @@ function allToolDefinitions(now: number, opts: { overview?: boolean }) {
     cron: {
       type: "string",
       description:
-        "Récurrence, cron à 5 champs (minute heure jour-du-mois mois jour-de-semaine) dans `timezone`. Exemples : « tous les jours à 7h » → \"0 7 * * *\" ; « en semaine à 7h30 » → \"30 7 * * 1-5\" ; « le lundi et le jeudi à 18h » → \"0 18 * * 1,4\" ; « toutes les 2 heures » → \"0 */2 * * *\" ; « le 1er du mois à 9h » → \"0 9 1 * *\".",
+        "Recurrence, 5-field cron (minute hour day-of-month month day-of-week) in `timezone`. Examples: \"every day at 7\" → \"0 7 * * *\"; \"weekdays at 7:30\" → \"30 7 * * 1-5\"; \"Mondays and Thursdays at 6 pm\" → \"0 18 * * 1,4\"; \"every 2 hours\" → \"0 */2 * * *\"; \"the 1st of the month at 9\" → \"0 9 1 * *\".",
     },
     at: {
       type: "string",
-      description: `Exécution unique : date et heure locales dans \`timezone\`, format AAAA-MM-JJTHH:MM (ex. « demain à 8h » → la date de demain + "T08:00"). Maintenant : ${nowText}.`,
+      description: `Single run: local date and time in \`timezone\`, format YYYY-MM-DDTHH:MM (e.g. "tomorrow at 8" → tomorrow's date + "T08:00"). Now: ${nowText}.`,
     },
-    in_minutes: { type: "number", description: "Exécution unique dans N minutes (ex. « dans une heure » → 60). Plus fiable que `at` pour un délai court." },
-    timezone: { type: "string", description: `Fuseau IANA, par défaut ${DEFAULT_TIMEZONE}.` },
-    notify: { type: "boolean", description: "Envoyer la réponse en notification push (par défaut oui)." },
+    in_minutes: { type: "number", description: "Single run in N minutes (e.g. \"in an hour\" → 60). More reliable than `at` for a short delay." },
+    timezone: { type: "string", description: `IANA time zone, ${DEFAULT_TIMEZONE} by default.` },
+    notify: { type: "boolean", description: "Send the answer as a push notification (yes by default)." },
   };
   return [
     {
       name: "schedule_create",
-      description: `Programme une tâche : à l'heure dite, la passerelle Nuo t'envoie \`prompt\` comme un message de l'utilisateur et lui pousse ta réponse en notification. Donne exactement un de cron, at ou in_minutes. Exemple : « fais-moi un point météo tous les matins à 7h » → title "Météo du matin", prompt "Donne-moi la météo du jour à Paris", cron "0 7 * * *". Pour prévenir l'utilisateur d'une trouvaille pendant une tâche, utilise notify_user, pas une nouvelle tâche. Maintenant : ${nowText}.`,
+      description: `Schedules a task: at the given time, the Nuo gateway sends you \`prompt\` as a message from the user and pushes your answer to them as a notification. Give exactly one of cron, at or in_minutes. Example: "give me a weather update every morning at 7" → title "Morning weather", prompt "Give me today's weather in Boston", cron "0 7 * * *". To tell the user about a finding during a task, use notify_user, not a new task. Now: ${nowText}.`,
       inputSchema: {
         type: "object",
         properties: {
-          title: { type: "string", description: "Titre court en français (60 caractères max), affiché dans la notification. Ex. « Séance du jour »." },
+          title: { type: "string", description: "Short title in the user's language (60 characters max), shown in the notification. E.g. \"Today's workout\"." },
           prompt: {
             type: "string",
-            description: "Le message qui te sera envoyé à chaque exécution, rédigé comme une demande autonome (tu n'auras pas le contexte d'aujourd'hui). Commandes /… et #tags permis.",
+            description: "The message you will be sent at each run, written as a self-contained request (you will not have today's context). /… commands and #tags allowed.",
           },
           ...scheduleProps,
           conversation: {
             type: "string",
             enum: ["dedicated", "new", "current"],
-            description: "Où s'exécute la tâche : \"dedicated\" (défaut) une conversation propre à la tâche, réutilisée à chaque fois ; \"new\" une nouvelle conversation à chaque exécution ; \"current\" la suite de cette conversation-ci (pour un rappel lié à l'échange en cours).",
+            description: "Where the task runs: \"dedicated\" (default) a conversation of the task's own, reused each time; \"new\" a new conversation at each run; \"current\" the rest of this very conversation (for a reminder tied to the current exchange).",
           },
-          bot: { type: "string", description: "Nom d'un autre bot qui doit exécuter la tâche, seulement si l'utilisateur le demande. Par défaut : toi." },
+          bot: { type: "string", description: "Name of another bot that must run the task, only if the user asks for it. By default: you." },
         },
         required: ["title", "prompt"],
       },
@@ -171,29 +171,29 @@ function allToolDefinitions(now: number, opts: { overview?: boolean }) {
     {
       name: "notify_user",
       description:
-        "Prévient l'utilisateur tout de suite par une notification push (iPhone, Mac). C'est l'outil pour une alerte ou une trouvaille pendant une tâche planifiée qui ne notifie pas elle-même : jamais schedule_create pour envoyer un message. `key` identifie ce qui est signalé (ex. « illusions-2321184 » pour une séance) : la même clé ne notifie qu'une fois par période, pour ne pas répéter la même alerte à chaque vérification.",
+        "Tells the user right away with a push notification (iPhone, Mac). This is the tool for an alert or a finding during a scheduled task that does not notify by itself: never schedule_create to send a message. `key` identifies what is reported (e.g. \"illusions-2321184\" for a showing): the same key notifies only once per period, so the same alert is not repeated at each check.",
       inputSchema: {
         type: "object",
         properties: {
-          title: { type: "string", description: "Titre court (60 caractères max)." },
-          body: { type: "string", description: "Le message, complet et autonome." },
-          key: { type: "string", description: "Identifiant stable de ce qui est signalé ; omis : aucune déduplication." },
-          repeat_hours: { type: "number", description: "Avec key : délai avant de pouvoir notifier à nouveau la même clé (24 h par défaut)." },
+          title: { type: "string", description: "Short title (60 characters max), in the user's language." },
+          body: { type: "string", description: "The message, complete and self-contained, in the user's language." },
+          key: { type: "string", description: "Stable identifier of what is reported; omitted: no deduplication." },
+          repeat_hours: { type: "number", description: "With key: delay before the same key can notify again (24 h by default)." },
         },
         required: ["title", "body"],
       },
     },
     {
       name: "schedule_list",
-      description: `Liste les tâches programmées (avec leur id, leur récurrence et la prochaine exécution). Maintenant : ${nowText}.`,
+      description: `Lists the scheduled tasks (with their id, their recurrence and their next run). Now: ${nowText}.`,
       inputSchema: {
         type: "object",
-        properties: { all_bots: { type: "boolean", description: "Inclure les tâches des autres bots (par défaut : seulement les tiennes)." } },
+        properties: { all_bots: { type: "boolean", description: "Include the other bots' tasks (by default: only yours)." } },
       },
     },
     {
       name: "schedule_update",
-      description: `Modifie une tâche programmée (id obtenu avec schedule_list). Seuls les champs donnés changent ; cron, at ou in_minutes remplacent la planification. enabled=false met la tâche en pause. Une tâche de type commande accepte seulement planification, titre, notify et enabled. Maintenant : ${nowText}.`,
+      description: `Changes a scheduled task (id from schedule_list). Only the fields given change; cron, at or in_minutes replace the schedule. enabled=false pauses the task. A command task only takes schedule, title, notify and enabled. Now: ${nowText}.`,
       inputSchema: {
         type: "object",
         properties: {
@@ -201,7 +201,7 @@ function allToolDefinitions(now: number, opts: { overview?: boolean }) {
           title: { type: "string" },
           prompt: { type: "string" },
           ...scheduleProps,
-          enabled: { type: "boolean", description: "false = en pause, true = réactivée." },
+          enabled: { type: "boolean", description: "false = paused, true = resumed." },
           conversation: { type: "string", enum: ["dedicated", "new"] },
         },
         required: ["id"],
@@ -209,30 +209,30 @@ function allToolDefinitions(now: number, opts: { overview?: boolean }) {
     },
     {
       name: "schedule_delete",
-      description: "Supprime définitivement une tâche programmée (id obtenu avec schedule_list).",
+      description: "Deletes a scheduled task for good (id from schedule_list).",
       inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
     },
     {
       name: "memory_read",
-      description: "Lit ta mémoire persistante (MEMORY.md), commune à toutes tes conversations.",
+      description: "Reads your persistent memory (MEMORY.md), shared by all your conversations.",
       inputSchema: { type: "object", properties: {} },
     },
     {
       name: "memory_add",
       description:
-        "Ajoute un fait durable à ta mémoire persistante (une ligne datée). À utiliser dès que l'utilisateur donne une préférence, une habitude ou une information à retenir. Jamais de secret (mot de passe, token, clé, code, numéro de carte).",
+        "Adds a lasting fact to your persistent memory (one dated line). Use it as soon as the user gives a preference, a habit or a piece of information to keep. Never a secret (password, token, key, code, card number).",
       inputSchema: {
         type: "object",
-        properties: { fact: { type: "string", description: "Le fait, en une phrase courte et autonome (500 caractères max). Ex. « Préfère les vols du matin »." } },
+        properties: { fact: { type: "string", description: "The fact, in one short self-contained sentence (500 characters max). E.g. \"Prefers morning flights\"." } },
         required: ["fact"],
       },
     },
     {
       name: "memory_write",
-      description: "Remplace tout le contenu de ta mémoire persistante (pour la nettoyer : doublons, faits devenus faux). Lis-la d'abord avec memory_read.",
+      description: "Replaces the whole content of your persistent memory (to clean it up: duplicates, facts no longer true). Read it first with memory_read.",
       inputSchema: {
         type: "object",
-        properties: { content: { type: "string", description: "Le nouveau contenu complet, en Markdown (une ligne « - AAAA-MM-JJ fait » par fait)." } },
+        properties: { content: { type: "string", description: "The new complete content, in Markdown (one line \"- YYYY-MM-DD fact\" per fact)." } },
         required: ["content"],
       },
     },
@@ -264,21 +264,21 @@ export class NuoTools {
     });
     const text = await res.text();
     const data = text ? JSON.parse(text) : undefined;
-    if (!res.ok) throw new ToolError(`la passerelle a refusé (${res.status}) : ${data?.error ?? text}`);
+    if (!res.ok) throw new ToolError(`the gateway refused (${res.status}): ${data?.error ?? text}`);
     return data;
   }
 
   private async task(id: unknown): Promise<ScheduledTask> {
-    if (typeof id !== "string" || !id) throw new ToolError("id requis");
+    if (typeof id !== "string" || !id) throw new ToolError("id is required");
     const all = (await this.api("GET", "/api/schedules")) as ScheduledTask[];
     const t = all.find((x) => x.id === id);
-    if (!t) throw new ToolError(`aucune tâche avec l'id ${id}`);
+    if (!t) throw new ToolError(`no task with the id ${id}`);
     return t;
   }
 
   private async editableTask(id: unknown): Promise<ScheduledTask> {
     const t = await this.task(id);
-    if (t.action?.type === "command") throw new ToolError(`« ${t.title} » est une tâche de type commande : elle se supprime uniquement depuis l'app Nuo`);
+    if (t.action?.type === "command") throw new ToolError(`"${t.title}" is a command task: it can only be deleted from the Nuo app`);
     return t;
   }
 
@@ -298,7 +298,7 @@ export class NuoTools {
       signal: this.signal,
     });
     const data = (await res.json().catch(() => undefined)) as { text?: string; error?: string } | undefined;
-    if (!res.ok) throw new ToolError(data?.error ?? `la passerelle a refusé (${res.status})`);
+    if (!res.ok) throw new ToolError(data?.error ?? `the gateway refused (${res.status})`);
     return data?.text ?? "";
   }
 
@@ -317,7 +317,7 @@ export class NuoTools {
     if (DEVICE_TOOL_NAMES.has(name)) return this.forward(`/api/device/tools/${name}`, name === "mac_file_write" ? await withFileContent(a) : a);
     if (SCAN_TOOL_NAMES.has(name)) return this.forward(`/api/scan/tools/${name}`, a);
     if (OVERVIEW_TOOL_NAMES.has(name)) {
-      if (!this.env.overview) throw new ToolError(`${name} est réservé au bot qui a l'accès à tous les bots (Nuo › bot › Initiative)`);
+      if (!this.env.overview) throw new ToolError(`${name} is reserved for the bot that sees all the bots (Nuo › bot › Initiative)`);
       try {
         return await callOverviewTool((m, p, b) => this.api(m, p, b), this.env, name, a);
       } catch (e) {
@@ -327,7 +327,7 @@ export class NuoTools {
     switch (name) {
       case "schedule_create": {
         const schedule = scheduleFrom(a, DEFAULT_TIMEZONE, now);
-        if (!schedule) throw new ToolError("indique cron (récurrent), at ou in_minutes (une fois)");
+        if (!schedule) throw new ToolError("give cron (recurring), at or in_minutes (once)");
         const conversation = a.conversation === "new" ? "new" : "dedicated";
         const body: Args = {
           botId: typeof a.bot === "string" && a.bot.trim() ? a.bot.trim() : this.env.botId,
@@ -338,14 +338,14 @@ export class NuoTools {
           ...(typeof a.notify === "boolean" ? { notify: a.notify } : {}),
         };
         if (a.conversation === "current") {
-          if (!this.env.conversationId) throw new ToolError("pas de conversation courante");
+          if (!this.env.conversationId) throw new ToolError("no current conversation");
           body.conversationId = this.env.conversationId;
         }
         const t = (await this.api("POST", "/api/schedules", body)) as ScheduledTask;
-        return `Tâche programmée.\n${describeTask(t, this.env.botId)}\n(Maintenant : ${describeNow(DEFAULT_TIMEZONE, now)})`;
+        return `Task scheduled.\n${describeTask(t, this.env.botId)}\n(Now: ${describeNow(DEFAULT_TIMEZONE, now)})`;
       }
       case "notify_user": {
-        if (typeof a.title !== "string" || !a.title.trim() || typeof a.body !== "string" || !a.body.trim()) throw new ToolError("title et body requis");
+        if (typeof a.title !== "string" || !a.title.trim() || typeof a.body !== "string" || !a.body.trim()) throw new ToolError("title and body are required");
         const r = (await this.api("POST", "/api/notify", {
           title: a.title.trim(),
           body: a.body.trim(),
@@ -354,19 +354,19 @@ export class NuoTools {
           ...(typeof a.key === "string" && a.key.trim() ? { key: a.key.trim() } : {}),
           ...(typeof a.repeat_hours === "number" ? { repeatHours: a.repeat_hours } : {}),
         })) as { sent?: boolean; lastSentAt?: string } | undefined;
-        if (r?.sent === false) return `Déjà notifié pour « ${a.key} » (${r.lastSentAt}) : aucune nouvelle notification envoyée. Ne réessaie pas.`;
-        return "Notification envoyée.";
+        if (r?.sent === false) return `Already notified for "${a.key}" (${r.lastSentAt}): no new notification sent. Do not try again.`;
+        return "Notification sent.";
       }
       case "schedule_list": {
         const all = (await this.api("GET", a.all_bots === true ? "/api/schedules" : `/api/schedules?botId=${encodeURIComponent(this.env.botId)}`)) as ScheduledTask[];
-        const head = `Maintenant : ${describeNow(DEFAULT_TIMEZONE, now)}`;
-        if (!all.length) return `Aucune tâche programmée.\n${head}`;
-        return `${all.length} tâche(s) programmée(s) :\n${all.map((t) => describeTask(t, this.env.botId)).join("\n")}\n${head}`;
+        const head = `Now: ${describeNow(DEFAULT_TIMEZONE, now)}`;
+        if (!all.length) return `No scheduled task.\n${head}`;
+        return `${all.length} scheduled task(s):\n${all.map((t) => describeTask(t, this.env.botId)).join("\n")}\n${head}`;
       }
       case "schedule_update": {
         const existing = await this.task(a.id);
         if (existing.action?.type === "command" && (a.prompt !== undefined || a.conversation !== undefined)) {
-          throw new ToolError(`« ${existing.title} » est une tâche de type commande : tu peux changer sa planification, son titre, ses notifications ou la mettre en pause, pas ce qu'elle exécute`);
+          throw new ToolError(`"${existing.title}" is a command task: you can change its schedule, its title, its notifications or pause it, not what it runs`);
         }
         const fallbackTz = existing.schedule.kind === "cron" ? existing.schedule.timezone : DEFAULT_TIMEZONE;
         const body: Args = {};
@@ -378,30 +378,30 @@ export class NuoTools {
         } else if (typeof a.timezone === "string" && a.timezone && existing.schedule.kind === "cron") {
           body.schedule = { ...existing.schedule, timezone: a.timezone };
         }
-        if (!Object.keys(body).length) throw new ToolError("rien à modifier");
+        if (!Object.keys(body).length) throw new ToolError("nothing to change");
         const t = (await this.api("PATCH", `/api/schedules/${encodeURIComponent(existing.id)}`, body)) as ScheduledTask;
-        return `Tâche modifiée.\n${describeTask(t, this.env.botId)}`;
+        return `Task changed.\n${describeTask(t, this.env.botId)}`;
       }
       case "schedule_delete": {
         const existing = await this.editableTask(a.id);
         await this.api("DELETE", `/api/schedules/${encodeURIComponent(existing.id)}`);
-        return `Tâche « ${existing.title} » supprimée.`;
+        return `Task "${existing.title}" deleted.`;
       }
       case "memory_read": {
         const m = (await this.api("GET", this.memoryPath())) as BotMemory;
-        return m.content.trim() ? m.content : "Mémoire vide.";
+        return m.content.trim() ? m.content : "Empty memory.";
       }
       case "memory_add": {
         await this.api("POST", this.memoryPath(), { fact: a.fact });
-        return "Fait ajouté à la mémoire.";
+        return "Fact added to the memory.";
       }
       case "memory_write": {
-        if (typeof a.content !== "string") throw new ToolError("content requis");
+        if (typeof a.content !== "string") throw new ToolError("content is required");
         await this.api("PUT", this.memoryPath(), { content: a.content });
-        return a.content.trim() ? "Mémoire réécrite." : "Mémoire vidée.";
+        return a.content.trim() ? "Memory rewritten." : "Memory emptied.";
       }
       default:
-        throw new ToolError(`outil inconnu ${name}`);
+        throw new ToolError(`unknown tool ${name}`);
     }
   }
 }
@@ -414,7 +414,7 @@ export function createNuoServer(tools: NuoTools, now: () => number = Date.now): 
       const text = await tools.call(req.params.name, (req.params.arguments ?? {}) as Args);
       return { content: [{ type: "text", text }] };
     } catch (e) {
-      const message = e instanceof ToolError ? e.message : `erreur : ${(e as Error)?.message ?? String(e)}`;
+      const message = e instanceof ToolError ? e.message : `error: ${(e as Error)?.message ?? String(e)}`;
       return { content: [{ type: "text", text: message }], isError: true };
     }
   });

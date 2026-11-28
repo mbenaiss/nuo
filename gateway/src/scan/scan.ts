@@ -2,6 +2,7 @@ import { carrierOf, cleanTrackingNumber, guessParcel, inspectCode, isRetailSymbo
 import type { Parcel, Parcels } from "./parcels";
 import { LookupError, type CosmeticProduct, type FoodSummary, type ProductLookup } from "./products";
 import { carrierUrl } from "./tracking";
+import { t } from "../i18n/language";
 
 export interface ParcelDetection {
   number: string;
@@ -55,11 +56,11 @@ export class Scanner {
   async scan(raw: string, o: ScanOptions = {}): Promise<ScanResult> {
     const info = inspectCode(raw);
     const { code } = info;
-    if (!code) return { code, kind: "unknown", candidates: [...SCAN_KINDS], error: "code vide" };
+    if (!code) return { code, kind: "unknown", candidates: [...SCAN_KINDS], error: t("scan.emptyCode") };
 
     if (o.kind === "parcel") {
       const number = cleanTrackingNumber(code);
-      if (!number) return { code, kind: "unknown", candidates: ["food", "cosmetic"], error: "ce code ne ressemble pas à un numéro de suivi" };
+      if (!number) return { code, kind: "unknown", candidates: ["food", "cosmetic"], error: t("scan.notTracking") };
       return this.parcelResult(code, number, guessParcel(number)?.carrier);
     }
     if (o.kind === "food" || o.kind === "cosmetic") {

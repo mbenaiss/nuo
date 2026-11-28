@@ -65,7 +65,7 @@ export interface BrowserStatus {
 export type LoginNotifier = (r: LoginRequest) => void;
 
 /**
- * Owns one profile's shared browser lifecycle (started on demand and stopped when idle) and the « login needed »
+ * Owns one profile's shared browser lifecycle (started on demand and stopped when idle) and the "login needed"
  * requests its agents raise for the user.
  */
 export class BrowserManager {
@@ -220,7 +220,7 @@ export class BrowserManager {
     return [...this.logins.values()].filter((r) => r.status === "pending").map(publicLogin);
   }
 
-  /** « Terminé » in the app: every pending request is answered at once (the user logged in where needed). */
+  /** Done in the app: every pending request is answered at once (the user logged in where needed). */
   completeLogins(): number {
     let n = 0;
     const doneAt = new Date().toISOString();

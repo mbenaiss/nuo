@@ -30,17 +30,17 @@ export function taggedTools(text: string, tools: MachineTool[]): MachineTool[] {
 
 const indent = (s: string) => s.trim().split(/\r?\n/).join("\n  ");
 
-/** French hint prepended to the agent's prompt for this turn only; empty when nothing is tagged. */
+/** Hint prepended to the agent's prompt for this turn only; empty when nothing is tagged. */
 export function toolHint(tools: MachineTool[], policy: PermissionPolicy): string {
   if (!tools.length) return "";
   let usable = 0;
   const lines = tools.map((t) => {
     if (t.needsShell && policy !== "auto") {
-      return `- ${t.id} (${t.name}) : indisponible pour ce bot (pas d'accès au shell). Dis à l'utilisateur de le demander à Cobot.`;
+      return `- ${t.id} (${t.name}): not available to this bot (no shell access). Tell the user to ask Cobot for it.`;
     }
     usable++;
-    return `- ${t.id} (${t.name}) : ${indent(t.usage || t.description)}`;
+    return `- ${t.id} (${t.name}): ${indent(t.usage || t.description)}`;
   });
-  const footer = usable ? "\nUtilise-les en priorité." : "";
-  return `Outils demandés par l'utilisateur pour ce message :\n${lines.join("\n")}${footer}\n\n`;
+  const footer = usable ? "\nUse them first." : "";
+  return `Tools the user asked for in this message:\n${lines.join("\n")}${footer}\n\n`;
 }

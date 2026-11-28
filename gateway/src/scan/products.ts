@@ -1,3 +1,4 @@
+import { t } from "../i18n/language";
 import { analyzeCosmetic, splitIngredients, type CosmeticAnalysis } from "./cosmetics";
 
 export type Fetch = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -32,7 +33,7 @@ export interface CosmeticProduct {
   imageUrl?: string;
   quantity?: string;
   labels: string[];
-  /** "12 mois" from the "12M" jar symbol, when known. */
+  /** "12 months" from the "12M" jar symbol, when known, in the user's language. */
   periodAfterOpening?: string;
   analysis: CosmeticAnalysis;
   url: string;
@@ -71,11 +72,11 @@ async function fetchProduct(fetcher: Fetch, base: string, code: string, fields: 
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch (e) {
-    throw new LookupError(`${new URL(base).hostname} injoignable : ${(e as Error)?.message ?? e}`);
+    throw new LookupError(t("scan.hostUnreachable", { host: new URL(base).hostname, detail: (e as Error)?.message ?? String(e) }));
   }
-  if (res.status !== 404 && !res.ok) throw new LookupError(`${new URL(base).hostname} a répondu ${res.status}`);
+  if (res.status !== 404 && !res.ok) throw new LookupError(t("scan.hostAnswered", { host: new URL(base).hostname, status: res.status }));
   const body = (await res.json().catch(() => undefined)) as { status?: number; product?: Raw } | undefined;
-  if (!body) throw new LookupError(`${new URL(base).hostname} est indisponible (réponse ${res.status} sans données)`);
+  if (!body) throw new LookupError(t("scan.hostEmpty", { host: new URL(base).hostname, status: res.status }));
   return body.status === 1 && body.product ? body.product : undefined;
 }
 
@@ -128,7 +129,7 @@ export function cosmeticProduct(code: string, p: Raw): CosmeticProduct | undefin
     ...(str(p.image_front_url) ?? str(p.image_url) ? { imageUrl: str(p.image_front_url) ?? str(p.image_url) } : {}),
     ...(str(p.quantity) ? { quantity: str(p.quantity) } : {}),
     labels,
-    ...(pao ? { periodAfterOpening: `${pao} mois` } : {}),
+    ...(pao ? { periodAfterOpening: t("scan.periodAfterOpening", { months: pao }) } : {}),
     analysis: analyzeCosmetic(ingredientNames(p)),
     url: obfPage(code),
     source: "openbeautyfacts",
@@ -136,8 +137,8 @@ export function cosmeticProduct(code: string, p: Raw): CosmeticProduct | undefin
 }
 
 /**
- * Cosmetics filed in Open Food Facts by mistake (a SVR cleanser as « Spaghetti ») keep their INCI list there: water
- * written « aqua », perfume « parfum », or several ingredients no food lists.
+ * Cosmetics filed in Open Food Facts by mistake (a SVR cleanser as "Spaghetti") keep their INCI list there: water
+ * written "aqua", perfume "parfum", or several ingredients no food lists.
  */
 export function looksLikeInci(text: string | undefined): boolean {
   if (!text) return false;
@@ -152,7 +153,7 @@ function misfiledCosmetic(code: string, p: Raw): CosmeticProduct | undefined {
   if (!looksLikeInci(text)) return undefined;
   const brand = firstBrand(p);
   const categorised = Array.isArray(p.categories_tags) && p.categories_tags.length > 0;
-  const name = categorised || !nameOf(p) ? (brand ? `Cosmétique ${brand}` : "Cosmétique") : nameOf(p)!;
+  const name = categorised || !nameOf(p) ? (brand ? t("scan.cosmeticOf", { brand }) : t("scan.cosmetic")) : nameOf(p)!;
   return namedCosmetic(code, "openfoodfacts", name, brand, splitIngredients(text!), str(p.image_front_url) ?? str(p.image_url));
 }
 
@@ -177,7 +178,7 @@ async function getJson(fetcher: Fetch, url: string, headers: Record<string, stri
   try {
     res = await fetcher(url, { headers: { "user-agent": USER_AGENT, accept: "application/json", ...headers }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch (e) {
-    throw new LookupError(`${new URL(url).hostname} injoignable : ${(e as Error)?.message ?? e}`);
+    throw new LookupError(t("scan.hostUnreachable", { host: new URL(url).hostname, detail: (e as Error)?.message ?? String(e) }));
   }
   return { status: res.status, body: (await res.json().catch(() => undefined)) as Raw | undefined };
 }
@@ -186,7 +187,7 @@ async function getJson(fetcher: Fetch, url: string, headers: Record<string, stri
 async function inciApi(fetcher: Fetch, key: string, code: string): Promise<CosmeticProduct | undefined> {
   const { status, body } = await getJson(fetcher, `${INCI_API}/${encodeURIComponent(code)}`, { "x-api-key": key });
   if (status === 404) return undefined;
-  if (status !== 200 || !body) throw new LookupError(`inciapi.com a répondu ${status}`);
+  if (status !== 200 || !body) throw new LookupError(t("scan.hostAnswered", { host: "inciapi.com", status }));
   const p = body.product as Raw | undefined;
   const name = p && str(p.name);
   if (!p || !name) return undefined;
@@ -201,7 +202,7 @@ async function inciApi(fetcher: Fetch, key: string, code: string): Promise<Cosme
 async function upcItemDb(fetcher: Fetch, code: string): Promise<CosmeticProduct | undefined> {
   const { status, body } = await getJson(fetcher, `${UPCITEMDB}?upc=${encodeURIComponent(code)}`);
   if (status === 404 || status === 400) return undefined;
-  if (status !== 200 || !body) throw new LookupError(`upcitemdb.com a répondu ${status}`);
+  if (status !== 200 || !body) throw new LookupError(t("scan.hostAnswered", { host: "upcitemdb.com", status }));
   const item = Array.isArray(body.items) ? (body.items[0] as Raw | undefined) : undefined;
   const name = item && str(item.title);
   if (!item || !name) return undefined;
@@ -265,14 +266,14 @@ export class ProductLookup {
   /** A list photographed and read on the phone: analysed now, and found by the next scan of the same code. */
   rememberIngredients(code: string, entry: { name?: string; brand?: string; ingredients: string }): CosmeticProduct {
     const ingredients = splitIngredients(entry.ingredients);
-    if (!ingredients.length) throw new LookupError("aucun ingrédient reconnu dans ce texte");
+    if (!ingredients.length) throw new LookupError(t("scan.noIngredient"));
     this.sources.memory?.set(code, entry);
-    return namedCosmetic(code, "photo", entry.name?.trim() || "Cosmétique", entry.brand?.trim() || undefined, ingredients);
+    return namedCosmetic(code, "photo", entry.name?.trim() || t("scan.cosmetic"), entry.brand?.trim() || undefined, ingredients);
   }
 
   private remembered(code: string): CosmeticProduct | undefined {
     const m = this.sources.memory?.get(code);
-    return m ? namedCosmetic(code, "photo", m.name || "Cosmétique", m.brand, splitIngredients(m.ingredients)) : undefined;
+    return m ? namedCosmetic(code, "photo", m.name || t("scan.cosmetic"), m.brand, splitIngredients(m.ingredients)) : undefined;
   }
 
   /**

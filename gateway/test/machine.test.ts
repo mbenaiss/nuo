@@ -184,20 +184,20 @@ describe("hint", () => {
 
   test("lists usage for auto bots", () => {
     expect(toolHint([gog, mcp], "auto")).toBe(
-      "Outils demandés par l'utilisateur pour ce message :\n- gog (Google) : ligne 1\n  ligne 2\n- lightpanda (lightpanda) : mcp usage\nUtilise-les en priorité.\n\n",
+      "Tools the user asked for in this message:\n- gog (Google): ligne 1\n  ligne 2\n- lightpanda (lightpanda): mcp usage\nUse them first.\n\n",
     );
     expect(toolHint([], "auto")).toBe("");
   });
 
   test("shell tools are unavailable to bots without the auto policy", () => {
     const h = toolHint([gog, mcp], "readonly");
-    expect(h).toContain("- gog (Google) : indisponible pour ce bot");
+    expect(h).toContain("- gog (Google): not available to this bot");
     expect(h).toContain("Cobot");
-    expect(h).toContain("- lightpanda (lightpanda) : mcp usage");
-    expect(h).toContain("Utilise-les en priorité.");
+    expect(h).toContain("- lightpanda (lightpanda): mcp usage");
+    expect(h).toContain("Use them first.");
     const only = toolHint([gog], "ask");
-    expect(only).toContain("indisponible");
-    expect(only).not.toContain("Utilise-les en priorité.");
+    expect(only).toContain("not available");
+    expect(only).not.toContain("Use them first.");
   });
 });
 
@@ -245,7 +245,7 @@ describe("gateway integration", () => {
     await sock.next("message.end");
     const [first, second] = t.runtime.prompts;
     expect(first!.text).toBe(
-      "Outils demandés par l'utilisateur pour ce message :\n- gog (Google) : gog calendar events\nUtilise-les en priorité.\n\n#gog quels rdv demain ?",
+      "Tools the user asked for in this message:\n- gog (Google): gog calendar events\nUse them first.\n\n#gog quels rdv demain ?",
     );
     expect(second!.text).toBe("et après ?");
     const msgs = (await t.api("GET", `/api/conversations/${conv.id}/messages`)).data;
@@ -257,9 +257,9 @@ describe("gateway integration", () => {
     sock.send({ type: "prompt", conversationId: conv.id, text: "#gog #lightpanda #gone vols ?" });
     await sock.next("message.end");
     const text = t.runtime.prompts[0]!.text;
-    expect(text).toContain("- gog (Google) : indisponible pour ce bot");
-    expect(text).toContain("- lightpanda (lightpanda) : mcp lightpanda");
-    expect(text).toEndWith("Utilise-les en priorité.\n\n#gog #lightpanda #gone vols ?");
+    expect(text).toContain("- gog (Google): not available to this bot");
+    expect(text).toContain("- lightpanda (lightpanda): mcp lightpanda");
+    expect(text).toEndWith("Use them first.\n\n#gog #lightpanda #gone vols ?");
     expect(text.split("\n").filter((l) => l.startsWith("- "))).toHaveLength(2);
   });
 
@@ -271,8 +271,8 @@ describe("gateway integration", () => {
     sock.send({ type: "prompt", conversationId: conv.id, text: "/agenda demain", voice: true });
     await sock.next("message.end");
     const text = t.runtime.prompts[0]!.text;
-    expect(text).toStartWith("[Réponse vocale");
-    expect(text).toContain("Outils demandés par l'utilisateur pour ce message :\n- gog (Google)");
+    expect(text).toStartWith("[Voice answer");
+    expect(text).toContain("Tools the user asked for in this message:\n- gog (Google)");
     expect(text).toEndWith("#gog Agenda de demain");
     const msgs = (await t.api("GET", `/api/conversations/${conv.id}/messages`)).data;
     expect(msgs[0].text).toBe("/agenda demain");

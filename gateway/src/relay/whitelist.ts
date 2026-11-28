@@ -1,14 +1,16 @@
+import { DEFAULT_UI_LANGUAGE, t, type UiLanguage } from "../i18n/language";
+import type { MessageKey } from "../i18n/messages";
 import { head } from "../text";
 
 /**
  * What a bot may do during a turn the relay passed on (the watch's request while the iPhone is locked): add, and
- * nothing else (docs/security.md, « Accès de relais »). Every tool a bot session can be offered is named here; the
+ * nothing else (docs/security.md, "Relay access"). Every tool a bot session can be offered is named here; the
  * gateway refuses the rest wherever it can see it: the agent's permission request, the `nuo` server's own calls,
  * and the local routes those calls reach.
  */
 
-/** What a refused tool answers, word for word: the request waits for the iPhone to be unlocked. */
-export const RELAY_REFUSAL = "à faire depuis l'iPhone déverrouillé";
+/** What a refused tool answers the bot, word for word: the request waits for the iPhone to be unlocked. */
+export const RELAY_REFUSAL = "to do from the unlocked iPhone";
 
 export type RelayRule = "add" | "refused";
 
@@ -55,7 +57,7 @@ export const NUO_TOOL_RULES: Record<string, RelayRule> = {
   apple_calendar_delete: "refused",
   device_location: "refused",
   weather: "refused",
-  // Santé: the most personal data the iPhone holds, and a session put on the watch is not an « add » of this kind.
+  // Health: the most personal data the iPhone holds, and a session put on the watch is not an "add" of this kind.
   health_summary: "refused",
   health_activity: "refused",
   health_heart: "refused",
@@ -117,8 +119,9 @@ export interface RelayTurnFacts {
   createdEvents: ReadonlySet<string>;
 }
 
+/** For the bot, which tells the user in their language. */
 export function relayRefusalText(name: string): string {
-  return `« ${name || "cet outil"} » : ${RELAY_REFUSAL}. Pendant que l'iPhone est verrouillé, je peux seulement ajouter un rappel, un évènement, une note ou un élément de collection, ou passer un message à un bot.`;
+  return `"${name || "this tool"}": ${RELAY_REFUSAL}. While the iPhone is locked, I can only add a reminder, an event, a note or a collection item, or pass a message to a bot.`;
 }
 
 /** Undefined when the call may go on to its confirmation; otherwise the answer the bot gets. */
@@ -143,7 +146,7 @@ export function relayRefusal(call: RelayToolCall, facts: RelayTurnFacts): string
   }
 }
 
-/** `AAAA-MM-JJTHH:MM`, exactly. */
+/** `YYYY-MM-DDTHH:MM`, exactly. */
 export const LOCAL_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 const LOCAL_TIME_FIELDS: Record<string, string[]> = {
   reminder_add: ["at"],
@@ -191,87 +194,91 @@ function said(v: unknown, max = SUMMARY_MAX): string {
   return t.length > max ? `${head(t, max - 1).trimEnd()}…` : t;
 }
 
-/** `2026-11-16T10:00` (Paris time, as the tools take it) as « lun. 16 nov., 10:00 »; anything else as written. */
-function when(v: unknown, withYear = false): string {
+/** `2026-11-16T10:00` (Paris time, as the tools take it) as "Mon, Nov 16, 10:00"; anything else as written. */
+function when(v: unknown, lang: UiLanguage, withYear = false): string {
   const raw = said(v, 40);
   const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
   if (!m) return raw;
   const day = new Date(Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, 12));
-  const date = new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}) }).format(day);
+  const date = new Intl.DateTimeFormat(t("locale", {}, lang), { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}) }).format(day);
   return m[4] ? `${date}, ${m[4]}:${m[5]}` : date;
 }
 
-const quoted = (v: unknown) => (said(v) ? `« ${said(v)} »` : "");
+const quoted = (v: unknown, lang: UiLanguage) => (said(v) ? t("relay.quoted", { text: said(v) }, lang) : "");
 
-/** « , lun. 16 nov., 10:00–11:00 », or with the end's day when it is another one: how long it lasts shows. */
-function span(start: unknown, end: unknown): string {
-  const from = when(start);
+/** ", Mon, Nov 16, 10:00-11:00", or with the end's day when it is another one: how long it lasts shows. */
+function span(start: unknown, end: unknown, lang: UiLanguage): string {
+  const from = when(start, lang);
   if (!from) return "";
   const s = said(start, 40);
   const e = said(end, 40);
   if (!e) return `, ${from}`;
   const sameDay = s.slice(0, 10) === e.slice(0, 10) && /T\d{2}:\d{2}$/.test(e);
-  return sameDay ? `, ${from}–${e.slice(11, 16)}` : `, ${from} jusqu'au ${when(e, s.slice(0, 4) !== e.slice(0, 4))}`;
+  return sameDay ? `, ${from}-${e.slice(11, 16)}` : `, ${t("relay.until", { from, to: when(e, lang, s.slice(0, 4) !== e.slice(0, 4)) }, lang)}`;
 }
 
-const place = (v: unknown) => (said(v, 60) ? `, à ${quoted(said(v, 60))}` : "");
+const place = (v: unknown, lang: UiLanguage) => (said(v, 60) ? `, ${t("relay.at", { place: quoted(said(v, 60), lang) }, lang)}` : "");
 
-/** « , alertes 10 et 60 min avant » ; « à l'heure » for 0. */
-function alerts(v: unknown): string {
+/** ", alerts 10 and 60 min before"; "at the time of the event" for 0. */
+function alerts(v: unknown, lang: UiLanguage): string {
   if (!Array.isArray(v) || !v.length) return "";
-  const each = v.filter((m): m is number => typeof m === "number").map((m) => (m === 0 ? "à l'heure" : `${Math.round(m)} min avant`));
+  const each = v.filter((m): m is number => typeof m === "number").map((m) => (m === 0 ? t("relay.alertOnTime", {}, lang) : t("relay.alertBefore", { minutes: Math.round(m) }, lang)));
   if (!each.length) return "";
-  const list = each.length > 1 ? `${each.slice(0, -1).join(", ")} et ${each.at(-1)}` : each[0];
-  return `, alerte${each.length > 1 ? "s" : ""} ${list}`;
+  const list = each.length > 1 ? t("relay.list", { items: each.slice(0, -1).join(", "), last: each.at(-1)! }, lang) : each[0]!;
+  return `, ${t(each.length > 1 ? "relay.alerts" : "relay.alert", { list }, lang)}`;
 }
 
 /**
- * What a relay confirmation is about, in words: the watch shows it above « Autoriser », so the yes is given for this
- * reminder or this event, not for a tool name.
+ * What a relay confirmation is about, in words: the watch shows it above its Allow button, so the yes is given for
+ * this reminder or this event, not for a tool name. In the user's language (`lang`, the profile's).
  */
-export function relayConfirmationTitle(call: RelayToolCall): string {
+export function relayConfirmationTitle(call: RelayToolCall, lang: UiLanguage = DEFAULT_UI_LANGUAGE): string {
   const a = call.input ?? {};
+  const q = (v: unknown) => quoted(v, lang);
   const parts = (...p: string[]) => p.filter(Boolean).join(" ");
-  const at = (v: unknown) => (when(v) ? `, ${when(v)}` : "");
-  const extras = (...texts: unknown[]) => (a.all_day === true ? ", toute la journée" : "") + repeats(a.recurrence) + (texts.some((t) => said(t)) ? " + texte joint" : "");
+  const labelled = (label: string, value: string) => (value ? t("relay.labelled", { label, value }, lang) : label);
+  const at = (v: unknown) => (when(v, lang) ? `, ${when(v, lang)}` : "");
+  const extras = (...texts: unknown[]) =>
+    (a.all_day === true ? `, ${t("relay.allDay", {}, lang)}` : "") + repeats(a.recurrence, lang) + (texts.some((x) => said(x)) ? ` ${t("relay.attachedText", {}, lang)}` : "");
+  const event = (key: MessageKey) => parts(t(key, {}, lang), q(a.title)) + span(a.start, a.end, lang) + place(a.location, lang);
   switch (call.server === RELAY_SERVER ? call.name : "") {
     case "reminder_add":
-      return parts("Ajouter le rappel", quoted(a.title)) + at(a.at) + extras(a.notes);
+      return parts(t("relay.reminderAdd", {}, lang), q(a.title)) + at(a.at) + extras(a.notes);
     case "reminder_done":
-      return parts("Cocher le rappel", quoted(a.title));
+      return parts(t("relay.reminderDone", {}, lang), q(a.title));
     case "note_add":
-      return parts("Ajouter la note", quoted(a.title)) + extras(a.content);
+      return parts(t("relay.noteAdd", {}, lang), q(a.title)) + extras(a.content);
     case "collection_add": {
       const values = a.values && typeof a.values === "object" && !Array.isArray(a.values) ? Object.values(a.values as Record<string, unknown>) : [];
-      return parts(`Ajouter à ${said(a.collection, 40) || "une collection"} :`, quoted(values.find((v) => said(v)))).replace(/ :$/, "");
+      return labelled(t("relay.collectionAdd", { collection: said(a.collection, 40) || t("relay.aCollection", {}, lang) }, lang), q(values.find((v) => said(v))));
     }
     case "apple_event_create":
-      return parts("Ajouter l'évènement", quoted(a.title)) + span(a.start, a.end) + place(a.location) + alerts(a.alarms) + extras(a.notes, a.url);
+      return event("relay.eventAdd") + alerts(a.alarms, lang) + extras(a.notes, a.url);
     case "calendar_create":
-      return parts("Ajouter l'évènement Google", quoted(a.title)) + span(a.start, a.end) + place(a.location) + extras(a.description);
+      return event("relay.googleEventAdd") + extras(a.description);
     case "apple_event_update":
-      return parts("Modifier l'évènement ajouté", quoted(a.title)) + span(a.start, a.end) + place(a.location) + alerts(a.alarms) + extras(a.notes, a.url);
+      return event("relay.eventUpdate") + alerts(a.alarms, lang) + extras(a.notes, a.url);
     case "bot_ask":
-      return parts(`Demander à ${said(a.bot, 40) || "un bot"} :`, quoted(a.prompt)).replace(/ :$/, "");
+      return labelled(t("relay.botAsk", { bot: said(a.bot, 40) || t("relay.aBot", {}, lang) }, lang), q(a.prompt));
     default:
       return call.server ? `mcp__${call.server}__${call.name}` : call.name;
   }
 }
 
-const EVERY: Record<string, [string, string]> = {
-  daily: ["chaque jour", "tous les {n} jours"],
-  weekly: ["chaque semaine", "toutes les {n} semaines"],
-  monthly: ["chaque mois", "tous les {n} mois"],
-  yearly: ["chaque année", "tous les {n} ans"],
+const EVERY: Record<string, [MessageKey, MessageKey]> = {
+  daily: ["relay.everyDay", "relay.everyDays"],
+  weekly: ["relay.everyWeek", "relay.everyWeeks"],
+  monthly: ["relay.everyMonth", "relay.everyMonths"],
+  yearly: ["relay.everyYear", "relay.everyYears"],
 };
 
-/** « , chaque semaine », « , toutes les 2 semaines » ; nothing for no recurrence. Unknown values are said as they are. */
-function repeats(r: unknown): string {
+/** ", every week", ", every 2 weeks"; nothing for no recurrence. Unknown values are said as they are. */
+function repeats(r: unknown, lang: UiLanguage): string {
   if (!r || typeof r !== "object") return "";
   const { frequency, interval } = r as { frequency?: unknown; interval?: unknown };
   if (frequency === "none" || frequency === undefined) return "";
   const every = typeof frequency === "string" ? EVERY[frequency] : undefined;
-  if (!every) return `, répété (${said(frequency, 20) || "?"})`;
+  if (!every) return `, ${t("relay.repeated", { frequency: said(frequency, 20) || "?" }, lang)}`;
   const n = typeof interval === "number" && interval > 1 ? Math.round(interval) : 1;
-  return `, ${n > 1 ? every[1].replace("{n}", String(n)) : every[0]}`;
+  return `, ${n > 1 ? t(every[1], { n }, lang) : t(every[0], {}, lang)}`;
 }

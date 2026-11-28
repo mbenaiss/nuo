@@ -13,7 +13,10 @@ export type ParcelStatus =
   | "expired"
   | "unknown";
 
-/** Labels stored in the `statut` select column of the `colis` collection (010_colis.sql). */
+/**
+ * Labels stored in the `statut` select column of the `colis` collection (010_colis.sql): stored values, French in
+ * every database, never shown as such (`parcelStatusLabel`).
+ */
 export const STATUS_LABELS: Record<ParcelStatus, string> = {
   pending: "En attente",
   info_received: "Annoncé",
@@ -117,8 +120,8 @@ export class LaPosteTracker implements Tracker {
     const body = first?.response ?? first;
     // 104: "pas encore disponible", the number is known to nobody yet (label printed, parcel not dropped off).
     if (res.status === 404) return { status: "pending", events: [], source: "laposte", carrierName: "La Poste" };
-    if (res.status === 401 || res.status === 403) throw new TrackingError("clé La Poste (NUO_LAPOSTE_OKAPI_KEY) refusée");
-    if (!res.ok || !body?.shipment) throw new TrackingError(body?.returnMessage ?? first?.detail ?? `La Poste a répondu ${res.status}`);
+    if (res.status === 401 || res.status === 403) throw new TrackingError("La Poste key (NUO_LAPOSTE_OKAPI_KEY) refused");
+    if (!res.ok || !body?.shipment) throw new TrackingError(body?.returnMessage ?? first?.detail ?? `La Poste answered ${res.status}`);
     const s = body.shipment;
     const events = (s.event ?? []).filter((e) => e.label).map((e) => ({ label: e.label!, ...isoOrNothing(e.date) }));
     const product = s.product ? s.product.charAt(0).toUpperCase() + s.product.slice(1) : "La Poste";
@@ -186,10 +189,10 @@ export class Ship24Tracker implements Tracker {
       throw new TrackingError(`Ship24 injoignable : ${(e as Error)?.message ?? e}`);
     }
     const data = (await res.json().catch(() => undefined)) as { data?: any; errors?: { code?: string; message?: string }[] } | undefined;
-    if (res.status === 401) throw new TrackingError("clé Ship24 (NUO_SHIP24_API_KEY) refusée");
+    if (res.status === 401) throw new TrackingError("Ship24 key (NUO_SHIP24_API_KEY) refused");
     const error = data?.errors?.[0];
-    if (error?.code === "quota_limit_reached") throw new TrackingError("quota Ship24 du mois atteint");
-    if (!res.ok || !data?.data) throw new TrackingError(`Ship24 : ${error?.message ?? `réponse ${res.status}`}`);
+    if (error?.code === "quota_limit_reached") throw new TrackingError("Ship24 monthly quota reached");
+    if (!res.ok || !data?.data) throw new TrackingError(`Ship24: ${error?.message ?? `answer ${res.status}`}`);
     return data.data;
   }
 
@@ -275,17 +278,17 @@ export class SeventeenTrackTracker implements Tracker {
     } catch (e) {
       throw new TrackingError(`17TRACK injoignable : ${(e as Error)?.message ?? e}`);
     }
-    if (res.status === 401) throw new TrackingError("clé 17TRACK (NUO_SEVENTEENTRACK_API_KEY) refusée");
-    if (!res.ok) throw new TrackingError(`17TRACK a répondu ${res.status}`);
+    if (res.status === 401) throw new TrackingError("17TRACK key (NUO_SEVENTEENTRACK_API_KEY) refused");
+    if (!res.ok) throw new TrackingError(`17TRACK answered ${res.status}`);
     const data = (await res.json().catch(() => undefined)) as { code?: number; data?: any } | undefined;
-    if (data?.code !== 0) throw new TrackingError(`17TRACK a refusé la requête (code ${data?.code ?? "?"})`);
+    if (data?.code !== 0) throw new TrackingError(`17TRACK refused the request (code ${data?.code ?? "?"})`);
     return data.data;
   }
 
   async track(number: string): Promise<TrackingResult> {
     const reg = await this.call("register", [{ number, lang: "fr" }]);
     const refusal = (reg?.rejected ?? []).find((r: any) => r?.error?.code !== ALREADY_REGISTERED);
-    if (refusal) throw new TrackingError(`17TRACK : ${refusal.error?.message ?? "numéro refusé"}`);
+    if (refusal) throw new TrackingError(`17TRACK: ${refusal.error?.message ?? "number refused"}`);
     const info = await this.call("gettrackinfo", [{ number }]);
     const accepted = (info?.accepted ?? [])[0];
     const t = accepted?.track_info;

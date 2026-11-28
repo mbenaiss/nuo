@@ -91,7 +91,8 @@ describe("cosmetic analysis", () => {
   });
 
   test("TEA and DEA count as INCI words only, not in tea tree or green tea", () => {
-    expect(assessIngredient("TEA-Lauryl Sulfate")).toMatchObject({ risk: "moderate", reason: "Peut former des nitrosamines" });
+    expect(assessIngredient("TEA-Lauryl Sulfate")).toMatchObject({ risk: "moderate", reason: "Can form nitrosamines" });
+    expect(assessIngredient("TEA-Lauryl Sulfate", "fr")).toMatchObject({ reason: "Peut former des nitrosamines" });
     expect(assessIngredient("Cocamide DEA")).toMatchObject({ risk: "moderate" });
     expect(assessIngredient("Melaleuca Alternifolia (Tea Tree) Leaf Oil")).toMatchObject({ risk: "none" });
     expect(assessIngredient("Camellia Sinensis (Green Tea) Leaf Extract")).toMatchObject({ risk: "none" });
@@ -120,7 +121,7 @@ describe("product lookup", () => {
       nova: 4,
     });
     const cerave = await lookup.any(CERAVE);
-    expect(cerave).toMatchObject({ kind: "cosmetic", name: "Hydrating Foaming Oil Cleanser", brand: "CeraVe", periodAfterOpening: "12 mois", labels: ["not tested on animals"] });
+    expect(cerave).toMatchObject({ kind: "cosmetic", name: "Hydrating Foaming Oil Cleanser", brand: "CeraVe", periodAfterOpening: "12 months", labels: ["not tested on animals"] });
     expect(cerave?.kind === "cosmetic" && cerave.analysis).toMatchObject({ score: 17, verdict: "bad", counts: { high: 1, moderate: 0, low: 2 } });
     expect(await lookup.any("3760000000017")).toBeUndefined();
   });
@@ -193,7 +194,7 @@ describe("product lookup", () => {
     const result = await new Scanner(new ProductLookup(fetcher), { byNumber: () => undefined } as never).scan(SVR);
     expect(result.kind).toBe("cosmetic");
     expect(result.food).toBeUndefined();
-    expect(result.cosmetic).toMatchObject({ name: "Cosmétique SVR", brand: "SVR", source: "openfoodfacts" });
+    expect(result.cosmetic).toMatchObject({ name: "SVR cosmetic", brand: "SVR", source: "openfoodfacts" });
     expect(result.cosmetic!.analysis.ingredients.length).toBeGreaterThan(5);
     expect(looksLikeInci("Semoule de blé dur, eau, sel")).toBe(false);
     expect(looksLikeInci("Aqua, Glycerin, Parfum")).toBe(true);
@@ -211,7 +212,7 @@ describe("product lookup", () => {
     const scanner = new Scanner(outage, { byNumber: () => undefined } as never);
     const result = await scanner.scan("7618900911239", { kind: "cosmetic" });
     expect(result.cosmetic).toBeUndefined();
-    expect(result.error).toContain("indisponible");
+    expect(result.error).toContain("unavailable");
   });
 
   test("one base down does not hide the other's answer", async () => {
@@ -322,9 +323,9 @@ describe("trackers", () => {
 
   test("Ship24 out of quota or refusing the key is an error, so the chain asks 17TRACK", async () => {
     const quota = new Ship24Tracker("k", async () => json({ errors: [{ code: "quota_limit_reached", message: "Quota reached" }], data: null }, 403));
-    expect(quota.track(COLISSIMO)).rejects.toThrow("quota Ship24 du mois atteint");
+    expect(quota.track(COLISSIMO)).rejects.toThrow("Ship24 monthly quota reached");
     const refused = new Ship24Tracker("k", async () => json({ errors: [{ code: "unauthorized" }] }, 401));
-    expect(refused.track(COLISSIMO)).rejects.toThrow("clé Ship24 (NUO_SHIP24_API_KEY) refusée");
+    expect(refused.track(COLISSIMO)).rejects.toThrow("Ship24 key (NUO_SHIP24_API_KEY) refused");
     const fallback: Tracker = { track: async () => ({ status: "in_transit", events: [], source: "17track" }) };
     expect(await new TrackerChain([quota, fallback]).track(COLISSIMO)).toMatchObject({ status: "in_transit", source: "17track" });
   });
@@ -477,7 +478,7 @@ describe("parcels", () => {
       carrier: "laposte",
       carrierName: "Colissimo",
       status: "in_transit",
-      statusLabel: "En transit",
+      statusLabel: "In transit",
       lastEvent: { label: "Votre colis est pris en charge par La Poste", at: "2026-10-22T16:40:00.000Z" },
       url: `https://www.laposte.fr/outils/suivre-vos-envois?code=${COLISSIMO}`,
       checkedAt: "2026-10-25T10:00:00.000Z",
@@ -506,7 +507,7 @@ describe("parcels", () => {
     await parcels.refresh(p.id);
     expect(pusher.sent).toHaveLength(1);
     expect(pusher.sent[0]!.payload).toMatchObject({
-      title: "📦 Chaussures de trail : livré",
+      title: "📦 Chaussures de trail: delivered",
       body: "Votre colis est livré",
       category: "nuo.parcel",
       destination: { kind: "link", url: `nuo://data/colis/${p.id}` },
@@ -552,7 +553,7 @@ describe("parcels", () => {
 
   test("a carrier losing the number for a while keeps the known status and pushes nothing twice", async () => {
     const lost: TrackingResult = { status: "pending", events: [], source: "17track" };
-    const { pusher, parcels } = setup(new ScriptedTracker({ [COLISSIMO]: [inTransit, lost, inTransit, delivered] }));
+    const { pusher, parcels } = setup(new ScriptedTracker({ [COLISSIMO]: [inTransit, lost, inTransit, delivered] }), undefined, { language: () => "fr" });
     const p = await parcels.add({ number: COLISSIMO });
     expect((await parcels.refresh(p.id))!.status).toBe("in_transit");
     expect((await parcels.refresh(p.id))!.status).toBe("in_transit");
@@ -598,7 +599,7 @@ describe("parcels", () => {
     parcels.archive(p.id);
     expect(parcels.list({ includeDone: true })).toEqual([]);
     expect((await parcels.add({ number: COLISSIMO })).id).not.toBe(p.id);
-    expect(() => parcels.archive(p.id)).toThrow("colis introuvable");
+    expect(() => parcels.archive(p.id)).toThrow("parcel not found");
   });
 });
 
@@ -632,7 +633,7 @@ describe("scanner", () => {
     const { scanner: offline } = scanner(async () => {
       throw new TypeError("fetch failed");
     });
-    expect(await offline.scan(NUTELLA)).toMatchObject({ kind: "unknown", error: expect.stringContaining("injoignable") });
+    expect(await offline.scan(NUTELLA)).toMatchObject({ kind: "unknown", error: expect.stringContaining("unreachable") });
   });
 
   test("the user's choice is followed, and a parcel already tracked comes back", async () => {
@@ -684,11 +685,11 @@ describe("api, tools and the /colis command", () => {
     const call = (name: string, args: unknown, token = "local-test-token") => t.api("POST", `/api/scan/tools/${name}`, args, token);
     const tracked = await call("parcel_track", { number: COLISSIMO, label: "Chaussures de trail" });
     expect(tracked.data.text).toStartWith("::parcel ");
-    expect(JSON.parse(tracked.data.text.split("\n")[0].slice("::parcel ".length))).toMatchObject({ number: COLISSIMO, label: "Chaussures de trail", statusLabel: "En transit" });
-    expect((await call("parcel_list", {})).data.text).toContain(`Chaussures de trail · ${COLISSIMO} (Colissimo) : En transit`);
+    expect(JSON.parse(tracked.data.text.split("\n")[0].slice("::parcel ".length))).toMatchObject({ number: COLISSIMO, label: "Chaussures de trail", statusLabel: "In transit" });
+    expect((await call("parcel_list", {})).data.text).toContain(`Chaussures de trail · ${COLISSIMO} (Colissimo): In transit`);
     const cosmetic = (await call("product_lookup", { barcode: CERAVE })).data.text as string;
     expect(cosmetic).toStartWith("::cosmetic ");
-    expect(cosmetic).toContain("Propylparaben : risque élevé");
+    expect(cosmetic).toContain("Propylparaben: high risk");
     expect((await call("product_lookup", { barcode: NUTELLA })).data.text).toStartWith(`::product {"barcode":"${NUTELLA}"}`);
     expect((await call("parcel_track", {})).status).toBe(400);
     expect((await call("nope", {})).status).toBe(404);

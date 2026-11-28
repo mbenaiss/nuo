@@ -144,7 +144,7 @@ export function overviewLocalRoutes(d: OverviewDeps): OverviewRoute[] {
         const base = { botId: bot.id, conversationId: conv.id };
         if (!outcome) return { ...base, status: "running" };
         if (outcome.stopReason === "end_turn") return { ...base, status: "done", text: outcome.text };
-        return { ...base, status: "error", text: outcome.text, error: outcome.stopReason === "cancelled" ? "annulée" : outcome.error || "erreur inconnue" };
+        return { ...base, status: "error", text: outcome.text, error: outcome.stopReason === "cancelled" ? "cancelled" : outcome.error || "unknown error" };
       },
     ],
   ];

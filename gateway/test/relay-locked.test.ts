@@ -190,7 +190,7 @@ describe("a relay turn can only add (whitelist)", () => {
     let made = 0;
     for (let i = 0; i < 25; i++) if ((await as("POST", "/api/conversations", { botId: voyages })).status === 200) made++;
     expect(made).toBe(20);
-    expect((await as("POST", "/api/conversations", { botId: voyages })).data.error).toContain("heure");
+    expect((await as("POST", "/api/conversations", { botId: voyages })).data.error).toContain("this hour");
     expect((await as("GET", "/api/conversations/%E0%A4%A/messages")).status).toBe(400);
     const id = (app.app.store.db.query("SELECT conversation_id FROM relay_conversations LIMIT 1").get() as { conversation_id: string }).conversation_id;
     const big = await as("POST", `/api/conversations/${id}/prompt`, JSON.stringify({ text: "Ajoute du pain", padding: "x".repeat(17 * 1024) }));
@@ -259,7 +259,7 @@ describe("a relay turn can only add (whitelist)", () => {
     await as("POST", `/api/conversations/${mine.id}/prompt`, { text: 'call:nuo/gmail_send call:nuo/memory_read call:lightpanda/goto call:nuo/reminder_add{"title":"Rendez-vous dentiste","at":"2026-11-19T09:00"}' });
     const asked = await pendingPermission(as, mine.id);
     // The watch shows what the yes adds, not the tool's name.
-    expect(asked.title).toBe("Ajouter le rappel « Rendez-vous dentiste », jeu. 19 nov., 09:00");
+    expect(asked.title).toBe('Add the reminder "Rendez-vous dentiste", Thu, Nov 19, 09:00');
     // Each refusal is in the audit log, with its tool.
     expect(auditEvents(app, "relay_refused").map((e) => [e.ok, e.detail?.split(" · ")[0]])).toEqual([
       [0, "gmail_send"],
@@ -355,7 +355,7 @@ describe("a relay turn can only add (whitelist)", () => {
     const before = app.pusher.sent.length;
     void local("POST", `/api/bots/${coach}/ask`, { prompt: "call:nuo/reminder_add", waitSeconds: 1 }, mine.id);
     await until(() => app.pusher.sent.length > before, "notification sent");
-    expect(app.pusher.sent.at(-1)!.payload.title).toContain("Coach attend ta confirmation");
+    expect(app.pusher.sent.at(-1)!.payload.title).toContain("Coach is waiting for your confirmation");
     await app.app.runner.cancel(mine.id);
   });
 

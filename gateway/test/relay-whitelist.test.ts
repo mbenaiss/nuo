@@ -48,7 +48,7 @@ describe("relay whitelist: every tool a bot can be offered is classified", () =>
     const meta = (new ClaudeRuntime() as unknown as { sessionMeta(o: unknown): any }).sessionMeta({ relay: true, instructions: "Tu es Coach." });
     expect(meta.systemPrompt).toEqual({ append: "Tu es Coach." });
     // No deny rule on reads: Claude Code would stop loading any CLAUDE.md with it.
-    expect(meta.claudeCode.options.settings).toEqual({ language: "French" });
+    expect(meta.claudeCode.options.settings).toEqual({});
     const normal = (new ClaudeRuntime() as unknown as { sessionMeta(o: unknown): any }).sessionMeta({ instructions: "Tu es Coach." });
     expect(normal.systemPrompt).toBeUndefined();
   });
@@ -104,8 +104,19 @@ describe("the agent's permission request names the tool", () => {
 });
 
 describe("the watch's yes is given for what the call adds", () => {
-  test("each add tool is summed up in words, with its time in Paris as written", () => {
+  test("in the user's language, English unless the profile's is another one", () => {
     const title = (name: string, input: Record<string, unknown>) => relayConfirmationTitle({ server: "nuo", name, input });
+    expect(title("reminder_add", { title: "Dentist appointment", at: "2026-11-19T09:00" })).toBe('Add the reminder "Dentist appointment", Thu, Nov 19, 09:00');
+    expect(title("collection_add", { collection: "Colis", values: { numero: "6A12345678901" } })).toBe('Add to Colis: "6A12345678901"');
+    expect(title("bot_ask", { bot: "Coach" })).toBe("Ask Coach");
+    expect(title("apple_event_create", { title: "Quote review", start: "2026-11-16T10:00", end: "2026-11-17T11:00", location: "Lyon", alarms: [0, 30], recurrence: { frequency: "weekly", interval: 2 }, notes: "Bring the floor plan" })).toBe(
+      'Add the event "Quote review", Mon, Nov 16, 10:00 until Tue, Nov 17, 11:00, at "Lyon", alerts at the start and 30 min before, every 2 weeks + attached text',
+    );
+    expect(relayConfirmationTitle({ server: "nuo", name: "reminder_add", input: { title: "Rendez-vous dentiste", at: "2026-11-19T09:00" } }, "fr")).toBe("Ajouter le rappel « Rendez-vous dentiste », jeu. 19 nov., 09:00");
+  });
+
+  test("each add tool is summed up in words, with its time in Paris as written", () => {
+    const title = (name: string, input: Record<string, unknown>) => relayConfirmationTitle({ server: "nuo", name, input }, "fr");
     expect(title("reminder_add", { title: "Rendez-vous dentiste", at: "2026-11-19T09:00" })).toBe("Ajouter le rappel « Rendez-vous dentiste », jeu. 19 nov., 09:00");
     expect(title("reminder_add", { title: "Acheter du pain" })).toBe("Ajouter le rappel « Acheter du pain »");
     expect(title("reminder_done", { title: "Appeler Julie Martin" })).toBe("Cocher le rappel « Appeler Julie Martin »");
@@ -159,15 +170,15 @@ describe("the add tools read only what adding needs", () => {
     d.reminders.create({ title: "Appeler le garage" });
     d.reminders.create({ title: "Payer l'URSSAF", notes: "Échéance T4" });
     const several = await runRelayTool(d, "reminder_done", { title: "appeler" });
-    expect(several).toContain("2 rappels");
+    expect(several).toContain("2 open reminders");
     expect(several).not.toContain("Julie");
     expect(several).not.toContain("garage");
     // Probing letter by letter would read every title.
-    for (const title of ["e", "Ap", " a "]) await expect(runRelayTool(d, "reminder_done", { title })).rejects.toThrow("au moins 3 caractères");
+    for (const title of ["e", "Ap", " a "]) await expect(runRelayTool(d, "reminder_done", { title })).rejects.toThrow("at least 3 characters");
     expect(d.reminders.list("done")).toEqual([]);
     expect(await runRelayTool(d, "reminder_done", { title: "julie martin" })).toContain("Appeler Julie Martin");
     expect(d.reminders.list("done").map((x) => x.title)).toEqual(["Appeler Julie Martin"]);
-    expect(await runRelayTool(d, "reminder_done", { title: "dentiste" })).toContain("Aucun rappel");
+    expect(await runRelayTool(d, "reminder_done", { title: "dentiste" })).toContain("No open reminder");
   });
 
   test("note_add writes a new note and never replaces one", async () => {
