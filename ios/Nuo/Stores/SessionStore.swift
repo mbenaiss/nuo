@@ -91,6 +91,11 @@ final class SessionStore {
             unlockObserver = NotificationCenter.default.addObserver(forName: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.restoreIfUnlocked() }
             }
+            #elseif os(macOS)
+            // A visible window stays active while the screen is locked, so no scene change follows the unlock.
+            unlockObserver = DistributedNotificationCenter.default().addObserver(forName: Self.screenUnlocked, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.restoreIfUnlocked() }
+            }
             #endif
             reauthObserver = NotificationCenter.default.addObserver(forName: AuthSession.reauthNotification, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.confirmRevocation() }
@@ -99,6 +104,10 @@ final class SessionStore {
     }
 
     @ObservationIgnored private var pairingInFlight = false
+
+    #if os(macOS)
+    static let screenUnlocked = Notification.Name("com.apple.screenIsUnlocked")
+    #endif
 
     /// Picks up the existing pairing once the Keychain can be read again; shows pairing only when it answered that
     /// this device has none. A pairing in progress has already replaced the key: nothing to pick up then.
