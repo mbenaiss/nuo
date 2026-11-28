@@ -48410,11 +48410,12 @@
       }
     },
     "calendar.name" : {
+      "comment" : "Fallback name of a calendar without a title",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "calendar.name"
+            "value" : "Calendar"
           }
         },
         "fr" : {
