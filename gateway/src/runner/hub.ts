@@ -17,6 +17,8 @@ export interface SocketData {
   channel?: "browser";
   /** Last `presence` the app sent; unknown for older apps, which never silence the other devices. */
   active?: boolean;
+  /** The Accept-Language of the upgrade request: what the gateway answers this socket in (src/i18n/language.ts). */
+  languages?: string[];
 }
 
 export class Hub {

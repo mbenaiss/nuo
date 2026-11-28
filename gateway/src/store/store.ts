@@ -3,6 +3,7 @@ import type { Database } from "bun:sqlite";
 import { uniqueSlug } from "./slug";
 import type { PushDestination } from "../push/apns";
 import type { AppNaming } from "../compat/app-names";
+import { splitTags, uiLanguage, type UiLanguage } from "../i18n/language";
 import type { Alert, Attachment, Bot, BotConfig, BotVersion, ContextUsage, Conversation, ConversationSearchHit, Message, MessageTask, MessageWake, ScheduledTask, SubagentInfo, TaskAction, TaskRun, TaskSchedule, ToolStep } from "../protocol";
 
 export const now = () => new Date().toISOString();
@@ -80,7 +81,13 @@ const parse = <T>(s: string | null | undefined): T | undefined => (s ? (JSON.par
 const opt = <T>(v: T | null | undefined): T | undefined => (v == null ? undefined : v);
 
 export class Store {
-  constructor(readonly db: Database) {}
+  private seenLanguages = new Map<string, string>();
+
+  constructor(
+    readonly db: Database,
+    /** NUO_LANGUAGE for this profile (`forcedLanguages`): wins over what the apps send. */
+    readonly forcedLanguages?: string[],
+  ) {}
 
   getMeta(key: string): string | undefined {
     return opt((this.db.query("SELECT value FROM meta WHERE key = ?").get(key) as Row | null)?.value);
@@ -192,6 +199,29 @@ export class Store {
 
   appNaming(deviceId: string): AppNaming | undefined {
     return opt((this.db.query("SELECT app_naming FROM devices WHERE id = ?").get(deviceId) as Row | null)?.app_naming);
+  }
+
+  /** Every request carries the languages: the table is written only when they change. */
+  setDeviceLanguages(deviceId: string, tags: string[]) {
+    const value = tags.join(",");
+    if (!value || this.seenLanguages.get(deviceId) === value) return;
+    this.db.query("UPDATE devices SET languages = ?1 WHERE id = ?2 AND languages IS NOT ?1").run(value, deviceId);
+    this.seenLanguages.set(deviceId, value);
+  }
+
+  /**
+   * The user's languages, most preferred first: the profile's forced ones (NUO_LANGUAGE), else those of the device
+   * seen last; empty when no app has said.
+   */
+  userLanguages(): string[] {
+    if (this.forcedLanguages) return this.forcedLanguages;
+    const r = this.db.query("SELECT languages FROM devices WHERE languages IS NOT NULL ORDER BY last_seen_at DESC NULLS LAST, created_at DESC LIMIT 1").get() as Row | null;
+    return splitTags(r?.languages);
+  }
+
+  /** The language of what the gateway writes for this profile's user by itself (notifications, notices). */
+  uiLanguage(): UiLanguage {
+    return uiLanguage(this.userLanguages());
   }
 
   // Bots

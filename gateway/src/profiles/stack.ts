@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { moveClaudeProject } from "../agents/claude";
+import { forcedLanguages } from "../i18n/language";
 import { findBinary, type AgentHost } from "../agents/host";
 import { lightpandaMcp, type McpServerSpec } from "../agents/types";
 import { AuthService, type NetworkInfo } from "../auth/service";
@@ -120,7 +121,7 @@ export class ProfileStack {
     this.owner = this.id === OWNER;
     this.host = o.host;
     prepareTree(layout, this.owner);
-    this.store = new Store(openDb(layout.data));
+    this.store = new Store(openDb(layout.data), forcedLanguages(this.id));
     this.pusher = recordingPusher(o.pusher, this.store, this.hub);
     this.latency = new LatencyRecorder(this.store);
     this.latency.attach(this.hub);

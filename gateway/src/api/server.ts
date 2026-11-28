@@ -47,6 +47,7 @@ import { RELAY_DROPPED_FIELDS, RELAY_REFUSAL, relayRefusal, relayRefusalText } f
 import { resolveBot } from "../scheduler/scheduler";
 import { isTrue, JOB_ID_HEADER } from "../transcription/service";
 import { appHeader, currentAppLink } from "../compat/app-names";
+import { parseAcceptLanguage, setRequestLanguage, uiLanguage, withLanguage } from "../i18n/language";
 import type { WakeService } from "../hooks/service";
 import { WakeSite, type WakeOptions } from "../hooks/public";
 
@@ -647,7 +648,7 @@ export function startServer(s: ServerDeps): Server<SocketData> {
     const g = await gate.check(req, path, origin);
     if (g.kind === "response") return { res: g.response, deviceId: g.ctx?.deviceId, profileId: g.ctx?.profileId };
     if (g.kind === "ws-pending") {
-      if (server.upgrade(req, { data: { deviceId: "", pending: true, zone: origin.zone, ip: origin.ip } })) return {};
+      if (server.upgrade(req, { data: { deviceId: "", pending: true, zone: origin.zone, ip: origin.ip, languages: parseAcceptLanguage(req.headers.get("accept-language")) } })) return {};
       return { res: fail(400, "expected a WebSocket upgrade") };
     }
     if (g.kind === "local") {
@@ -670,8 +671,11 @@ export function startServer(s: ServerDeps): Server<SocketData> {
     const a = apiOf(ctx.profileId);
     const ids = { deviceId: ctx.deviceId, profileId: ctx.profileId };
     if (!a) return { res: fail(401, "unauthorized"), ...ids };
+    const languages = parseAcceptLanguage(req.headers.get("accept-language"));
+    a.d.store.setDeviceLanguages(ctx.deviceId, languages);
+    if (a.d.store.forcedLanguages) setRequestLanguage(a.d.store.uiLanguage());
     const device: Device = { id: ctx.deviceId, name: ctx.deviceName };
-    const data: SocketData = { profileId: ctx.profileId, deviceId: device.id, scope: ctx.scope, expiresAt: ctx.expiresAt, zone: origin.zone, ip: origin.ip };
+    const data: SocketData = { profileId: ctx.profileId, deviceId: device.id, scope: ctx.scope, expiresAt: ctx.expiresAt, zone: origin.zone, ip: origin.ip, languages: a.d.store.forcedLanguages ?? languages };
     if (path === "/api/ws") {
       if (server.upgrade(req, { data })) return ids;
       return { res: fail(400, "expected a WebSocket upgrade"), ...ids };
@@ -759,6 +763,61 @@ export function startServer(s: ServerDeps): Server<SocketData> {
     timers.set(ws, setTimeout(() => ws.close(4401, ws.data.pending ? "authentication required" : "access token expired"), Math.max(0, Math.min(at - Date.now(), 2 ** 31 - 1))));
   };
 
+  const onMessage = async (ws: ServerWebSocket<SocketData>, raw: string | Buffer) => {
+    const viewer = viewers.get(ws);
+    if (viewer) return viewer.handle(typeof raw === "string" ? raw : raw.toString());
+    const send = (e: ServerEvent) => void ws.send(JSON.stringify(e));
+    let e: ClientEvent;
+    try {
+      e = JSON.parse(typeof raw === "string" ? raw : raw.toString());
+    } catch {
+      return send({ type: "error", message: "invalid JSON" });
+    }
+    if (ws.data.pending) {
+      const ctx = (e as { type?: string }).type === "auth" ? gate.socketToken((e as { accessToken?: unknown }).accessToken, { zone: ws.data.zone ?? "internet", ip: ws.data.ip ?? "?" }) : undefined;
+      const a = ctx ? apiOf(ctx.profileId) : undefined;
+      if (!ctx || !a) return ws.close(4401, "unauthorized");
+      if (ws.data.languages) a.d.store.setDeviceLanguages(ctx.deviceId, ws.data.languages);
+      Object.assign(ws.data, { pending: false, profileId: ctx.profileId, deviceId: ctx.deviceId, scope: ctx.scope, expiresAt: ctx.expiresAt, ...(a.d.store.forcedLanguages ? { languages: a.d.store.forcedLanguages } : {}) });
+      a.d.hub.add(ws);
+      a.sendSnapshot(ws);
+      armExpiry(ws);
+      return;
+    }
+    const a = apiOf(ws.data.profileId);
+    if (!a) return ws.close(4401, "unauthorized");
+    try {
+      const allowed = SOCKET_EVENTS[(ws.data.scope ?? "app") as Scope];
+      if (allowed !== "all" && !allowed.has(e.type)) return send({ type: "error", message: `event ${e.type} is not allowed for this token` });
+      switch (e.type) {
+        case "ping":
+          return send({ type: "pong" });
+        case "turns.sync":
+          return a.sendSnapshot(ws);
+        case "presence":
+          ws.data.active = e.active === true;
+          return;
+        case "prompt":
+          a.checkExtensionPrompt(ws.data.scope as Scope | undefined, e.conversationId);
+          await a.d.runner.prompt(e, { untrusted: isExtension(ws.data.scope as Scope | undefined) });
+          return;
+        case "cancel":
+          return await a.d.runner.cancel(e.conversationId);
+        case "permission": {
+          if (e.rule !== undefined && isExtension(ws.data.scope as Scope | undefined)) return send({ type: "error", message: "tool rules are kept from the app only" });
+          if (e.rule !== undefined && !isToolRule(e.rule)) return send({ type: "error", message: "rule must be allow or block" });
+          if (!a.d.runner.answerPermission(e.requestId, e.optionId, e.rule)) send({ type: "error", message: "unknown or expired permission request, or a rule it does not offer" });
+          return;
+        }
+        default:
+          return send({ type: "error", message: `unknown event type ${(e as { type?: string }).type}` });
+      }
+    } catch (err) {
+      const conversationId = "conversationId" in e ? e.conversationId : undefined;
+      send({ type: "error", ...(conversationId ? { conversationId } : {}), message: (err as Error)?.message ?? String(err) });
+    }
+  };
+
   return Bun.serve<SocketData>({
     port: s.port,
     hostname: s.hostname,
@@ -767,26 +826,28 @@ export function startServer(s: ServerDeps): Server<SocketData> {
       const url = new URL(req.url);
       const path = url.pathname.replace(/\/+$/, "") || "/";
       const origin = gate.origin(server.requestIP(req)?.address, req.headers);
-      // Webhooks and the mail Worker reach the gateway here, outside Cloudflare Access: these two routes and nothing
-      // else, not even the Google callback below.
-      if (wakeSite.hosts.has(requestHost(req))) return secure(await wakeSite.handle(req, path, origin.ip), origin);
-      // Google sends the user's browser here, outside Cloudflare Access and without any gateway credential.
-      if (s.google && path === CALLBACK_PATH && req.method === "GET") return googleCallback(s.google, url, (id) => s.profiles.stack(id)?.google, (id, deviceId) => s.profiles.stack(id)?.store.appNaming(deviceId));
-      // The booking hostname is a separate, unauthenticated site of the owner: it never reaches the gate or any app route.
-      const booking = s.profiles.owner.calendar;
-      if (booking.bookingHosts.has(requestHost(req))) return booking.site.handle(req, path, url, origin.ip);
-      let out: { res?: Response; deviceId?: string; profileId?: string };
-      try {
-        out = await handle(req, server, path, url, origin);
-      } catch (e) {
-        if (e instanceof HttpError) out = { res: fail(e.status, e.message) };
-        else {
-          console.error(`[api] ${req.method} ${path}:`, e);
-          out = { res: fail(500, "internal error") };
+      return withLanguage(uiLanguage(parseAcceptLanguage(req.headers.get("accept-language"))), async () => {
+        // Webhooks and the mail Worker reach the gateway here, outside Cloudflare Access: these two routes and nothing
+        // else, not even the Google callback below.
+        if (wakeSite.hosts.has(requestHost(req))) return secure(await wakeSite.handle(req, path, origin.ip), origin);
+        // Google sends the user's browser here, outside Cloudflare Access and without any gateway credential.
+        if (s.google && path === CALLBACK_PATH && req.method === "GET") return googleCallback(s.google, url, (id) => s.profiles.stack(id)?.google, (id, deviceId) => s.profiles.stack(id)?.store.appNaming(deviceId));
+        // The booking hostname is a separate, unauthenticated site of the owner: it never reaches the gate or any app route.
+        const booking = s.profiles.owner.calendar;
+        if (booking.bookingHosts.has(requestHost(req))) return booking.site.handle(req, path, url, origin.ip);
+        let out: { res?: Response; deviceId?: string; profileId?: string };
+        try {
+          out = await handle(req, server, path, url, origin);
+        } catch (e) {
+          if (e instanceof HttpError) out = { res: fail(e.status, e.message) };
+          else {
+            console.error(`[api] ${req.method} ${path}:`, e);
+            out = { res: fail(500, "internal error") };
+          }
         }
-      }
-      if (origin.zone === "internet") s.profiles.logRequest({ ip: origin.ip, method: req.method, path, status: out.res?.status ?? 101, deviceId: out.deviceId, profileId: out.profileId });
-      return out.res ? secure(out.res, origin) : undefined;
+        if (origin.zone === "internet") s.profiles.logRequest({ ip: origin.ip, method: req.method, path, status: out.res?.status ?? 101, deviceId: out.deviceId, profileId: out.profileId });
+        return out.res ? secure(out.res, origin) : undefined;
+      });
     },
     websocket: {
       idleTimeout: 120,
@@ -814,58 +875,8 @@ export function startServer(s: ServerDeps): Server<SocketData> {
         apiOf(ws.data.profileId)?.d.hub.remove(ws);
         viewers.get(ws)?.close();
       },
-      async message(ws, raw) {
-        const viewer = viewers.get(ws);
-        if (viewer) return viewer.handle(typeof raw === "string" ? raw : raw.toString());
-        const send = (e: ServerEvent) => void ws.send(JSON.stringify(e));
-        let e: ClientEvent;
-        try {
-          e = JSON.parse(typeof raw === "string" ? raw : raw.toString());
-        } catch {
-          return send({ type: "error", message: "invalid JSON" });
-        }
-        if (ws.data.pending) {
-          const ctx = (e as { type?: string }).type === "auth" ? gate.socketToken((e as { accessToken?: unknown }).accessToken, { zone: ws.data.zone ?? "internet", ip: ws.data.ip ?? "?" }) : undefined;
-          const a = ctx ? apiOf(ctx.profileId) : undefined;
-          if (!ctx || !a) return ws.close(4401, "unauthorized");
-          Object.assign(ws.data, { pending: false, profileId: ctx.profileId, deviceId: ctx.deviceId, scope: ctx.scope, expiresAt: ctx.expiresAt });
-          a.d.hub.add(ws);
-          a.sendSnapshot(ws);
-          armExpiry(ws);
-          return;
-        }
-        const a = apiOf(ws.data.profileId);
-        if (!a) return ws.close(4401, "unauthorized");
-        try {
-          const allowed = SOCKET_EVENTS[(ws.data.scope ?? "app") as Scope];
-          if (allowed !== "all" && !allowed.has(e.type)) return send({ type: "error", message: `event ${e.type} is not allowed for this token` });
-          switch (e.type) {
-            case "ping":
-              return send({ type: "pong" });
-            case "turns.sync":
-              return a.sendSnapshot(ws);
-            case "presence":
-              ws.data.active = e.active === true;
-              return;
-            case "prompt":
-              a.checkExtensionPrompt(ws.data.scope as Scope | undefined, e.conversationId);
-              await a.d.runner.prompt(e, { untrusted: isExtension(ws.data.scope as Scope | undefined) });
-              return;
-            case "cancel":
-              return await a.d.runner.cancel(e.conversationId);
-            case "permission": {
-              if (e.rule !== undefined && isExtension(ws.data.scope as Scope | undefined)) return send({ type: "error", message: "tool rules are kept from the app only" });
-              if (e.rule !== undefined && !isToolRule(e.rule)) return send({ type: "error", message: "rule must be allow or block" });
-              if (!a.d.runner.answerPermission(e.requestId, e.optionId, e.rule)) send({ type: "error", message: "unknown or expired permission request, or a rule it does not offer" });
-              return;
-            }
-            default:
-              return send({ type: "error", message: `unknown event type ${(e as { type?: string }).type}` });
-          }
-        } catch (err) {
-          const conversationId = "conversationId" in e ? e.conversationId : undefined;
-          send({ type: "error", ...(conversationId ? { conversationId } : {}), message: (err as Error)?.message ?? String(err) });
-        }
+      message(ws, raw) {
+        return withLanguage(uiLanguage(ws.data.languages), () => onMessage(ws, raw));
       },
     },
   });

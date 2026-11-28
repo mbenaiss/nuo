@@ -208,6 +208,8 @@ export const MIGRATIONS: Migration[] = [
   `ALTER TABLE messages ADD COLUMN wake TEXT;`,
   // NULL for the devices paired before it: their apps used the earlier name (src/compat/app-names.ts).
   `ALTER TABLE devices ADD COLUMN app_naming TEXT;`,
+  // The languages of the device's last request (`fr-FR,en`), from its Accept-Language (src/i18n/language.ts).
+  `ALTER TABLE devices ADD COLUMN languages TEXT;`,
 ];
 
 export function openDb(dataDir: string): Database {
